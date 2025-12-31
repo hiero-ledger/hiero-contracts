@@ -1,0 +1,115 @@
+name: Reusable test workflow
+
+on:
+  workflow_call:
+    inputs:
+      testfilter:
+        required: true
+        type: string
+      networkTag:
+        required: false
+        type: string
+      mirrorTag:
+        required: false
+        type: string
+      relayTag:
+        required: false
+        type: string
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+jobs:
+  acceptance-workflow:
+    runs-on: smart-contracts-linux-large
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Install Docker Compose Plugin
+        run: |
+          sudo curl -fLo /usr/local/lib/docker/cli-plugins/docker-compose https://github.com/docker/compose/releases/download/v2.29.1/docker-compose-linux-x86_64
+          sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+      - name: Use Node.js [20]
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+          #cache: npm Disabling this because it causes the workflow to hang and eventually timeout
+
+      - name: Create .env file
+        run: cp .env.example .env
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate falcon-values config file
+        run: |
+          cat > .github/falcon.yml <<EOF
+          network:
+            --release-tag: "${{ inputs.networkTag || 'v0.65.0' }}"
+            --node-aliases: "node1"
+          
+          setup:
+            --release-tag: "${{ inputs.networkTag || 'v0.65.0' }}"
+            --node-aliases: "node1"
+          
+          consensusNode:
+            --node-aliases: "node1"
+            --force-port-forward: true
+          
+          mirrorNode:
+            --enable-ingress: true
+            --pinger: true
+          
+          explorerNode:
+            --enable-ingress: true
+          
+          relayNode:
+            --node-aliases: "node1"
+          EOF
+
+      - name: Start the local node
+        run: npx @hashgraph/solo one-shot falcon deploy --values-file falcon.yml
+        timeout-minutes: 5
+
+      - name: Run the test in ${{ inputs.testfilter }}
+        run: npx hardhat test --grep ${{ inputs.testfilter }}
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: Test Results (${{ inputs.testfilter }})
+          path: test-*.xml
+
+      - name: Publish Test Report
+        uses: step-security/publish-unit-test-result-action@43e0c963eea0ace6eca353cb1d814d857fee5c53 # v2.20.2
+        if: ${{ !cancelled() }}
+        with:
+          check_name: 'Unit Tests results' # Set to empty to disable check run
+          comment_mode: errors
+          json_thousands_separator: ','
+          files: 'test-*.xml'
+
+      - name: Stop the local node
+        if: ${{ !cancelled() }}
+        run: npx @hashgraph/solo one-shot single destroy
