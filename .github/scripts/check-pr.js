@@ -229,11 +229,11 @@ async function processReferencedPR(prRef, contributors) {
                             `Associated issue #${issueRef.issueNumber} has no labels.`
                         );
                     }
-                    if (!issueMilestone) {
+                    /*if (!issueMilestone) {
                         throw new Error(
                             `Associated issue #${issueRef.issueNumber} has no milestone.`
                         );
-                    }
+                    }*/
                 }
             } else {
                 console.log(
