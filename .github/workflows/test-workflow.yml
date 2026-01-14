@@ -25,7 +25,7 @@ permissions:
 
 jobs:
   acceptance-workflow:
-    runs-on: smart-contracts-linux-large
+    runs-on: hl-contr-lin-md
     timeout-minutes: 35
     strategy:
       fail-fast: false
