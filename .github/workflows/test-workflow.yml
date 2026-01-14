@@ -88,7 +88,7 @@ jobs:
           EOF
 
       - name: Start the local node
-        run: npx @hashgraph/solo one-shot falcon deploy --values-file falcon.yml
+        run: npx @hashgraph/solo@0.52.0 one-shot falcon deploy --values-file falcon.yml
         timeout-minutes: 5
 
       - name: Run the test in ${{ inputs.testfilter }}
@@ -112,4 +112,4 @@ jobs:
 
       - name: Stop the local node
         if: ${{ !cancelled() }}
-        run: npx @hashgraph/solo one-shot single destroy
+        run: npx @hashgraph/solo@0.52.0 one-shot single destroy
