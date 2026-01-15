@@ -144,9 +144,9 @@ async function processIssueReferencesInText(text) {
                     if (!issueLabels || issueLabels.length === 0) {
                         throw new Error(`Associated issue #${issueRef.issueNumber} has no labels.`);
                     }
-                    if (!issueMilestone) {
-                        throw new Error(`Associated issue #${issueRef.issueNumber} has no milestone.`);
-                    }
+                //    if (!issueMilestone) {
+                //        throw new Error(`Associated issue #${issueRef.issueNumber} has no milestone.`);
+                //    }
                 }
             } else {
                 console.log(
