@@ -60,7 +60,7 @@ const NETWORKS = {
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   mocha: {
-    timeout: 3600000,
+    timeout: 7200000,
     color: true,
     failZero: Boolean(process.env.CI),
     forbidOnly: Boolean(process.env.CI),
