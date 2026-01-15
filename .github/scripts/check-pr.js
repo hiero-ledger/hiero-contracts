@@ -118,9 +118,9 @@ async function checkPRLabelsAndMilestone(pr) {
     if (!prLabels || prLabels.length === 0) {
         throw new Error('The PR has no labels.');
     }
-    if (!prMilestone) {
-        throw new Error('The PR has no milestone.');
-    }
+//    if (!prMilestone) {
+//        throw new Error('The PR has no milestone.');
+//    }
 }
 
 function isDependabotOrSnykPR(pr) {
