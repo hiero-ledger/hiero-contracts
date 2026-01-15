@@ -97,9 +97,9 @@ jobs:
           verbosity: 3
           wait: 120s
 
-      - name: Start the local node
+      - name: Start the solo node
         run: npx @hashgraph/solo@0.52.0 one-shot falcon deploy --values-file .github/falcon.yml
-        timeout-minutes: 5
+        timeout-minutes: 10
 
       - name: Run the test in ${{ inputs.testfilter }}
         run: npx hardhat test --grep ${{ inputs.testfilter }}
