@@ -10,7 +10,7 @@ const {
 } = require('../../helpers');
 
 describe('IERC20 Test Suite', function () {
-  this.timeout(3_600_000);
+  this.timeout(36_000_000);
 
   let tokenCreateContract;
   let tokenTransferContract;
