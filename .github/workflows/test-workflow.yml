@@ -73,9 +73,9 @@ jobs:
 
       - name: Start the solo node
         run: npx @hashgraph/solo@0.52.0 one-shot single deploy
-        timeout-minutes: 10
+        timeout-minutes: 15
 
-      - name: Prepare the the tests config
+      - name: Initialize test environment variables
         run: cp local.env .env
 
       - name: Run the test in ${{ inputs.testfilter }}
