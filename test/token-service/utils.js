@@ -555,11 +555,9 @@ class Utils {
     operatorKey =
       operatorKey || hre.config.networks[network].sdkClient.operatorKey;
 
-    const client = Client.forNetwork(hederaNetwork)
+    return Client.forNetwork(hederaNetwork)
       .setMirrorNetwork(mirrorNode)
       .setOperator(operatorId, operatorKey);
-
-    return client;
   }
 
   static async getAccountId(evmAddress, client) {
@@ -638,6 +636,7 @@ class Utils {
         pkSigner.publicKey.toEvmAddress(),
         clientGenesis
       );
+      clientGenesis.close();
       const clientSigner = await Utils.createSDKClient(accountId, pkSigner);
 
       const keyList = new KeyList(
@@ -657,6 +656,7 @@ class Utils {
           .freezeWith(clientSigner)
           .sign(pkSigner)
       ).execute(clientSigner);
+      clientSigner.close();
     }
   }
 
@@ -666,6 +666,7 @@ class Utils {
     const tokenBalance = await new AccountBalanceQuery()
       .setAccountId(accountId)
       .execute(client);
+    client.close();
     return tokenBalance;
   }
 
@@ -718,6 +719,8 @@ class Utils {
     await (
       await tx.freezeWith(clientSigner0).sign(pkSigners[0])
     ).execute(clientSigner0);
+    clientSigner0.close();
+    clientGenesis.close();
   }
 
   static getCurrentNetwork() {
@@ -753,6 +756,7 @@ class Utils {
     const signTx = await transaction.sign(signerPk);
     const txResponse = await signTx.execute(signerClient);
     await txResponse.getReceipt(signerClient);
+    signerClient.close();
   }
 
   static defaultKeyValues = {
@@ -1022,6 +1026,7 @@ class Utils {
     }
 
     const { scheduleId } = await (await tx.execute(client)).getReceipt(client);
+    client.client();
 
     return { scheduleId, transferAmountAsWeibar };
   };
