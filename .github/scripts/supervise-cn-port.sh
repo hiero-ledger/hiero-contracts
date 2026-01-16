@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# Forward MirrorNode port
+kubectl port-forward "$(kubectl get pods -A | grep 'mirror-1-rest-' | awk '{print $2}')" \
+  -n "$(kubectl get namespaces | grep solo | grep -v 'solo-setup' | awk '{print $1}')" \
+  5551:5551 >/dev/null 2>&1
+
 # NOTE:
 # I’m running solo with `force port enabled = true`.
 # In GitHub Actions, the port-forward stops abruptly, which shouldn’t happen.
