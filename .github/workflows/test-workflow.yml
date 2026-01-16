@@ -97,6 +97,6 @@ jobs:
           json_thousands_separator: ','
           files: 'test-*.xml'
 
-      - name: Stop the local node
+      - name: Stop solo
         if: ${{ !cancelled() }}
         run: npx @hashgraph/solo@0.52.0 one-shot single destroy
