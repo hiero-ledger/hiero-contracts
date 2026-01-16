@@ -56,7 +56,6 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
-          #cache: npm Disabling this because it causes the workflow to hang and eventually timeout
 
       - name: Create .env file
         run: cp .env.example .env
@@ -111,6 +110,29 @@ jobs:
 
       - name: Run the test in ${{ inputs.testfilter }}
         run: npx hardhat test --grep ${{ inputs.testfilter }}
+
+      - name: Debug consensus node pod
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          NS="$(kubectl get namespaces | grep solo | grep -v 'solo-setup' | awk '{print $1}')"
+          POD="network-node1-0"
+          
+          echo "== Pod describe ($POD) =="
+          kubectl describe pod "$POD" -n "$NS"
+          
+          echo "== Pod status (restart counts + last state) =="
+          kubectl get pod "$POD" -n "$NS" -o jsonpath='{range .status.containerStatuses[*]}{.name}{"\tready="}{.ready}{"\trestarts="}{.restartCount}{"\tlastFinished="}{.lastState.terminated.finishedAt}{"\tlastReason="}{.lastState.terminated.reason}{"\tlastExit="}{.lastState.terminated.exitCode}{"\n"}{end}'; echo
+          
+          echo "== Events (namespace, sorted) =="
+          kubectl get events -n "$NS" --sort-by=.lastTimestamp
+          
+          echo "== Current logs (pod, all containers) =="
+          kubectl logs -n "$NS" "$POD" --all-containers --timestamps --tail=300
+          
+          echo "== Previous logs (if restarted) =="
+          kubectl logs -n "$NS" "$POD" --all-containers --timestamps --tail=300 --previous
 
       - name: Upload Test Results
         if: always()
