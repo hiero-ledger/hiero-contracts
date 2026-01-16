@@ -72,7 +72,7 @@ jobs:
           wait: 120s
 
       - name: Start the solo node
-        run: npx @hashgraph/solo@0.52.0 one-shot single deploy --dev --force-port-forward=false
+        run: npx @hashgraph/solo@0.52.0 one-shot single deploy --dev
         timeout-minutes: 15
 
       - name: Initialize test environment variables
