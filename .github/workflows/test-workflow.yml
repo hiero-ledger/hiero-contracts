@@ -111,29 +111,6 @@ jobs:
       - name: Run the test in ${{ inputs.testfilter }}
         run: npx hardhat test --grep ${{ inputs.testfilter }}
 
-      - name: Debug consensus node pod
-        if: always()
-        shell: bash
-        run: |
-          set +e
-          NS="$(kubectl get namespaces | grep solo | grep -v 'solo-setup' | awk '{print $1}')"
-          POD="network-node1-0"
-          
-          echo "== Pod describe ($POD) =="
-          kubectl describe pod "$POD" -n "$NS"
-          
-          echo "== Pod status (restart counts + last state) =="
-          kubectl get pod "$POD" -n "$NS" -o jsonpath='{range .status.containerStatuses[*]}{.name}{"\tready="}{.ready}{"\trestarts="}{.restartCount}{"\tlastFinished="}{.lastState.terminated.finishedAt}{"\tlastReason="}{.lastState.terminated.reason}{"\tlastExit="}{.lastState.terminated.exitCode}{"\n"}{end}'; echo
-          
-          echo "== Events (namespace, sorted) =="
-          kubectl get events -n "$NS" --sort-by=.lastTimestamp
-          
-          echo "== Current logs (pod, all containers) =="
-          kubectl logs -n "$NS" "$POD" --all-containers --timestamps --tail=300
-          
-          echo "== Previous logs (if restarted) =="
-          kubectl logs -n "$NS" "$POD" --all-containers --timestamps --tail=300 --previous
-
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
