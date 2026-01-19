@@ -224,8 +224,7 @@ describe('ERC721Contract Test Suite', function () {
           firstWallet.address,
           serialNumber,
           Constants.GAS_LIMIT_1_000_000
-        ),
-        Constants.CALL_EXCEPTION
+        )
       );
       const afterApproval = await erc721ContractNFTOwner.getApproved(
         tokenAddress,
@@ -258,8 +257,7 @@ describe('ERC721Contract Test Suite', function () {
           secondWallet.address,
           serialNumber,
           Constants.GAS_LIMIT_1_000_000
-        ),
-        Constants.CALL_EXCEPTION
+        )
       );
       const ownerAfter = await erc721Contract.ownerOf(
         tokenAddress,

@@ -654,6 +654,8 @@ class Utils {
           .freezeWith(clientSigner)
           .sign(pkSigner)
       ).execute(clientSigner);
+
+      return [clientGenesis, clientSigner];
     }
   }
 
@@ -715,6 +717,8 @@ class Utils {
     await (
       await tx.freezeWith(clientSigner0).sign(pkSigners[0])
     ).execute(clientSigner0);
+
+    return [clientGenesis, clientSigner0];
   }
 
   static getCurrentNetwork() {
@@ -1019,7 +1023,6 @@ class Utils {
     }
 
     const { scheduleId } = await (await tx.execute(client)).getReceipt(client);
-    client.client();
 
     return { scheduleId, transferAmountAsWeibar };
   };
