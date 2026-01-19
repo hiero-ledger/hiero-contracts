@@ -24,13 +24,20 @@ jobs:
     name: ERC20 Contract Test Suite
     uses: ./.github/workflows/test-workflow.yml
     with:
-      testfilter: ERC20
+      testfilter: ERC20Contract
+
+  IERC20:
+    name: IERC20 Test Suite
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: IERC20
 
   PublishResults:
     name: Publish Results
     if: ${{ !cancelled() }}
     needs:
       - ERC20Contract
+      - IERC20
 
     runs-on: hl-contr-lin-md
     steps:
@@ -51,3 +58,4 @@ jobs:
           check_name: Test Results
           json_thousands_separator: ','
           junit_files: 'test-*.xml'
+

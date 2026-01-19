@@ -39,10 +39,6 @@ describe('ERC20Contract Test Suite', function () {
     await utils.grantTokenKyc(tokenCreateContract, tokenAddress);
   });
 
-  after(async function () {
-    (await utils.createSDKClient()).close();
-  });
-
   it('should be able to get token name', async function () {
     const name = await erc20Contract.name(tokenAddress);
     expect(name).to.equal(Constants.TOKEN_NAME);
