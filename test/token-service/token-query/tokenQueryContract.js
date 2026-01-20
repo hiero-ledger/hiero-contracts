@@ -4,6 +4,7 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const utils = require('../utils');
 const Constants = require('../../constants');
+const Hapi = require("../hapi");
 
 describe('TokenQueryContract Test Suite', function () {
   const TX_SUCCESS_CODE = 22;
@@ -15,12 +16,14 @@ describe('TokenQueryContract Test Suite', function () {
   let nftTokenAddress;
   let mintedTokenSerialNumber;
   let signers;
+  let hapi;
 
   before(async function () {
+    hapi = new Hapi();
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenQueryContract = await utils.deployTokenQueryContract();
-    await utils.updateAccountKeysViaHapi([
+    await hapi.updateAccountKeys([
       await tokenCreateContract.getAddress(),
       await tokenQueryContract.getAddress(),
     ]);
@@ -29,7 +32,7 @@ describe('TokenQueryContract Test Suite', function () {
       tokenCreateContract,
       await tokenCreateContract.getAddress()
     );
-    await utils.updateTokenKeysViaHapi(tokenAddress, [
+    await hapi.updateTokenKeys(tokenAddress, [
       await tokenCreateContract.getAddress(),
       await tokenQueryContract.getAddress(),
     ]);
@@ -61,6 +64,10 @@ describe('TokenQueryContract Test Suite', function () {
     );
 
     await utils.grantTokenKyc(tokenCreateContract, nftTokenAddress);
+  });
+
+  after(function () {
+    hapi.client.close();
   });
 
   it('should query allowance', async function () {

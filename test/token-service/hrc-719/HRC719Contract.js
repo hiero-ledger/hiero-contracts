@@ -6,6 +6,7 @@ const { expect } = require('chai');
 const hre = require('hardhat');
 const { ethers } = hre;
 const utils = require('../utils');
+const Hapi = require("../hapi");
 
 describe('@HRC-719 Test Suite', function () {
   let tokenCreateContract;
@@ -14,6 +15,7 @@ describe('@HRC-719 Test Suite', function () {
   let signers;
   let hrcToken;
   let IHRC719;
+  let hapi;
 
   const parseCallResponseEventData = async (tx) => {
     return (await tx.wait()).logs.filter(
@@ -27,9 +29,10 @@ describe('@HRC-719 Test Suite', function () {
   };
 
   before(async function () {
+    hapi = new Hapi();
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
-    await utils.updateAccountKeysViaHapi([
+    await hapi.updateAccountKeys([
       await tokenCreateContract.getAddress(),
     ]);
 
@@ -46,12 +49,16 @@ describe('@HRC-719 Test Suite', function () {
       tokenCreateContract,
       signers[0].address
     );
-    await utils.updateTokenKeysViaHapi(tokenAddress, [
+    await hapi.updateTokenKeys(tokenAddress, [
       await tokenCreateContract.getAddress(),
     ]);
 
     // create a contract object for the token
     hrcToken = new Contract(tokenAddress, IHRC719, signers[0]);
+  });
+
+  after(function () {
+    hapi.client.close();
   });
 
   describe('HRC719 wrapper contract', () => {

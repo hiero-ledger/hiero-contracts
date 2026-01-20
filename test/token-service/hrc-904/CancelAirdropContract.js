@@ -4,6 +4,7 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const utils = require('../utils');
 const Constants = require('../../constants');
+const Hapi = require('../../token-service/hapi');
 
 describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
   let airdropContract;
@@ -14,9 +15,11 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
   let signers;
   let owner;
   let receiver;
+  let hapi;
   let contractAddresses;
 
   before(async function () {
+    hapi = new Hapi();
     signers = await ethers.getSigners();
     airdropContract = await utils.deployContract(Constants.Contract.Airdrop);
     cancelAirdropContract = await utils.deployContract(
@@ -47,12 +50,13 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       await cancelAirdropContract.getAddress(),
     ];
 
-    await utils.updateAccountKeysViaHapi(contractAddresses);
+    await hapi.updateAccountKeys(contractAddresses);
 
     tokenAddress = await utils.setupToken(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
 
     const IHRC904AccountFacade = new ethers.Interface(
@@ -76,13 +80,18 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
     await disableAutoAssociations.wait();
   });
 
+  after(function () {
+    hapi.client.close();
+  });
+
   it('should cancel a single pending fungible token airdrop', async function () {
     const ftAmount = BigInt(1);
     const sender = signers[0].address;
     const tokenAddress = await utils.setupToken(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
 
     const initialBalance = await erc20Contract.balanceOf(
@@ -122,7 +131,8 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
     const nftTokenAddress = await utils.setupNft(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
 
     const serialNumber = await utils.mintNFTToAddress(
@@ -166,7 +176,8 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
         tokenCreateContract,
         owner,
         airdropContract,
-        receiver
+        receiver,
+        hapi
       );
 
     const initialBalances = await Promise.all(
@@ -193,7 +204,8 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
     const tokenAddress = await utils.setupToken(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
 
     const tx = await cancelAirdropContract.cancelAirdrop(
@@ -211,7 +223,8 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
     const tokenAddress = await utils.setupToken(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
 
     const tx = await cancelAirdropContract.cancelAirdrop(
@@ -229,7 +242,8 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
     const tokenAddress = await utils.setupToken(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
 
     const tx = await cancelAirdropContract.cancelAirdrop(
@@ -279,7 +293,8 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
         tokenCreateContract,
         owner,
         airdropContract,
-        receiver
+        receiver,
+        hapi
       );
 
     const tx = await cancelAirdropContract.cancelMultipleAirdrops(
@@ -298,7 +313,8 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
     const nftTokenAddress = await utils.setupNft(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
     const invalidSerialNumber = 999;
 

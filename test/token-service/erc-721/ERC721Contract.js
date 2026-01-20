@@ -4,6 +4,7 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const utils = require('../utils');
 const Constants = require('../../constants');
+const Hapi = require("../hapi");
 
 describe('ERC721Contract Test Suite', function () {
   let tokenCreateContract;
@@ -13,12 +14,14 @@ describe('ERC721Contract Test Suite', function () {
   let mintedTokenSerialNumber;
   let nftInitialOwnerAddress;
   let signers, firstWallet, secondWallet;
+  let hapi;
 
   before(async function () {
+    hapi = new Hapi();
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenTransferContract = await utils.deployTokenTransferContract();
-    await utils.updateAccountKeysViaHapi([
+    await hapi.updateAccountKeys([
       await tokenCreateContract.getAddress(),
       await tokenTransferContract.getAddress(),
     ]);
@@ -27,7 +30,7 @@ describe('ERC721Contract Test Suite', function () {
       tokenCreateContract,
       signers[0].address
     );
-    await utils.updateTokenKeysViaHapi(tokenAddress, [
+    await hapi.updateTokenKeys(tokenAddress, [
       await tokenCreateContract.getAddress(),
       await tokenTransferContract.getAddress(),
     ]);
@@ -64,6 +67,10 @@ describe('ERC721Contract Test Suite', function () {
       Constants.GAS_LIMIT_1_000_000
     );
     nftInitialOwnerAddress = signers[0].address;
+  });
+
+  after(function () {
+    hapi.client.close();
   });
 
   it('should be able to get token name', async function () {
@@ -224,8 +231,7 @@ describe('ERC721Contract Test Suite', function () {
           firstWallet.address,
           serialNumber,
           Constants.GAS_LIMIT_1_000_000
-        ),
-        Constants.CALL_EXCEPTION
+        )
       );
       const afterApproval = await erc721ContractNFTOwner.getApproved(
         tokenAddress,
@@ -258,8 +264,7 @@ describe('ERC721Contract Test Suite', function () {
           secondWallet.address,
           serialNumber,
           Constants.GAS_LIMIT_1_000_000
-        ),
-        Constants.CALL_EXCEPTION
+        )
       );
       const ownerAfter = await erc721Contract.ownerOf(
         tokenAddress,

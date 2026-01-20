@@ -889,7 +889,7 @@ class Utils {
     return BigInt(precompileAction.result_data).toString();
   }
 
-  static async setupNft(tokenCreateContract, owner, contractAddresses) {
+  static async setupNft(tokenCreateContract, owner, contractAddresses, hapi) {
     const nftTokenAddress =
       await this.createNonFungibleTokenWithSECP256K1AdminKeyWithoutKYC(
         tokenCreateContract,
@@ -897,7 +897,7 @@ class Utils {
         this.getSignerCompressedPublicKey()
       );
 
-    await this.updateTokenKeysViaHapi(
+    await hapi.updateTokenKeys(
       nftTokenAddress,
       contractAddresses,
       true,
@@ -918,7 +918,7 @@ class Utils {
     return nftTokenAddress;
   }
 
-  static async setupToken(tokenCreateContract, owner, contractAddresses) {
+  static async setupToken(tokenCreateContract, owner, contractAddresses, hapi) {
     const tokenAddress =
       await this.createFungibleTokenWithSECP256K1AdminKeyWithoutKYC(
         tokenCreateContract,
@@ -926,7 +926,7 @@ class Utils {
         this.getSignerCompressedPublicKey()
       );
 
-    await this.updateTokenKeysViaHapi(
+    await hapi.updateTokenKeys(
       tokenAddress,
       contractAddresses,
       true,
@@ -960,7 +960,8 @@ class Utils {
     tokenCreateContract,
     owner,
     airdropContract,
-    receiver
+    receiver,
+    hapi
   ) {
     const senders = [];
     const receivers = [];
@@ -971,7 +972,7 @@ class Utils {
     for (let i = 0; i < count; i++) {
       const tokenAddress = await this.setupToken(tokenCreateContract, owner, [
         await airdropContract.getAddress(),
-      ]);
+      ], hapi);
       const ftAmount = BigInt(i + 1); // Different amount for each airdrop
 
       const airdropTx = await airdropContract.tokenAirdrop(

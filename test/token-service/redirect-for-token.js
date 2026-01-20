@@ -4,6 +4,7 @@ const { expect } = require('chai');
 const utils = require('./utils');
 const Constants = require('../constants');
 const hre = require('hardhat');
+const Hapi = require("./hapi");
 const { ethers } = hre;
 
 describe('RedirectForToken Test Suite', function () {
@@ -12,6 +13,7 @@ describe('RedirectForToken Test Suite', function () {
   let tokenCreateContract;
   let tokenAddress;
   let IERC20;
+  let hapi;
 
   const parseCallResponseEventData = async (tx) => {
     return (await tx.wait()).logs.filter(
@@ -34,6 +36,7 @@ describe('RedirectForToken Test Suite', function () {
   };
 
   before(async () => {
+    hapi = new Hapi();
     signers = await ethers.getSigners();
 
     const tokenCreateFactory = await ethers.getContractFactory(
@@ -47,7 +50,7 @@ describe('RedirectForToken Test Suite', function () {
       await tokenCreateTx.getAddress()
     );
 
-    await utils.updateAccountKeysViaHapi([
+    await hapi.updateAccountKeys([
       await tokenCreateContract.getAddress(),
     ]);
 
@@ -66,7 +69,7 @@ describe('RedirectForToken Test Suite', function () {
       (e) => e.fragment.name === Constants.Events.CreatedToken
     )[0].args.tokenAddress;
 
-    await utils.updateTokenKeysViaHapi(tokenAddress, [
+    await hapi.updateTokenKeys(tokenAddress, [
       await tokenCreateContract.getAddress(),
     ]);
 
@@ -80,6 +83,10 @@ describe('RedirectForToken Test Suite', function () {
     IERC20 = new ethers.Interface(
       (await hre.artifacts.readArtifact('ERC20')).abi
     );
+  });
+
+  after(function () {
+    hapi.client.close();
   });
 
   it('should be able to execute name()', async function () {

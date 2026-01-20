@@ -5,6 +5,7 @@ const { ethers } = require('hardhat');
 const utils = require('../utils');
 const Constants = require('../../constants');
 const { Contract } = require('ethers');
+const Hapi = require("../hapi");
 
 describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
   let airdropContract;
@@ -24,8 +25,10 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
   let erc20Contract;
   let erc721Contract;
   let contractAddresses;
+  let hapi;
 
   before(async function () {
+    hapi = new Hapi();
     signers = await ethers.getSigners();
     airdropContract = await utils.deployContract(Constants.Contract.Airdrop);
     tokenCreateContract = await utils.deployContract(
@@ -49,7 +52,7 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
       Constants.Contract.ERC721Contract
     );
 
-    await utils.updateAccountKeysViaHapi([
+    await hapi.updateAccountKeys([
       await airdropContract.getAddress(),
       await tokenCreateContract.getAddress(),
     ]);
@@ -62,12 +65,14 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
     tokenAddress = await utils.setupToken(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
     nftTokenAddress = await utils.setupNft(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
 
     const IHRC904AccountFacade = new ethers.Interface(
@@ -117,6 +122,10 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
         }
       );
     await disableAutoAssociations.wait();
+  });
+
+  after(function () {
+    hapi.client.close();
   });
 
   // Positive tests
@@ -298,7 +307,8 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
     const nftTokenAddress = await utils.setupNft(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
     const mintedTokenSerialNumber = await utils.mintNFTToAddress(
       tokenCreateContract,
@@ -342,7 +352,8 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
     const nftTokenAddress = await utils.setupNft(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
     let serialNumbers = [];
     for (let i = 0; i < 10; i++) {
@@ -483,7 +494,8 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
     const nftTokenAddress = await utils.setupNft(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
     const mintedTokenSerialNumber = await utils.mintNFTToAddress(
       tokenCreateContract,

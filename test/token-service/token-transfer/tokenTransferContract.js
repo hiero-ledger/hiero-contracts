@@ -8,6 +8,7 @@ const {
   pollForNewERC20Balance,
   pollForNewSignerBalanceUsingProvider,
 } = require('../../helpers');
+const Hapi = require("../hapi");
 
 describe('TokenTransferContract Test Suite', function () {
   const TX_SUCCESS_CODE = 22;
@@ -21,15 +22,17 @@ describe('TokenTransferContract Test Suite', function () {
   let nftTokenAddress;
   let mintedTokenSerialNumber;
   let signers;
+  let hapi;
 
   before(async function () {
+    hapi = new Hapi();
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenQueryContract = await utils.deployTokenQueryContract();
     tokenTransferContract = await utils.deployTokenTransferContract();
     erc20Contract = await utils.deployERC20Contract();
     erc721Contract = await utils.deployERC721Contract();
-    await utils.updateAccountKeysViaHapi([
+    await hapi.updateAccountKeys([
       await tokenCreateContract.getAddress(),
       await tokenQueryContract.getAddress(),
       await tokenTransferContract.getAddress(),
@@ -39,7 +42,7 @@ describe('TokenTransferContract Test Suite', function () {
       signers[0].address,
       utils.getSignerCompressedPublicKey()
     );
-    await utils.updateTokenKeysViaHapi(tokenAddress, [
+    await hapi.updateTokenKeys(tokenAddress, [
       await tokenCreateContract.getAddress(),
       await tokenQueryContract.getAddress(),
       await tokenTransferContract.getAddress(),
@@ -49,7 +52,7 @@ describe('TokenTransferContract Test Suite', function () {
       signers[0].address,
       utils.getSignerCompressedPublicKey()
     );
-    await utils.updateTokenKeysViaHapi(nftTokenAddress, [
+    await hapi.updateTokenKeys(nftTokenAddress, [
       await tokenCreateContract.getAddress(),
       await tokenQueryContract.getAddress(),
       await tokenTransferContract.getAddress(),

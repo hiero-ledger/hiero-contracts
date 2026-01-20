@@ -8,6 +8,7 @@ const {
   pollForNewBalance,
   pollForNewSignerBalance,
 } = require('../../helpers');
+const Hapi = require("../hapi");
 
 describe('IERC20 Test Suite', function () {
   let tokenCreateContract;
@@ -15,14 +16,16 @@ describe('IERC20 Test Suite', function () {
   let tokenAddress;
   let IERC20;
   let signers;
+  let hapi;
   const TOTAL_SUPPLY = BigInt(10000000000);
   const AMOUNT = BigInt(33);
 
   before(async function () {
+    hapi = new Hapi();
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenTransferContract = await utils.deployTokenTransferContract();
-    await utils.updateAccountKeysViaHapi([
+    await hapi.updateAccountKeys([
       await tokenCreateContract.getAddress(),
       await tokenTransferContract.getAddress(),
     ]);
@@ -30,7 +33,7 @@ describe('IERC20 Test Suite', function () {
       tokenCreateContract,
       signers[0].address
     );
-    await utils.updateTokenKeysViaHapi(tokenAddress, [
+    await hapi.updateTokenKeys(tokenAddress, [
       await tokenCreateContract.getAddress(),
       await tokenTransferContract.getAddress(),
     ]);
@@ -44,6 +47,10 @@ describe('IERC20 Test Suite', function () {
       Constants.Contract.ERC20Mock,
       tokenAddress
     );
+  });
+
+  after(function () {
+    hapi.client.close();
   });
 
   it('should be able to get token name', async function () {
