@@ -24,26 +24,16 @@ describe('TokenCreateContract Test Suite', function () {
   let nftTokenAddress;
   let signers;
 
-  let connectionsToClose = [];
-
   before(async function () {
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenTransferContract = await utils.deployTokenTransferContract();
     tokenManagmentContract = await utils.deployTokenManagementContract();
-    const closeLater = (connections) => {
-      connectionsToClose = [
-        ...connectionsToClose,
-        ...connections,
-      ]
-    };
-    closeLater(
-      await utils.updateAccountKeysViaHapi([
-        await tokenCreateContract.getAddress(),
-        await tokenTransferContract.getAddress(),
-        await tokenManagmentContract.getAddress(),
-      ])
-    );
+    await utils.updateAccountKeysViaHapi([
+      await tokenCreateContract.getAddress(),
+      await tokenTransferContract.getAddress(),
+      await tokenManagmentContract.getAddress(),
+    ]);
     erc20Contract = await utils.deployERC20Contract();
     erc721Contract = await utils.deployERC721Contract();
     tokenAddress = await utils.createFungibleTokenWithSECP256K1AdminKey(
@@ -51,26 +41,21 @@ describe('TokenCreateContract Test Suite', function () {
       signers[0].address,
       utils.getSignerCompressedPublicKey()
     );
-    closeLater(
-      await utils.updateTokenKeysViaHapi(tokenAddress, [
-        await tokenCreateContract.getAddress(),
-        await tokenTransferContract.getAddress(),
-        await tokenManagmentContract.getAddress(),
-      ])
-    );
-
+    await utils.updateTokenKeysViaHapi(tokenAddress, [
+      await tokenCreateContract.getAddress(),
+      await tokenTransferContract.getAddress(),
+      await tokenManagmentContract.getAddress(),
+    ]);
     nftTokenAddress = await utils.createNonFungibleTokenWithSECP256K1AdminKey(
       tokenCreateContract,
       signers[0].address,
       utils.getSignerCompressedPublicKey()
     );
-    closeLater(
-      await utils.updateTokenKeysViaHapi(nftTokenAddress, [
-        await tokenCreateContract.getAddress(),
-        await tokenTransferContract.getAddress(),
-        await tokenManagmentContract.getAddress(),
-      ])
-    );
+    await utils.updateTokenKeysViaHapi(nftTokenAddress, [
+      await tokenCreateContract.getAddress(),
+      await tokenTransferContract.getAddress(),
+      await tokenManagmentContract.getAddress(),
+    ]);
     await utils.associateToken(
       tokenCreateContract,
       tokenAddress,
@@ -87,8 +72,6 @@ describe('TokenCreateContract Test Suite', function () {
       tokenCreateContract,
       nftTokenAddress
     );
-
-    await Promise.all(connectionsToClose.map(connection => connection.close()));
   });
 
   it('should be able to execute burnToken', async function () {

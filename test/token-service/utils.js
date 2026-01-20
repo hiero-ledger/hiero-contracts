@@ -407,8 +407,9 @@ class Utils {
 
   static async getHbarBalance(address) {
     const balanceJson = (await this.getAccountBalance(address)).toJSON();
+    const balanceFloat = parseFloat(balanceJson.hbars);
 
-    return parseFloat(balanceJson.hbars);
+    return balanceFloat;
   }
 
   static async getTokenBalance(accountAddress, tokenAddress) {
@@ -554,9 +555,11 @@ class Utils {
     operatorKey =
       operatorKey || hre.config.networks[network].sdkClient.operatorKey;
 
-    return Client.forNetwork(hederaNetwork)
+    const client = Client.forNetwork(hederaNetwork)
       .setMirrorNetwork(mirrorNode)
       .setOperator(operatorId, operatorKey);
+
+    return client;
   }
 
   static async getAccountId(evmAddress, client) {
@@ -654,8 +657,6 @@ class Utils {
           .freezeWith(clientSigner)
           .sign(pkSigner)
       ).execute(clientSigner);
-
-      return [clientGenesis, clientSigner];
     }
   }
 
@@ -717,8 +718,6 @@ class Utils {
     await (
       await tx.freezeWith(clientSigner0).sign(pkSigners[0])
     ).execute(clientSigner0);
-
-    return [clientGenesis, clientSigner0];
   }
 
   static getCurrentNetwork() {

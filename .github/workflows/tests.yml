@@ -24,19 +24,19 @@ jobs:
     name: ERC20 Contract Test Suite
     uses: ./.github/workflows/test-workflow.yml
     with:
-      testfilter: ERC20Contract
-
-  IERC20:
-    name: IERC20 Test Suite
-    uses: ./.github/workflows/test-workflow.yml
-    with:
-      testfilter: IERC20
+      testfilter: ERC20
 
   ERC721Contract:
     name: ERC721 Contract Test Suite
     uses: ./.github/workflows/test-workflow.yml
     with:
       testfilter: ERC721
+
+  ERC1155Contract:
+    name: ERC1155 Contract Test Suite
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: ERC1155
 
   TokenCreateContract:
     name: Token Create Test Suite
@@ -115,8 +115,8 @@ jobs:
     if: ${{ !cancelled() }}
     needs:
       - ERC20Contract
-      - IERC20
       - ERC721Contract
+      - ERC1155Contract
       - TokenCreateContract
       - TokenQueryContract
       - TokenManagmentContract
@@ -149,4 +149,3 @@ jobs:
           check_name: Test Results
           json_thousands_separator: ','
           junit_files: 'test-*.xml'
-
