@@ -300,7 +300,6 @@ describe('TokenCreateContract Test Suite', function () {
       signers = await ethers.getSigners();
       tokenCreateContract = await utils.deployTokenCreateContract();
       tokenQueryContract = await utils.deployTokenQueryContract();
-      console.error('Fourth call...');
       await hapi.updateAccountKeys([
         await tokenCreateContract.getAddress(),
         await tokenQueryContract.getAddress(),
