@@ -13,6 +13,7 @@ const {
   TokenSupplyType,
   AccountId,
 } = require('@hashgraph/sdk');
+const Hapi = require("../hapi");
 
 describe('TokenCreateContract Test Suite', function () {
   let tokenCreateContract;
@@ -24,12 +25,15 @@ describe('TokenCreateContract Test Suite', function () {
   let nftTokenAddress;
   let signers;
 
+  let hapi;
+
   before(async function () {
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenTransferContract = await utils.deployTokenTransferContract();
     tokenManagmentContract = await utils.deployTokenManagementContract();
-    await utils.updateAccountKeysViaHapi([
+    hapi = new Hapi();
+    await hapi.updateAccountKeys([
       await tokenCreateContract.getAddress(),
       await tokenTransferContract.getAddress(),
       await tokenManagmentContract.getAddress(),
@@ -41,7 +45,7 @@ describe('TokenCreateContract Test Suite', function () {
       signers[0].address,
       utils.getSignerCompressedPublicKey()
     );
-    await utils.updateTokenKeysViaHapi(tokenAddress, [
+    await hapi.updateTokenKeys(tokenAddress, [
       await tokenCreateContract.getAddress(),
       await tokenTransferContract.getAddress(),
       await tokenManagmentContract.getAddress(),
@@ -51,27 +55,35 @@ describe('TokenCreateContract Test Suite', function () {
       signers[0].address,
       utils.getSignerCompressedPublicKey()
     );
-    await utils.updateTokenKeysViaHapi(nftTokenAddress, [
+    await hapi.updateTokenKeys(nftTokenAddress, [
       await tokenCreateContract.getAddress(),
       await tokenTransferContract.getAddress(),
       await tokenManagmentContract.getAddress(),
     ]);
+
     await utils.associateToken(
       tokenCreateContract,
       tokenAddress,
       Constants.Contract.TokenCreateContract
     );
-    await utils.grantTokenKyc(tokenCreateContract, tokenAddress);
+    await hapi.grantTokenKyc(tokenCreateContract, tokenAddress); ///!
+
+
     await utils.associateToken(
       tokenCreateContract,
       nftTokenAddress,
       Constants.Contract.TokenCreateContract
     );
-    await utils.grantTokenKyc(tokenCreateContract, nftTokenAddress);
+
+    await hapi.grantTokenKyc(tokenCreateContract, nftTokenAddress);
     mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress
     );
+  });
+
+  after(function () {
+    hapi.client.close();
   });
 
   it('should be able to execute burnToken', async function () {
@@ -288,14 +300,15 @@ describe('TokenCreateContract Test Suite', function () {
       signers = await ethers.getSigners();
       tokenCreateContract = await utils.deployTokenCreateContract();
       tokenQueryContract = await utils.deployTokenQueryContract();
-      await utils.updateAccountKeysViaHapi([
+      console.error('Fourth call...');
+      await hapi.updateAccountKeys([
         await tokenCreateContract.getAddress(),
         await tokenQueryContract.getAddress(),
       ]);
     });
 
     async function createTokenviaHapi() {
-      const client = await utils.createSDKClient();
+      const { client } = await hapi;
 
       const tokenCreate = await new TokenCreateTransaction()
         .setTokenName(tokenName)

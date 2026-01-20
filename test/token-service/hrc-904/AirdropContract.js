@@ -4,6 +4,7 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const utils = require('../utils');
 const Constants = require('../../constants');
+const Hapi = require("../hapi");
 
 describe('HIP904Batch1 AirdropContract Test Suite', function () {
   let airdropContract;
@@ -16,8 +17,10 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
   let owner;
   let accounts;
   let contractAddresses;
+  let hapi;
 
   before(async function () {
+    hapi = new Hapi();
     signers = await ethers.getSigners();
     airdropContract = await utils.deployContract(Constants.Contract.Airdrop);
     tokenCreateContract = await utils.deployContract(
@@ -36,18 +39,24 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
       await airdropContract.getAddress(),
       await tokenCreateContract.getAddress(),
     ];
-    await utils.updateAccountKeysViaHapi(contractAddresses);
+    await hapi.updateAccountKeys(contractAddresses);
 
     tokenAddress = await utils.setupToken(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
     nftTokenAddress = await utils.setupNft(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
+  });
+
+  after(function () {
+    hapi.client.close();
   });
 
   it('should airdrop a fungible token (FT) to a single account', async function () {
@@ -56,7 +65,8 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
     const tokenAddress = await utils.setupToken(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
 
     const initialBalance = await erc20Contract.balanceOf(
@@ -107,7 +117,8 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
     const tokenAddress = await utils.setupToken(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
 
     const initialBalance = await erc20Contract.balanceOf(
@@ -136,7 +147,8 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
     const tokenAddress = await utils.setupToken(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
 
     const getBalances = async () =>
@@ -188,7 +200,8 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
     const nftTokenAddress = await utils.setupNft(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
     const serials = [];
     serials.push(
@@ -224,7 +237,7 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
     // Every accountAmount counts as 1 transfer so 5x2=10
     for (let i = 0; i < 5; i++) {
       tokens.push(
-        await utils.setupToken(tokenCreateContract, owner, contractAddresses)
+        await utils.setupToken(tokenCreateContract, owner, contractAddresses, hapi)
       );
     }
     for (let i = 0; i < accounts.length; i++) {
@@ -251,7 +264,8 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
         const tokenAddress = await utils.setupNft(
           tokenCreateContract,
           owner,
-          contractAddresses
+          contractAddresses,
+          hapi
         );
         const serial = await utils.mintNFTToAddress(
           tokenCreateContract,
@@ -360,7 +374,8 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
       const tokenAddress = await utils.setupNft(
         tokenCreateContract,
         owner,
-        contractAddresses
+        contractAddresses,
+        hapi
       );
       const serial = await utils.mintNFTToAddress(
         tokenCreateContract,
@@ -389,7 +404,7 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
     const tokens = [];
     for (let i = 0; i < 6; i++) {
       tokens.push(
-        await utils.setupToken(tokenCreateContract, owner, contractAddresses)
+        await utils.setupToken(tokenCreateContract, owner, contractAddresses, hapi)
       );
     }
     const tx = await airdropContract.multipleFtAirdrop(

@@ -4,6 +4,7 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const utils = require('../utils');
 const Constants = require('../../constants');
+const Hapi = require("../hapi");
 
 describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
   let tokenRejectContract;
@@ -14,8 +15,10 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
   let receiver;
   let walletIHRC904AccountFacade;
   let contractAddresses;
+  let hapi;
 
   before(async function () {
+    hapi = new Hapi();
     signers = await ethers.getSigners();
     tokenRejectContract = await utils.deployContract(
       Constants.Contract.TokenReject
@@ -40,9 +43,9 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
       await tokenCreateContract.getAddress(),
       await airdropContract.getAddress(),
     ];
-    await utils.updateAccountKeysViaHapi(contractAddresses);
+    await hapi.updateAccountKeys(contractAddresses);
 
-    await utils.updateAccountKeysViaHapi(contractAddresses, [
+    await hapi.updateAccountKeys(contractAddresses, [
       receiverPrivateKey,
     ]);
 
@@ -57,11 +60,16 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     );
   });
 
+  after(function () {
+    hapi.client.close();
+  });
+
   it('should reject tokens for a single account', async function () {
     const tokenAddress = await utils.setupToken(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
     const receiver = signers[1];
 
@@ -96,7 +104,8 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     const nftTokenAddress = await utils.setupNft(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
     const receiver = signers[1];
 
@@ -132,7 +141,8 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     const tokenAddress = await utils.setupToken(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
     const receivers = signers.slice(1, 3);
 
@@ -164,7 +174,8 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     const tokenAddress = await utils.setupToken(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
 
     await walletIHRC904AccountFacade.setUnlimitedAutomaticAssociations(false, {
@@ -197,7 +208,8 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     const tokenAddress = await utils.setupToken(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
     const receiver = signers[1];
 
@@ -216,7 +228,8 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     const nftTokenAddress = await utils.setupNft(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
 
     const tx = await tokenRejectContract.rejectTokens(
@@ -235,7 +248,8 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     const nftTokenAddress = await utils.setupNft(
       tokenCreateContract,
       owner,
-      contractAddresses
+      contractAddresses,
+      hapi
     );
     const receiver = signers[1];
 

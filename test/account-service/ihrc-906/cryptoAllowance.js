@@ -8,6 +8,7 @@ const Constants = require('../../constants');
 const {
   pollForNewSignerBalanceUsingProvider,
 } = require('../../helpers');
+const Hapi = require("../../token-service/hapi");
 
 describe('@HAS IHRC-906 Test Suite', () => {
   let walletA,
@@ -16,10 +17,12 @@ describe('@HAS IHRC-906 Test Suite', () => {
     cryptoAllowanceContract,
     cryptoOwnerContract,
     cryptoAllowanceAddress,
-    cryptoOwnerAddress;
+    cryptoOwnerAddress,
+    hapi;
   const amount = 3000;
 
   before(async () => {
+    hapi = new Hapi();
     [walletA, walletB, walletC, receiver] = await ethers.getSigners();
 
     // deploy cyprtoAllowanceContract
@@ -46,6 +49,10 @@ describe('@HAS IHRC-906 Test Suite', () => {
         gasLimit: 1_000_000,
       })
     ).wait();
+  });
+
+  after(function () {
+    hapi.client.close();
   });
 
   it('Should execute hbarApprovePublic and return success response code', async () => {
@@ -92,7 +99,7 @@ describe('@HAS IHRC-906 Test Suite', () => {
   it('Should allow an approval on behalf of hbar owner WITH its signature', async () => {
     // update accountKeys
     const ecdsaPrivateKeys = await Utils.getHardhatSignersPrivateKeys(false);
-    await utils.updateAccountKeysViaHapi(
+    await hapi.updateAccountKeys(
       [cryptoAllowanceAddress],
       [ecdsaPrivateKeys[0]] // walletA's key
     );

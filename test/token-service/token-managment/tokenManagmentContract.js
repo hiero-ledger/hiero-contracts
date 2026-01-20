@@ -5,6 +5,7 @@ const { ethers } = require('hardhat');
 const utils = require('../utils');
 const Constants = require('../../constants');
 const { pollForNewERC20Balance } = require('../../helpers');
+const Hapi = require("../hapi");
 
 describe('TokenManagmentContract Test Suite', function () {
   const TX_SUCCESS_CODE = 22;
@@ -34,8 +35,10 @@ describe('TokenManagmentContract Test Suite', function () {
   let tokenTransferContractAddress;
   let tokenQueryContractAddress;
   let tokenManagementContractAddress;
+  let hapi;
 
   before(async function () {
+    hapi = new Hapi();
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenQueryContract = await utils.deployTokenQueryContract();
@@ -49,7 +52,7 @@ describe('TokenManagmentContract Test Suite', function () {
     tokenManagementContractAddress = await tokenManagmentContract.getAddress();
     tokenCreateCustomContractAddress =
       await tokenCreateCustomContract.getAddress();
-    await utils.updateAccountKeysViaHapi([
+    await hapi.updateAccountKeys([
       tokenCreateContractAddress,
       tokenTransferContractAddress,
       tokenManagementContractAddress,
@@ -62,7 +65,7 @@ describe('TokenManagmentContract Test Suite', function () {
       signers[0].address,
       utils.getSignerCompressedPublicKey()
     );
-    await utils.updateTokenKeysViaHapi(tokenAddress, [
+    await hapi.updateTokenKeys(tokenAddress, [
       await tokenCreateContract.getAddress(),
       await tokenTransferContract.getAddress(),
       await tokenManagmentContract.getAddress(),
@@ -73,7 +76,7 @@ describe('TokenManagmentContract Test Suite', function () {
       signers[0].address,
       utils.getSignerCompressedPublicKey()
     );
-    await utils.updateTokenKeysViaHapi(nftTokenAddress, [
+    await hapi.updateTokenKeys(nftTokenAddress, [
       await tokenCreateContract.getAddress(),
       await tokenTransferContract.getAddress(),
       await tokenManagmentContract.getAddress(),
@@ -97,6 +100,10 @@ describe('TokenManagmentContract Test Suite', function () {
     );
   });
 
+  after(function () {
+    hapi.client.close();
+  });
+
   it('should be able to delete token', async function () {
     const newTokenAddress =
       await utils.createFungibleTokenWithSECP256K1AdminKey(
@@ -104,7 +111,7 @@ describe('TokenManagmentContract Test Suite', function () {
         signers[0].address,
         utils.getSignerCompressedPublicKey()
       );
-    await utils.updateTokenKeysViaHapi(newTokenAddress, [
+    await hapi.updateTokenKeys(newTokenAddress, [
       await tokenCreateContract.getAddress(),
       await tokenManagmentContract.getAddress(),
       await tokenQueryContract.getAddress(),
@@ -605,7 +612,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[0].address,
           utils.getSignerCompressedPublicKey()
         );
-        await utils.updateTokenKeysViaHapi(tokenAddress, [
+        await hapi.updateTokenKeys(tokenAddress, [
           await tokenCreateContract.getAddress(),
           await tokenTransferContract.getAddress(),
           await tokenManagmentContract.getAddress(),
@@ -1078,7 +1085,7 @@ describe('TokenManagmentContract Test Suite', function () {
           utils.getSignerCompressedPublicKey()
         );
 
-        await utils.updateTokenKeysViaHapi(tokenAddress, [
+        await hapi.updateTokenKeys(tokenAddress, [
           await tokenCreateContract.getAddress(),
           await tokenTransferContract.getAddress(),
           await tokenManagmentContract.getAddress(),
@@ -1097,7 +1104,7 @@ describe('TokenManagmentContract Test Suite', function () {
       });
       describe('Positive', function () {
         it('should be able to change PAUSE key to ECDSA_secp256k and pause the token with the same account', async function () {
-          await utils.updateTokenKeysViaHapi(
+          await hapi.updateTokenKeys(
             tokenAddress,
             [await tokenManagmentContract.getAddress()],
             false,
@@ -1138,7 +1145,7 @@ describe('TokenManagmentContract Test Suite', function () {
         });
 
         it('should be able to change WIPE key to ECDSA_secp256k and wipe the token with the same account', async function () {
-          await utils.updateTokenKeysViaHapi(
+          await hapi.updateTokenKeys(
             tokenAddress,
             [await tokenManagmentContract.getAddress()],
             false,
@@ -1187,7 +1194,7 @@ describe('TokenManagmentContract Test Suite', function () {
         });
 
         it('should be able to change FREEZE key to ECDSA_secp256k and freeze the token with the same account', async function () {
-          await utils.updateTokenKeysViaHapi(
+          await hapi.updateTokenKeys(
             tokenAddress,
             [await tokenManagmentContract.getAddress()],
             false,
@@ -1247,7 +1254,7 @@ describe('TokenManagmentContract Test Suite', function () {
         });
 
         it('should be able to change ADMIN key to ECDSA_secp256k and perform admin action with same contract', async function () {
-          await utils.updateTokenKeysViaHapi(
+          await hapi.updateTokenKeys(
             tokenAddress,
             [await tokenManagmentContract.getAddress()],
             true,
@@ -1314,7 +1321,7 @@ describe('TokenManagmentContract Test Suite', function () {
         it('should not be able to wipe the token with different WIPE key', async function () {
           const wipeAmount = 3;
 
-          await utils.updateTokenKeysViaHapi(tokenAddress, [
+          await hapi.updateTokenKeys(tokenAddress, [
             await tokenCreateContract.getAddress(),
           ]);
 
@@ -1482,7 +1489,7 @@ describe('TokenManagmentContract Test Suite', function () {
         [],
         keys
       );
-      await utils.updateTokenKeysViaHapi(tokenWithFees, [
+      await hapi.updateTokenKeys(tokenWithFees, [
         tokenManagementContractAddress,
         tokenTransferContractAddress,
         tokenCreateContractAddress,
@@ -1623,7 +1630,7 @@ describe('TokenManagmentContract Test Suite', function () {
           [],
           keys
         );
-      await utils.updateTokenKeysViaHapi(tokenWithFixedHbarFee, [
+      await hapi.updateTokenKeys(tokenWithFixedHbarFee, [
         tokenManagementContractAddress,
         tokenCreateContractAddress,
       ]);
@@ -1738,7 +1745,7 @@ describe('TokenManagmentContract Test Suite', function () {
           keys
         );
 
-      await utils.updateTokenKeysViaHapi(tokenWithFixedFeeInSameToken, [
+      await hapi.updateTokenKeys(tokenWithFixedFeeInSameToken, [
         tokenManagementContractAddress,
         tokenTransferContractAddress,
         tokenCreateContractAddress,
@@ -1845,7 +1852,7 @@ describe('TokenManagmentContract Test Suite', function () {
       expect(
         await utils.getTokenBalance(signers[0].address, tokenWithFees)
       ).to.be.equal(utils.initialSupply);
-      await utils.updateTokenKeysViaHapi(tokenWithFees, [
+      await hapi.updateTokenKeys(tokenWithFees, [
         tokenManagementContractAddress,
         tokenTransferContractAddress,
         tokenCreateContractAddress,
@@ -1925,7 +1932,7 @@ describe('TokenManagmentContract Test Suite', function () {
           [],
           keys
         );
-      await utils.updateTokenKeysViaHapi(tokenWithFixedHbarFee, [
+      await hapi.updateTokenKeys(tokenWithFixedHbarFee, [
         tokenManagementContractAddress,
         tokenCreateContractAddress,
       ]);
@@ -2060,7 +2067,7 @@ describe('TokenManagmentContract Test Suite', function () {
           keys
         );
 
-      await utils.updateTokenKeysViaHapi(tokenWithFees, [
+      await hapi.updateTokenKeys(tokenWithFees, [
         tokenManagementContractAddress,
         tokenTransferContractAddress,
         tokenCreateContractAddress,
@@ -2188,7 +2195,7 @@ describe('TokenManagmentContract Test Suite', function () {
           keys
         );
 
-      await utils.updateTokenKeysViaHapi(tokenWithFees, [
+      await hapi.updateTokenKeys(tokenWithFees, [
         tokenManagementContractAddress,
         tokenTransferContractAddress,
         tokenCreateContractAddress,
@@ -2329,7 +2336,7 @@ describe('TokenManagmentContract Test Suite', function () {
           keys
         );
 
-      await utils.updateTokenKeysViaHapi(tokenWithFees, [
+      await hapi.updateTokenKeys(tokenWithFees, [
         tokenManagementContractAddress,
         tokenTransferContractAddress,
         tokenCreateContractAddress,
@@ -2464,7 +2471,7 @@ describe('TokenManagmentContract Test Suite', function () {
       );
       await transferNft.wait();
 
-      await utils.updateTokenKeysViaHapi(nft, [
+      await hapi.updateTokenKeys(nft, [
         tokenManagementContractAddress,
         tokenCreateCustomContractAddress,
       ]);
@@ -2551,7 +2558,7 @@ describe('TokenManagmentContract Test Suite', function () {
       );
       await transferNft.wait();
 
-      await utils.updateTokenKeysViaHapi(nft, [
+      await hapi.updateTokenKeys(nft, [
         tokenManagementContractAddress,
         tokenCreateCustomContractAddress,
       ]);
@@ -2645,7 +2652,7 @@ describe('TokenManagmentContract Test Suite', function () {
       );
       await transferNft.wait();
 
-      await utils.updateTokenKeysViaHapi(nft, [
+      await hapi.updateTokenKeys(nft, [
         tokenManagementContractAddress,
         tokenCreateCustomContractAddress,
       ]);
@@ -2742,7 +2749,7 @@ describe('TokenManagmentContract Test Suite', function () {
       );
       await transferNft.wait();
 
-      await utils.updateTokenKeysViaHapi(nft, [
+      await hapi.updateTokenKeys(nft, [
         tokenManagementContractAddress,
         tokenCreateCustomContractAddress,
       ]);
@@ -2878,7 +2885,7 @@ describe('TokenManagmentContract Test Suite', function () {
       );
       await transferNft.wait();
 
-      await utils.updateTokenKeysViaHapi(nft, [
+      await hapi.updateTokenKeys(nft, [
         tokenManagementContractAddress,
         tokenCreateCustomContractAddress,
       ]);
@@ -3012,7 +3019,7 @@ describe('TokenManagmentContract Test Suite', function () {
           [],
           keys
         );
-        await utils.updateTokenKeysViaHapi(tokenWithFees, [
+        await hapi.updateTokenKeys(tokenWithFees, [
           tokenManagementContractAddress,
           tokenTransferContractAddress,
           tokenCreateContractAddress,
@@ -3049,7 +3056,7 @@ describe('TokenManagmentContract Test Suite', function () {
             [],
             keys
           );
-        await utils.updateTokenKeysViaHapi(nft, [
+        await hapi.updateTokenKeys(nft, [
           tokenManagementContractAddress,
           tokenTransferContractAddress,
           tokenCreateContractAddress,
@@ -3088,7 +3095,7 @@ describe('TokenManagmentContract Test Suite', function () {
           keysWithoutFeeSchedule
         );
 
-        await utils.updateTokenKeysViaHapi(
+        await hapi.updateTokenKeys(
           tokenWithFees,
           [
             tokenManagementContractAddress,
@@ -3129,7 +3136,7 @@ describe('TokenManagmentContract Test Suite', function () {
             [],
             keysWithoutFeeSchedule
           );
-        await utils.updateTokenKeysViaHapi(nft, [
+        await hapi.updateTokenKeys(nft, [
           tokenManagementContractAddress,
           tokenTransferContractAddress,
           tokenCreateContractAddress,
@@ -3170,7 +3177,7 @@ describe('TokenManagmentContract Test Suite', function () {
           [],
           keys
         );
-        await utils.updateTokenKeysViaHapi(tokenWithFees, [
+        await hapi.updateTokenKeys(tokenWithFees, [
           tokenManagementContractAddress,
         ]);
         let transactionHash;
@@ -3217,7 +3224,7 @@ describe('TokenManagmentContract Test Suite', function () {
             [],
             keys
           );
-        await utils.updateTokenKeysViaHapi(nft, [
+        await hapi.updateTokenKeys(nft, [
           tokenManagementContractAddress,
         ]);
 
@@ -3263,7 +3270,7 @@ describe('TokenManagmentContract Test Suite', function () {
           [fractionalFee],
           keys
         );
-        await utils.updateTokenKeysViaHapi(tokenWithFees, [
+        await hapi.updateTokenKeys(tokenWithFees, [
           tokenManagementContractAddress,
         ]);
         const updatedFractionalFee = {
@@ -3305,7 +3312,7 @@ describe('TokenManagmentContract Test Suite', function () {
           [],
           keys
         );
-        await utils.updateTokenKeysViaHapi(tokenWithFees, [
+        await hapi.updateTokenKeys(tokenWithFees, [
           tokenManagementContractAddress,
         ]);
 
@@ -3350,7 +3357,7 @@ describe('TokenManagmentContract Test Suite', function () {
             [],
             keys
           );
-        await utils.updateTokenKeysViaHapi(nft, [
+        await hapi.updateTokenKeys(nft, [
           tokenManagementContractAddress,
         ]);
 
@@ -3392,7 +3399,7 @@ describe('TokenManagmentContract Test Suite', function () {
           [],
           keys
         );
-        await utils.updateTokenKeysViaHapi(tokenWithFees, [
+        await hapi.updateTokenKeys(tokenWithFees, [
           tokenManagementContractAddress,
         ]);
         const fixedFee = {
@@ -3430,7 +3437,7 @@ describe('TokenManagmentContract Test Suite', function () {
             [],
             keys
           );
-        await utils.updateTokenKeysViaHapi(nft, [
+        await hapi.updateTokenKeys(nft, [
           tokenManagementContractAddress,
         ]);
         const fixedFee = {
@@ -3466,7 +3473,7 @@ describe('TokenManagmentContract Test Suite', function () {
           [],
           keys
         );
-        await utils.updateTokenKeysViaHapi(tokenWithFees, [
+        await hapi.updateTokenKeys(tokenWithFees, [
           tokenManagementContractAddress,
         ]);
 
@@ -3504,7 +3511,7 @@ describe('TokenManagmentContract Test Suite', function () {
             [],
             keys
           );
-        await utils.updateTokenKeysViaHapi(nft, [
+        await hapi.updateTokenKeys(nft, [
           tokenManagementContractAddress,
         ]);
         const fixedFee = {
@@ -3542,7 +3549,7 @@ describe('TokenManagmentContract Test Suite', function () {
           [],
           keys
         );
-        await utils.updateTokenKeysViaHapi(tokenWithFees, [
+        await hapi.updateTokenKeys(tokenWithFees, [
           tokenManagementContractAddress,
           tokenTransferContractAddress,
           tokenCreateContractAddress,
@@ -3644,7 +3651,7 @@ describe('TokenManagmentContract Test Suite', function () {
         );
         await transferNft.wait();
 
-        await utils.updateTokenKeysViaHapi(nft, [
+        await hapi.updateTokenKeys(nft, [
           tokenManagementContractAddress,
           tokenCreateCustomContractAddress,
         ]);
