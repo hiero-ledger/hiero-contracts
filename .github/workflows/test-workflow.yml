@@ -106,7 +106,7 @@ jobs:
         timeout-minutes: 15
 
       - name: Forward solo ports
-        run: ./github/scripts/forward-ports.sh
+        run: .github/scripts/supervise-cn-port.sh
 
       - name: Initialize test environment variables
         run: cp local.env .env
