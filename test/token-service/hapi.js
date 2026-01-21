@@ -1,25 +1,25 @@
-const hre = require("hardhat");
-const { AccountId, Client,   AccountUpdateTransaction,
+import hre from 'hardhat';
+import { AccountId, Client,   AccountUpdateTransaction,
   ContractId,
   KeyList,
   PrivateKey, TokenUpdateTransaction, TokenId, TokenGrantKycTransaction
-} = require("@hashgraph/sdk");
-const utils = require("./utils");
+} from '@hashgraph/sdk';
+const connection = await hre.network.connect();
+import { config } from '../config.js';
+const network = config.networks[config.defaultNetwork];
+import utils from './utils';
+
 class Hapi {
   client;
   config;
   constructor() {
-    this.config = hre.config.networks[hre.network.name].sdkClient;
+    this.config = network.sdkClient;
     const hederaNetwork = {};
     hederaNetwork[this.config.networkNodeUrl] = AccountId.fromString(this.config.nodeId);
     this.client = Client.forNetwork(hederaNetwork)
       .setMirrorNetwork(this.config.mirrorNode)
       .setOperator(this.config.operatorId, this.config.operatorKey)
     ;
-  }
-
-  async grantTokenKyc(contract, tokenAddress) {
-
   }
 
   async updateAccountKeys(
@@ -30,7 +30,6 @@ class Hapi {
       ecdsaPrivateKeys = await utils.getHardhatSignersPrivateKeys(false);
     }
     for (const privateKey of ecdsaPrivateKeys) {
-      console.error('PK', privateKey);
       const pkSigner = PrivateKey.fromStringECDSA(privateKey.replace('0x', ''));
       const accountId = await utils.getAccountId(
         pkSigner.publicKey.toEvmAddress(),
@@ -47,13 +46,14 @@ class Hapi {
         ],
         1
       );
-      await (
+      const response = await (
         await new AccountUpdateTransaction()
           .setAccountId(accountId)
           .setKey(keyList)
           .freezeWith(this.client)
           .sign(pkSigner)
       ).execute(this.client);
+      await response.getReceipt(this.client);
     }
     this.client.setOperator(this.config.operatorId, this.config.operatorKey);
   }
@@ -69,7 +69,7 @@ class Hapi {
     setWipe = true,
     setFeeSchedule = true
   ) {
-    const signers = await hre.ethers.getSigners();
+    const signers = await connection.ethers.getSigners();
     const pkSigners = (await utils.getHardhatSignersPrivateKeys()).map((pk) =>
       PrivateKey.fromStringECDSA(pk)
     );
@@ -101,11 +101,12 @@ class Hapi {
     if (setWipe) tx.setWipeKey(keyList);
     if (setFeeSchedule) tx.setFeeScheduleKey(keyList);
 
-    await (
+    const response = await (
       await tx.freezeWith(this.client).sign(pkSigners[0])
     ).execute(this.client);
+    await response.getReceipt(this.client);
     this.client.setOperator(this.config.operatorId, this.config.operatorKey);
   }
 }
 
-module.exports = Hapi;
+export default Hapi;

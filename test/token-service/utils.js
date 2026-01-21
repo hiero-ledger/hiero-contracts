@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const hre = require('hardhat');
-const { ethers } = hre;
-const { expect } = require('chai');
-const {
+import hre from 'hardhat';
+const { ethers } = await hre.network.connect();
+import { expect } from 'chai';
+import {
   AccountId,
   Client,
   AccountInfoQuery,
@@ -22,9 +22,10 @@ const {
   ScheduleCreateTransaction,
   TransferTransaction,
   Timestamp
-} = require('@hashgraph/sdk');
-const Constants = require('../constants');
-const axios = require('axios');
+} from '@hashgraph/sdk';
+import Constants from '../constants';
+import axios from 'axios';
+import { config } from '../config.js';
 
 class Utils {
   static createTokenCost = '50000000000000000000';
@@ -546,14 +547,14 @@ class Utils {
     const network = Utils.getCurrentNetwork();
 
     const hederaNetwork = {};
-    hederaNetwork[hre.config.networks[network].sdkClient.networkNodeUrl] =
-      AccountId.fromString(hre.config.networks[network].sdkClient.nodeId);
-    const { mirrorNode } = hre.config.networks[network].sdkClient;
+    hederaNetwork[config.networks[network].sdkClient.networkNodeUrl] =
+      AccountId.fromString(config.networks[network].sdkClient.nodeId);
+    const { mirrorNode } = config.networks[network].sdkClient;
 
     operatorId =
-      operatorId || hre.config.networks[network].sdkClient.operatorId;
+      operatorId || config.networks[network].sdkClient.operatorId;
     operatorKey =
-      operatorKey || hre.config.networks[network].sdkClient.operatorKey;
+      operatorKey || config.networks[network].sdkClient.operatorKey;
 
     const client = Client.forNetwork(hederaNetwork)
       .setMirrorNetwork(mirrorNode)
@@ -603,7 +604,7 @@ class Utils {
     prune0x = true
   ) {
     const wallet = new ethers.Wallet(
-      hre.config.networks[hre.network.name].accounts[index]
+        config.networks[Utils.getCurrentNetwork()].accounts[index]
     );
     const cpk = prune0x
       ? wallet.signingKey.compressedPublicKey.replace('0x', '')
@@ -614,13 +615,13 @@ class Utils {
 
   static async getHardhatSignersPrivateKeys(add0xPrefix = true) {
     const network = Utils.getCurrentNetwork();
-    return hre.config.networks[network].accounts.map((pk) =>
+    return config.networks[network].accounts.map((pk) =>
       add0xPrefix ? pk : pk.replace('0x', '')
     );
   }
 
   static getHardhatSignerPrivateKeyByIndex(index = 0) {
-    return hre.config.networks[hre.network.name].accounts[index];
+    return config.networks[Utils.getCurrentNetwork()].accounts[index];
   }
 
   static async updateAccountKeysViaHapi(
@@ -721,7 +722,7 @@ class Utils {
   }
 
   static getCurrentNetwork() {
-    return hre.network.name;
+    return config.defaultNetwork;
   }
 
   static convertAccountIdToLongZeroAddress(accountId, prepend0x = false) {
@@ -1049,4 +1050,4 @@ class Utils {
   }
 }
 
-module.exports = Utils;
+export default Utils;

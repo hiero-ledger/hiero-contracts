@@ -1,14 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const { expect } = require('chai');
-const { ethers } = require('hardhat');
-const utils = require('../utils');
-const Constants = require('../../constants');
-const {
+import { expect } from 'chai';
+import { network } from 'hardhat';
+const { ethers } = await network.connect();
+import utils from '../utils';
+import Constants from '../../constants';
+import {
   pollForNewBalance,
   pollForNewSignerBalance,
-} = require('../../helpers');
-const Hapi = require("../hapi");
+} from '../../helpers';
+
+import Hapi from '../hapi';
+
+const sleep = () => new Promise(resolve => setTimeout(resolve, 1000));
 
 describe('IERC20 Test Suite', function () {
   let tokenCreateContract;
@@ -29,6 +33,7 @@ describe('IERC20 Test Suite', function () {
       await tokenCreateContract.getAddress(),
       await tokenTransferContract.getAddress(),
     ]);
+    await sleep();
     tokenAddress = await utils.createFungibleToken(
       tokenCreateContract,
       signers[0].address
@@ -48,6 +53,7 @@ describe('IERC20 Test Suite', function () {
       tokenAddress
     );
   });
+
 
   after(function () {
     hapi.client.close();

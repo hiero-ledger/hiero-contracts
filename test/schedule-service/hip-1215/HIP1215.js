@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const { expect } = require('chai');
-const hre = require('hardhat');
+import { expect } from 'chai';
+import hre from 'hardhat';
 const { ethers } = hre;
-const Constants = require('../../constants');
-const Utils = require('../../token-service/utils.js');
-const axios = require("axios");
+import Constants from '../../constants';
+import Utils from '../../token-service/utils.js';
+import axios from 'axios';
 
-const { PrivateKey } = require('@hashgraph/sdk');
+import { PrivateKey } from '@hashgraph/sdk';
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 

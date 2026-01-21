@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 const delay = (ms) => {
   return new Promise((resolve) =>
@@ -18,7 +18,7 @@ const getSignerBalance = async (provider, signersAddress) => {
   return balance;
 };
 
-const pollForNewBalance = async (
+export const pollForNewBalance = async (
   IERC20,
   contractAddress,
   tokenCreateBalanceBefore
@@ -43,7 +43,7 @@ const pollForNewBalance = async (
   );
 };
 
-const pollForNewERC20Balance = async (
+export const pollForNewERC20Balance = async (
   erc20Contract,
   tokenAddress,
   signersAddress,
@@ -76,7 +76,7 @@ const pollForNewERC20Balance = async (
   );
 };
 
-const pollForNewSignerBalance = async (
+export const pollForNewSignerBalance = async (
   IERC20Contract,
   signersAddress,
   signerBefore
@@ -100,7 +100,7 @@ const pollForNewSignerBalance = async (
   );
 };
 
-const pollForNewSignerBalanceUsingProvider = async (
+export const pollForNewSignerBalanceUsingProvider = async (
   provider,
   signersAddress,
   signerBefore
@@ -126,12 +126,4 @@ const pollForNewSignerBalanceUsingProvider = async (
   throw new Error(
     `Failed to get a different value after ${process.env.MAX_RETRY} tries`
   );
-};
-
-
-module.exports = {
-  pollForNewERC20Balance,
-  pollForNewBalance,
-  pollForNewSignerBalanceUsingProvider,
-  pollForNewSignerBalance,
 };

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-
+import { network } from 'hardhat';
+const { ethers } = await network.connect();
 const Events = {
   Success: 'success',
   ResponseCode: 'ResponseCode',
@@ -90,7 +91,7 @@ const TOKEN_NAME = 'tokenName';
 const TOKEN_SYMBOL = 'tokenSymbol';
 const TOKEN_URL = 'tokenUrl';
 const TX_SUCCESS_CODE = 22;
-const SECOND = (WEI = 1);
+const SECOND = (ethers.WEI = 1);
 const MINUTE = 60 * SECOND;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
@@ -99,7 +100,7 @@ const GWEI = 1e9;
 const HTS_SYSTEM_CONTRACT_ID = '0.0.359';
 const HAS_SYSTEM_CONTRACT_ID = '0.0.362';
 
-module.exports = {
+export default {
   Events,
   Path,
   Contract,
@@ -121,8 +122,8 @@ module.exports = {
   HOUR,
   DAY,
   WEEK,
-  WEI,
-  GWEI,
+  WEI: ethers.WEI,
+  GWEI: ethers.GWEI,
   HTS_SYSTEM_CONTRACT_ID,
   HAS_SYSTEM_CONTRACT_ID,
 };

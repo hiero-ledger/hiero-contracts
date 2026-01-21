@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const Constants = require('../../constants');
-const { Contract } = require('ethers');
-const { expect } = require('chai');
-const hre = require('hardhat');
+import Constants from '../../constants';
+import { Contract } from 'ethers';
+import { expect } from 'chai';
+import hre from 'hardhat';
 const { ethers } = hre;
-const utils = require('../utils');
-const Hapi = require("../hapi");
+import utils from '../utils';
+import Hapi from '../hapi';
 
 describe('@HRC-719 Test Suite', function () {
   let tokenCreateContract;
