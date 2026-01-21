@@ -7,6 +7,7 @@ permissions:
   contents: read
 
 jobs:
+  ### RECOMMEND PUBLISHING TO GHCR INSTEAD OF NPMJS
   publish:
     name: Publish NPM package
     runs-on: hl-contr-lin-md
@@ -30,8 +31,10 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      ## Cannot publish to npmjs using self hosted runners
       - name: Publish NPM package
         run: npm publish --access public
         working-directory: ./contracts
         env:
+          ## NPM_TOKEN is not configured in the repo and is no longer supported for publishing
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
