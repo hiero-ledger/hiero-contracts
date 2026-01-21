@@ -112,7 +112,7 @@ jobs:
         run: cp local.env .env
 
       - name: Run the test in ${{ inputs.testfilter }}
-        run: npx hardhat test --grep ${{ inputs.testfilter }}
+        run: npx hardhat test --network=local --grep ${{ inputs.testfilter }}
 
       - name: Upload Test Results
         if: always()
