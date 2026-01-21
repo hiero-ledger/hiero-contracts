@@ -46,14 +46,13 @@ class Hapi {
         ],
         1
       );
-      const response = await (
+      await (
         await new AccountUpdateTransaction()
           .setAccountId(accountId)
           .setKey(keyList)
           .freezeWith(this.client)
           .sign(pkSigner)
       ).execute(this.client);
-      await response.getReceipt(this.client);
     }
     this.client.setOperator(this.config.operatorId, this.config.operatorKey);
   }
@@ -101,10 +100,9 @@ class Hapi {
     if (setWipe) tx.setWipeKey(keyList);
     if (setFeeSchedule) tx.setFeeScheduleKey(keyList);
 
-    const response = await (
+    await (
       await tx.freezeWith(this.client).sign(pkSigners[0])
     ).execute(this.client);
-    await response.getReceipt(this.client);
     this.client.setOperator(this.config.operatorId, this.config.operatorKey);
   }
 }
