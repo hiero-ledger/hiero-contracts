@@ -55,7 +55,6 @@ describe('IERC20 Test Suite', function () {
     );
   });
 
-
   after(function () {
     hapi.client.close();
   });
