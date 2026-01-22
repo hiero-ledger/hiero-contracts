@@ -105,8 +105,14 @@ jobs:
         run: npx @hashgraph/solo@${{ inputs.soloVersion || '0.52.0' }} one-shot falcon deploy --values-file .github/falcon.yml
         timeout-minutes: 15
 
+      - name: Sleep 30 seconds....
+        run: sleep 30
+
       - name: Forward solo ports
         run: .github/scripts/forward-ports.sh
+
+      - name: Sleep 30 seconds....
+        run: sleep 30
 
       - name: Initialize test environment variables
         run: cp local.env .env
