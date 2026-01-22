@@ -52,7 +52,7 @@ jobs:
           sudo curl -fLo /usr/local/lib/docker/cli-plugins/docker-compose https://github.com/docker/compose/releases/download/v2.29.1/docker-compose-linux-x86_64
           sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
-      - name: Use Node.js [20]
+      - name: Use Node.js [24]
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24.12.0
@@ -108,11 +108,8 @@ jobs:
       - name: Sleep 30 seconds....
         run: sleep 30
 
-      - name: Forward solo ports
-        run: .github/scripts/forward-ports.sh
-
-      - name: Sleep 30 seconds....
-        run: sleep 30
+    #  - name: Forward solo ports
+    #    run: .github/scripts/forward-ports.sh
 
       - name: Initialize test environment variables
         run: cp local.env .env
