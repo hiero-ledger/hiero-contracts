@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const hre = require('hardhat');
-const { ethers } = hre;
-const { expect } = require('chai');
-const {
+import hre from 'hardhat';
+const { ethers, networkName } = await hre.network.connect();
+import { expect } from 'chai';
+import {
   AccountId,
   AccountInfoQuery,
   PrivateKey,
@@ -15,9 +15,10 @@ const {
   ScheduleCreateTransaction,
   TransferTransaction,
   Timestamp
-} = require('@hashgraph/sdk');
-const Constants = require('../constants');
-const axios = require('axios');
+} from '@hashgraph/sdk';
+import Constants from '../constants';
+import axios from 'axios';
+import { config } from '../config.js';
 
 class Utils {
   static createTokenCost = '50000000000000000000';
@@ -523,7 +524,7 @@ class Utils {
     prune0x = true
   ) {
     const wallet = new ethers.Wallet(
-      hre.config.networks[hre.network.name].accounts[index]
+        config.networks[networkName].accounts[index]
     );
     const cpk = prune0x
       ? wallet.signingKey.compressedPublicKey.replace('0x', '')
@@ -533,14 +534,13 @@ class Utils {
   }
 
   static async getHardhatSignersPrivateKeys(add0xPrefix = true) {
-    const network = Utils.getCurrentNetwork();
-    return hre.config.networks[network].accounts.map((pk) =>
+    return config.networks[networkName].accounts.map((pk) =>
       add0xPrefix ? pk : pk.replace('0x', '')
     );
   }
 
   static getHardhatSignerPrivateKeyByIndex(index = 0) {
-    return hre.config.networks[hre.network.name].accounts[index];
+    return config.networks[networkName].accounts[index];
   }
 
   static async getAccountBalance(address) {
@@ -659,7 +659,7 @@ class Utils {
    * @returns {string} - The response code as a string.
    */
   static async getHTSResponseCode(txHash) {
-    const network = hre.network.name;
+    const network = config.networks[networkName];
     const mirrorNodeUrl = Utils.getMirrorNodeUrl(network);
     const res = await axios.get(
       `${mirrorNodeUrl}/contracts/results/${txHash}/actions`
@@ -680,7 +680,7 @@ class Utils {
    */
   static async getContractResultFromMN(txHash) {
     const res = await axios.get(
-      `${Utils.getMirrorNodeUrl(hre.network.name)}/contracts/results/${txHash}`
+      `${Utils.getMirrorNodeUrl(config.networks[networkName])}/contracts/results/${txHash}`
     );
 
     return res.data;
@@ -696,7 +696,7 @@ class Utils {
    * @returns {string} - The response code as a string.
    */
   static async getHASResponseCode(txHash) {
-    const network = hre.network.name;
+    const network = config.networks[networkName];
     const mirrorNodeUrl = Utils.getMirrorNodeUrl(network);
     const res = await axios.get(
       `${mirrorNodeUrl}/contracts/results/${txHash}/actions`
@@ -855,7 +855,7 @@ class Utils {
    * @throws {Error} If there was an error fetching the data from mirror node
    */
   static async getMaxAutomaticTokenAssociations(evmAddress) {
-    const network = hre.network.name;
+    const network = config.networks[networkName];
     const mirrorNodeUrl = Utils.getMirrorNodeUrl(network);
     const response = await axios.get(`${mirrorNodeUrl}/accounts/${evmAddress}`);
     return response.data.max_automatic_token_associations;
@@ -867,4 +867,4 @@ class Utils {
   }
 }
 
-module.exports = Utils;
+export default Utils;

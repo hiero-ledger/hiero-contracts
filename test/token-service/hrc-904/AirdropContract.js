@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const { expect } = require('chai');
-const { ethers } = require('hardhat');
-const utils = require('../utils');
-const Constants = require('../../constants');
-const Hapi = require('../hapi');
+import { expect } from 'chai';
+import hre from 'hardhat';
+const { ethers } = await hre.network.connect();
+import utils from '../utils';
+import Constants from '../../constants';
+import Hapi from '../hapi';
 
 describe('HIP904Batch1 AirdropContract Test Suite', function () {
   let airdropContract;

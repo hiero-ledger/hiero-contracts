@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const utils = require('../../token-service/utils');
-const Utils = require('../../token-service/utils');
-const { expect } = require('chai');
-const { ethers } = require('hardhat');
-const Constants = require('../../constants');
-const {
+import Utils from '../../token-service/utils';
+import { expect } from 'chai';
+import { network } from 'hardhat';
+const { ethers } = await network.connect();
+import Constants from '../../constants';
+import {
   pollForNewSignerBalanceUsingProvider,
-} = require('../../helpers');
-const Hapi = require("../../token-service/hapi");
+} from '../../helpers';
+import Hapi from '../../token-service/hapi';
 
 describe('@HAS IHRC-906 Test Suite', () => {
   let walletA,

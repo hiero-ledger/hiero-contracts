@@ -1,15 +1,18 @@
-const hre = require("hardhat");
-const { AccountId, Client,   AccountUpdateTransaction,
+import hre from 'hardhat';
+import { AccountId, Client,   AccountUpdateTransaction,
   ContractId,
   KeyList,
   PrivateKey, TokenUpdateTransaction, TokenId, TokenGrantKycTransaction
-} = require("@hashgraph/sdk");
-const utils = require("./utils");
+} from '@hashgraph/sdk';
+const connection = await hre.network.connect();
+import { config } from '../config.js';
+const network = config.networks[connection.networkName];
+import utils from './utils';
 class Hapi {
   client;
   config;
   constructor() {
-    this.config = hre.config.networks[hre.network.name].sdkClient;
+    this.config = network.sdkClient;
     const hederaNetwork = {};
     hederaNetwork[this.config.networkNodeUrl] = AccountId.fromString(this.config.nodeId);
     this.client = Client.forNetwork(hederaNetwork)
@@ -64,7 +67,7 @@ class Hapi {
     setWipe = true,
     setFeeSchedule = true
   ) {
-    const signers = await hre.ethers.getSigners();
+    const signers = await connection.ethers.getSigners();
     const pkSigners = (await utils.getHardhatSignersPrivateKeys()).map((pk) =>
       PrivateKey.fromStringECDSA(pk)
     );
@@ -103,4 +106,4 @@ class Hapi {
   }
 }
 
-module.exports = Hapi;
+export default Hapi;

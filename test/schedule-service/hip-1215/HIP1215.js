@@ -1,18 +1,19 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const { expect } = require('chai');
-const hre = require('hardhat');
-const { ethers } = hre;
-const Constants = require('../../constants');
-const Utils = require('../../token-service/utils.js');
-const axios = require("axios");
+import { expect } from 'chai';
+import hre from 'hardhat';
+const { ethers, networkName } = hre;
+import Constants from '../../constants';
+import Utils from '../../token-service/utils.js';
+import axios from 'axios';
 
-const { PrivateKey } = require('@hashgraph/sdk');
+import { PrivateKey } from '@hashgraph/sdk';
+import Hapi from '../../token-service/hapi.js';
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 const getScheduleInfoFromMN = async (scheduleAddress) => {
-  const url = Utils.getMirrorNodeUrl(hre.network.name) + `/schedules/0.0.${Number(scheduleAddress)}`;
+  const url = Utils.getMirrorNodeUrl(networkName) + `/schedules/0.0.${Number(scheduleAddress)}`;
 
   return axios.get(url).then(r => r.data);
 };
@@ -57,7 +58,7 @@ describe("HIP1215 Test Suite", function () {
   xit('should be able to execute IHRC1215ScheduleFacade.deleteSchedule()', async () => {
     const signerSender = signers[0];
     const signerReceiver = signers[1];
-    const genesisSdkClient = await Utils.createSDKClient();
+    const { client: genesisSdkClient } = new Hapi();
     const senderInfo = await Utils.getAccountInfo(signerSender.address, genesisSdkClient);
     const receiverInfo = await Utils.getAccountInfo(signerReceiver.address, genesisSdkClient);
 
@@ -81,6 +82,8 @@ describe("HIP1215 Test Suite", function () {
 
     expect(infoBefore.deleted).to.be.false;
     expect(infoAfter.deleted).to.be.true;
+
+    genesisSdkClient.close();
   });
 
   it("should be able to execute scheduleCallDirect", async () => {

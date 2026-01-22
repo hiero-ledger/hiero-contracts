@@ -1,18 +1,20 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const Utils = require('../../token-service/utils');
-const { expect } = require('chai');
-const { ethers } = require('hardhat');
-const Constants = require('../../constants');
-const {
+import Utils from '../../token-service/utils';
+import { expect } from 'chai';
+import { network } from 'hardhat';
+const { ethers } = await network.connect();
+import Constants from '../../constants';
+import {
   Hbar,
   PrivateKey,
   AccountCreateTransaction,
   KeyList,
-} = require('@hashgraph/sdk');
-const path = require('path');
-const protobuf = require('protobufjs');
-const Hapi = require("../../token-service/hapi");
+} from '@hashgraph/sdk';
+import { fileURLToPath } from 'url';
+import path from 'path';
+import protobuf from 'protobufjs';
+import Hapi from '../../token-service/hapi.js';
 
 describe('@HAS IHRC-632 Test Suite', () => {
   let walletA,
@@ -302,7 +304,7 @@ describe('@HAS IHRC-632 Test Suite', () => {
 
     before(async () => {
       // Load and compile protobuf definitions
-      const signatureMapProto = path.resolve(__dirname, 'signature_map.proto');
+      const signatureMapProto = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'signature_map.proto');
       root = await protobuf.load(signatureMapProto);
       SignatureMap = root.lookupType('SignatureMap');
     });
