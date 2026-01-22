@@ -27,6 +27,18 @@ jobs:
     with:
       testfilter: ERC20
 
+  ERC721Contract:
+    name: ERC721 Contract Test Suite
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: ERC721
+
+  ERC1155Contract:
+    name: ERC1155 Contract Test Suite
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: ERC1155
+
   TokenCreateContract:
     name: Token Create Test Suite
     uses: ./.github/workflows/test-workflow.yml
