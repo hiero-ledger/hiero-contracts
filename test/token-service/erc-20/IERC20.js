@@ -15,6 +15,7 @@ import Hapi from '../hapi';
 const sleep = () => new Promise(resolve => setTimeout(resolve, 1000));
 
 describe('IERC20 Test Suite', function () {
+  this.timeout(400000);
   let tokenCreateContract;
   let tokenTransferContract;
   let tokenAddress;

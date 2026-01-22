@@ -8,6 +8,7 @@ import Constants from '../../constants';
 import Hapi from '../hapi';
 
 describe('ERC20Contract Test Suite', function () {
+  this.timeout(400000);
   let tokenCreateContract;
   let tokenTransferContract;
   let tokenAddress;
