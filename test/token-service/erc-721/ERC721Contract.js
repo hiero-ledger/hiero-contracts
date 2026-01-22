@@ -198,6 +198,30 @@ describe('ERC721Contract Test Suite', function () {
     expect(afterApproval).to.not.equal(firstWallet.address);
   });
 
+  it('should be able execute safeTransferFrom', async function () {
+    const tx = erc721Contract.safeTransferFrom(
+        tokenAddress,
+        firstWallet.address,
+        secondWallet.address,
+        mintedTokenSerialNumber,
+        Constants.GAS_LIMIT_1_000_000
+    );
+    await expect((await tx).wait()).to.eventually.not.be.rejected;
+  });
+
+  it('should be able execute safeTransferFromWithData', async function () {
+    const tx = erc721Contract.safeTransferFromWithData(
+        tokenAddress,
+        firstWallet.address,
+        secondWallet.address,
+        mintedTokenSerialNumber,
+        '0x01',
+        Constants.GAS_LIMIT_1_000_000
+    );
+
+    await expect((await tx).wait()).to.eventually.not.be.rejected;
+  });
+
   describe('Unsupported operations', async function () {
     let serialNumber;
 
@@ -291,29 +315,6 @@ describe('ERC721Contract Test Suite', function () {
         ),
         Constants.CONTRACT_REVERT_EXECUTED_CODE
       );
-    });
-
-    it('should NOT be able execute safeTransferFrom', async function () {
-      const tx = erc721Contract.safeTransferFrom(
-        tokenAddress,
-        firstWallet.address,
-        secondWallet.address,
-        mintedTokenSerialNumber,
-        Constants.GAS_LIMIT_1_000_000
-      );
-      await utils.expectToFail(tx, Constants.CALL_EXCEPTION);
-    });
-
-    it('should NOT be able execute safeTransferFromWithData', async function () {
-      const tx = erc721Contract.safeTransferFromWithData(
-        tokenAddress,
-        firstWallet.address,
-        secondWallet.address,
-        mintedTokenSerialNumber,
-        '0x01',
-        Constants.GAS_LIMIT_1_000_000
-      );
-      await utils.expectToFail(tx, Constants.CALL_EXCEPTION);
     });
   });
 });

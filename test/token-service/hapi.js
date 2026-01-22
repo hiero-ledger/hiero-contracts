@@ -18,10 +18,6 @@ class Hapi {
     ;
   }
 
-  async grantTokenKyc(contract, tokenAddress) {
-
-  }
-
   async updateAccountKeys(
     contractAddresses,
     ecdsaPrivateKeys = []
@@ -30,7 +26,6 @@ class Hapi {
       ecdsaPrivateKeys = await utils.getHardhatSignersPrivateKeys(false);
     }
     for (const privateKey of ecdsaPrivateKeys) {
-      console.error('PK', privateKey);
       const pkSigner = PrivateKey.fromStringECDSA(privateKey.replace('0x', ''));
       const accountId = await utils.getAccountId(
         pkSigner.publicKey.toEvmAddress(),

@@ -4,7 +4,7 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const utils = require('../utils');
 const Constants = require('../../constants');
-const Hapi = require("../hapi");
+const Hapi = require('../hapi');
 
 describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
   let tokenRejectContract;

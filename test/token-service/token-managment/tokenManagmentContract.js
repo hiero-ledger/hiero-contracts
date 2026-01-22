@@ -5,7 +5,7 @@ const { ethers } = require('hardhat');
 const utils = require('../utils');
 const Constants = require('../../constants');
 const { pollForNewERC20Balance } = require('../../helpers');
-const Hapi = require("../hapi");
+const Hapi = require('../hapi');
 
 describe('TokenManagmentContract Test Suite', function () {
   const TX_SUCCESS_CODE = 22;

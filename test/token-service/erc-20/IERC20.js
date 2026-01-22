@@ -8,7 +8,10 @@ const {
   pollForNewBalance,
   pollForNewSignerBalance,
 } = require('../../helpers');
-const Hapi = require("../hapi");
+
+const Hapi = require('../hapi');
+
+const sleep = () => new Promise(resolve => setTimeout(resolve, 1000));
 
 describe('IERC20 Test Suite', function () {
   let tokenCreateContract;
@@ -29,6 +32,7 @@ describe('IERC20 Test Suite', function () {
       await tokenCreateContract.getAddress(),
       await tokenTransferContract.getAddress(),
     ]);
+    await sleep();
     tokenAddress = await utils.createFungibleToken(
       tokenCreateContract,
       signers[0].address

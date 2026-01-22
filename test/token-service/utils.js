@@ -5,18 +5,11 @@ const { ethers } = hre;
 const { expect } = require('chai');
 const {
   AccountId,
-  Client,
   AccountInfoQuery,
-  AccountUpdateTransaction,
-  ContractId,
-  KeyList,
   PrivateKey,
   TokenId,
-  TokenUpdateTransaction,
   TokenAssociateTransaction,
   AccountBalanceQuery,
-  ContractInfoQuery,
-  AccountDeleteTransaction,
   Hbar,
   HbarUnit,
   ScheduleCreateTransaction,
@@ -230,25 +223,6 @@ class Utils {
     );
   }
 
-  static async createFungibleTokenWithSECP256K1AdminKeyAssociateAndTransferToAddress(
-    contract,
-    treasury,
-    adminKey,
-    initialBalance = 300
-  ) {
-    return await this.getTokenAddress(
-      await contract.createFungibleTokenWithSECP256K1AdminKeyAssociateAndTransferToAddressPublic(
-        treasury,
-        adminKey,
-        initialBalance,
-        {
-          value: BigInt(this.createTokenCost),
-          gasLimit: 1_000_000,
-        }
-      )
-    );
-  }
-
   static async createFungibleTokenWithCustomFees(contract, feeTokenAddress) {
     return await this.getTokenAddress(
       await contract.createFungibleTokenWithCustomFeesPublic(
@@ -428,22 +402,6 @@ class Utils {
     return parseInt(balance.balance);
   }
 
-  static async updateFungibleTokenCustomFees(
-    contract,
-    token,
-    treasury,
-    feeToken,
-    feeAmount
-  ) {
-    const updateFees = await contract.updateFungibleTokenCustomFeesPublic(
-      token,
-      treasury,
-      feeToken,
-      feeAmount
-    );
-    const receipt = await updateFees.wait();
-  }
-
   static async getSerialNumbers(mintNftTx) {
     const tokenAddressReceipt = await mintNftTx.wait();
     const { serialNumbers } = tokenAddressReceipt.logs.filter(
@@ -542,26 +500,6 @@ class Utils {
     }
   }
 
-  static async createSDKClient(operatorId, operatorKey) {
-    const network = Utils.getCurrentNetwork();
-
-    const hederaNetwork = {};
-    hederaNetwork[hre.config.networks[network].sdkClient.networkNodeUrl] =
-      AccountId.fromString(hre.config.networks[network].sdkClient.nodeId);
-    const { mirrorNode } = hre.config.networks[network].sdkClient;
-
-    operatorId =
-      operatorId || hre.config.networks[network].sdkClient.operatorId;
-    operatorKey =
-      operatorKey || hre.config.networks[network].sdkClient.operatorKey;
-
-    const client = Client.forNetwork(hederaNetwork)
-      .setMirrorNetwork(mirrorNode)
-      .setOperator(operatorId, operatorKey);
-
-    return client;
-  }
-
   static async getAccountId(evmAddress, client) {
     const query = new AccountInfoQuery().setAccountId(
       AccountId.fromEvmAddress(0, 0, evmAddress)
@@ -577,24 +515,6 @@ class Utils {
     );
 
     return await query.execute(client);
-  }
-
-  static async getContractInfo(evmAddress, client) {
-    const query = new ContractInfoQuery().setContractId(
-      ContractId.fromEvmAddress(0, 0, evmAddress)
-    );
-
-    return await query.execute(client);
-  }
-
-  static async deleteAccount(account, signer, accountId) {
-    const accountDeleteTransaction = await new AccountDeleteTransaction()
-      .setAccountId(accountId)
-      .setTransferAccountId(signer.getOperator().accountId)
-      .freezeWith(signer)
-      .sign(PrivateKey.fromStringECDSA(account.signingKey.privateKey));
-
-    await accountDeleteTransaction.execute(signer);
   }
 
   static getSignerCompressedPublicKey(
@@ -623,43 +543,6 @@ class Utils {
     return hre.config.networks[hre.network.name].accounts[index];
   }
 
-  static async updateAccountKeysViaHapi(
-    contractAddresses,
-    ecdsaPrivateKeys = []
-  ) {
-    const clientGenesis = await Utils.createSDKClient();
-    if (!ecdsaPrivateKeys.length) {
-      ecdsaPrivateKeys = await this.getHardhatSignersPrivateKeys(false);
-    }
-
-    for (const privateKey of ecdsaPrivateKeys) {
-      const pkSigner = PrivateKey.fromStringECDSA(privateKey.replace('0x', ''));
-      const accountId = await Utils.getAccountId(
-        pkSigner.publicKey.toEvmAddress(),
-        clientGenesis
-      );
-      const clientSigner = await Utils.createSDKClient(accountId, pkSigner);
-
-      const keyList = new KeyList(
-        [
-          pkSigner.publicKey,
-          ...contractAddresses.map((address) =>
-            ContractId.fromEvmAddress(0, 0, address)
-          ),
-        ],
-        1
-      );
-
-      await (
-        await new AccountUpdateTransaction()
-          .setAccountId(accountId)
-          .setKey(keyList)
-          .freezeWith(clientSigner)
-          .sign(pkSigner)
-      ).execute(clientSigner);
-    }
-  }
-
   static async getAccountBalance(address) {
     const client = await Utils.createSDKClient();
     const accountId = await Utils.getAccountId(address, client);
@@ -667,61 +550,6 @@ class Utils {
       .setAccountId(accountId)
       .execute(client);
     return tokenBalance;
-  }
-
-  static async updateTokenKeysViaHapi(
-    tokenAddress,
-    contractAddresses,
-    setAdmin = true,
-    setPause = true,
-    setKyc = true,
-    setFreeze = true,
-    setSupply = true,
-    setWipe = true,
-    setFeeSchedule = true
-  ) {
-    const signers = await ethers.getSigners();
-    const clientGenesis = await Utils.createSDKClient();
-    const pkSigners = (await Utils.getHardhatSignersPrivateKeys()).map((pk) =>
-      PrivateKey.fromStringECDSA(pk)
-    );
-    const accountIdSigner0 = await Utils.getAccountId(
-      signers[0].address,
-      clientGenesis
-    );
-    const clientSigner0 = await Utils.createSDKClient(
-      accountIdSigner0,
-      pkSigners[0]
-    );
-
-    const keyList = new KeyList(
-      [
-        ...pkSigners.map((pk) => pk.publicKey),
-        ...contractAddresses.map((address) =>
-          ContractId.fromEvmAddress(0, 0, address)
-        ),
-      ],
-      1
-    );
-
-    const tx = new TokenUpdateTransaction().setTokenId(
-      TokenId.fromSolidityAddress(tokenAddress)
-    );
-    if (setAdmin) tx.setAdminKey(keyList);
-    if (setPause) tx.setPauseKey(keyList);
-    if (setKyc) tx.setKycKey(keyList);
-    if (setFreeze) tx.setFreezeKey(keyList);
-    if (setSupply) tx.setSupplyKey(keyList);
-    if (setWipe) tx.setWipeKey(keyList);
-    if (setFeeSchedule) tx.setFeeScheduleKey(keyList);
-
-    await (
-      await tx.freezeWith(clientSigner0).sign(pkSigners[0])
-    ).execute(clientSigner0);
-  }
-
-  static getCurrentNetwork() {
-    return hre.network.name;
   }
 
   static convertAccountIdToLongZeroAddress(accountId, prepend0x = false) {
@@ -840,16 +668,6 @@ class Utils {
       (x) => x.recipient === Constants.HTS_SYSTEM_CONTRACT_ID
     );
     return BigInt(precompileAction.result_data).toString();
-  }
-
-  static async getTokenInfoByMN(tokenAddress) {
-    const network = hre.network.name;
-    const mirrorNodeUrl = Utils.getMirrorNodeUrl(network);
-    const res = await axios.get(
-      `${mirrorNodeUrl}/tokens/${tokenAddress}`
-    );
-
-    return res.data;
   }
 
   /**

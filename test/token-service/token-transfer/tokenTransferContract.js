@@ -8,7 +8,7 @@ const {
   pollForNewERC20Balance,
   pollForNewSignerBalanceUsingProvider,
 } = require('../../helpers');
-const Hapi = require("../hapi");
+const Hapi = require('../hapi');
 
 describe('TokenTransferContract Test Suite', function () {
   const TX_SUCCESS_CODE = 22;

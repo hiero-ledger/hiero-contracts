@@ -5,7 +5,7 @@ const { ethers } = require('hardhat');
 const utils = require('../utils');
 const Constants = require('../../constants');
 const { Contract } = require('ethers');
-const Hapi = require("../hapi");
+const Hapi = require('../hapi');
 
 describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
   let airdropContract;
@@ -26,6 +26,7 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
   let erc721Contract;
   let contractAddresses;
   let hapi;
+  let invalidSender;
 
   before(async function () {
     hapi = new Hapi();

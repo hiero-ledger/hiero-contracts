@@ -6,7 +6,7 @@ const { expect } = require('chai');
 const hre = require('hardhat');
 const { ethers } = hre;
 const utils = require('../utils');
-const Hapi = require("../hapi");
+const Hapi = require('../hapi');
 
 describe('@HRC-719 Test Suite', function () {
   let tokenCreateContract;

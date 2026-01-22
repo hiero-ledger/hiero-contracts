@@ -8,6 +8,7 @@ const { expect } = require("chai");
 const {
   PrivateKey
 } = require('@hashgraph/sdk');
+const Hapi = require("../../token-service/hapi");
 
 const convertScheduleIdToUint8Array = (scheduleId) => {
   const [shard, realm, num] = scheduleId.split('.');
@@ -25,27 +26,31 @@ const convertScheduleIdToUint8Array = (scheduleId) => {
 };
 
 describe('HIP755 Test Suite', function () {
-  let genesisSdkClient, signers, signerSender, signerReceiver, senderInfo, receiverInfo, contractHRC755;
+  let signers, signerSender, signerReceiver, senderInfo, receiverInfo, contractHRC755, hapi;
 
   before(async () => {
-    genesisSdkClient = await Utils.createSDKClient();
+    hapi = new Hapi();
     signers = await ethers.getSigners();
     signerSender = signers[0];
     signerReceiver = signers[1];
 
-    senderInfo = await Utils.getAccountInfo(signerSender.address, genesisSdkClient);
-    receiverInfo = await Utils.getAccountInfo(signerReceiver.address, genesisSdkClient);
+    senderInfo = await Utils.getAccountInfo(signerSender.address, hapi.client);
+    receiverInfo = await Utils.getAccountInfo(signerReceiver.address, hapi.client);
 
     const contractHRC755Factory = await ethers.getContractFactory('HRC755Contract');
     contractHRC755 = await contractHRC755Factory.deploy();
     await contractHRC755.waitForDeployment();
   });
 
+  after(function () {
+    hapi.client.close();
+  });
+
   it('should be able to signSchedule via IHRC755ScheduleFacade', async () => {
     const {
       scheduleId,
       transferAmountAsWeibar
-    } = await Utils.createScheduleTransactionForTransfer(senderInfo, receiverInfo, genesisSdkClient);
+    } = await Utils.createScheduleTransactionForTransfer(senderInfo, receiverInfo, hapi.client);
 
     const senderBalanceBefore = await signers[0].provider.getBalance(signerSender);
     const receiverBalanceBefore = await signers[0].provider.getBalance(signerReceiver);
@@ -71,7 +76,7 @@ describe('HIP755 Test Suite', function () {
     const {
       scheduleId,
       transferAmountAsWeibar
-    } = await Utils.createScheduleTransactionForTransfer(senderInfo, receiverInfo, genesisSdkClient);
+    } = await Utils.createScheduleTransactionForTransfer(senderInfo, receiverInfo, hapi.client);
 
     const rawPk = await Utils.getHardhatSignerPrivateKeyByIndex(0);
     const privateKey = PrivateKey.fromStringECDSA(rawPk.replace('0x', ''));
@@ -103,7 +108,7 @@ describe('HIP755 Test Suite', function () {
   });
 
   it('should be able to authorizeSchedule via HRC755 contract', async () => {
-    const { scheduleId } = await Utils.createScheduleTransactionForTransfer(senderInfo, receiverInfo, genesisSdkClient);
+    const { scheduleId } = await Utils.createScheduleTransactionForTransfer(senderInfo, receiverInfo, hapi.client);
 
     const signScheduleCallTx = await contractHRC755.authorizeScheduleCall(
         Utils.convertAccountIdToLongZeroAddress(scheduleId.toString(), true),

@@ -4,8 +4,8 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const utils = require('../utils');
 const Constants = require('../../constants');
-const Utils = require("../utils");
-const Hapi = require("../hapi");
+const Utils = require('../utils');
+const Hapi = require('../hapi');
 
 describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
   let airdropContract;
@@ -19,6 +19,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
   let receiverPrivateKey;
   let contractAddresses;
   let hapi;
+  let tokenAddress;
 
   before(async function () {
     hapi = new Hapi();

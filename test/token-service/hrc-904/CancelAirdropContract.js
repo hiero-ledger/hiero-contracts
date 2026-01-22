@@ -17,6 +17,7 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
   let receiver;
   let hapi;
   let contractAddresses;
+  let tokenAddress;
 
   before(async function () {
     hapi = new Hapi();

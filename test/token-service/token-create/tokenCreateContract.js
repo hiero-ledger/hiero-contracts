@@ -13,7 +13,7 @@ const {
   TokenSupplyType,
   AccountId,
 } = require('@hashgraph/sdk');
-const Hapi = require("../hapi");
+const Hapi = require('../hapi');
 
 describe('TokenCreateContract Test Suite', function () {
   let tokenCreateContract;
@@ -21,8 +21,10 @@ describe('TokenCreateContract Test Suite', function () {
   let tokenManagmentContract;
   let tokenQueryContract;
   let erc20Contract;
+  let erc721Contract;
   let tokenAddress;
   let nftTokenAddress;
+  let mintedTokenSerialNumber;
   let signers;
 
   let hapi;
