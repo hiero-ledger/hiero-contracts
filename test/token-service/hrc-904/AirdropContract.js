@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { expect } from 'chai';
-import { network } from 'hardhat';
-const { ethers } = await network.connect();
+import hre from 'hardhat';
+const { ethers } = await hre.network.connect();
 import utils from '../utils';
 import Constants from '../../constants';
 import Hapi from '../hapi';

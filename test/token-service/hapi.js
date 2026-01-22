@@ -6,9 +6,8 @@ import { AccountId, Client,   AccountUpdateTransaction,
 } from '@hashgraph/sdk';
 const connection = await hre.network.connect();
 import { config } from '../config.js';
-const network = config.networks[config.defaultNetwork];
+const network = config.networks[connection.networkName];
 import utils from './utils';
-
 class Hapi {
   client;
   config;

@@ -72,18 +72,16 @@ jobs:
           consensusNode:
             --node-aliases: "node1"
             --force-port-forward: true
-          
           mirrorNode:
             --enable-ingress: true
             --pinger: true
             --mirror-node-version: "${{ inputs.mirrorTag || 'v0.144.0' }}"
             --force-port-forward: true
-
           explorerNode:
             --enable-ingress: true
-          
           relayNode:
             --node-aliases: "node1"
+            --values-file: ".github/relay-values.yml"
           EOF
 
       - name: Setup Kind

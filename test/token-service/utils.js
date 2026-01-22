@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import hre from 'hardhat';
-const { ethers } = await hre.network.connect();
+const { ethers, networkName } = await hre.network.connect();
 import { expect } from 'chai';
 import {
   AccountId,
@@ -544,17 +544,15 @@ class Utils {
   }
 
   static async createSDKClient(operatorId, operatorKey) {
-    const network = Utils.getCurrentNetwork();
-
     const hederaNetwork = {};
-    hederaNetwork[config.networks[network].sdkClient.networkNodeUrl] =
-      AccountId.fromString(config.networks[network].sdkClient.nodeId);
-    const { mirrorNode } = config.networks[network].sdkClient;
+    hederaNetwork[config.networks[networkName].sdkClient.networkNodeUrl] =
+      AccountId.fromString(config.networks[networkName].sdkClient.nodeId);
+    const { mirrorNode } = config.networks[networkName].sdkClient;
 
     operatorId =
-      operatorId || config.networks[network].sdkClient.operatorId;
+      operatorId || config.networks[networkName].sdkClient.operatorId;
     operatorKey =
-      operatorKey || config.networks[network].sdkClient.operatorKey;
+      operatorKey || config.networks[networkName].sdkClient.operatorKey;
 
     const client = Client.forNetwork(hederaNetwork)
       .setMirrorNetwork(mirrorNode)
@@ -604,7 +602,7 @@ class Utils {
     prune0x = true
   ) {
     const wallet = new ethers.Wallet(
-        config.networks[Utils.getCurrentNetwork()].accounts[index]
+        config.networks[networkName].accounts[index]
     );
     const cpk = prune0x
       ? wallet.signingKey.compressedPublicKey.replace('0x', '')
@@ -614,14 +612,13 @@ class Utils {
   }
 
   static async getHardhatSignersPrivateKeys(add0xPrefix = true) {
-    const network = Utils.getCurrentNetwork();
-    return config.networks[network].accounts.map((pk) =>
+    return config.networks[networkName].accounts.map((pk) =>
       add0xPrefix ? pk : pk.replace('0x', '')
     );
   }
 
   static getHardhatSignerPrivateKeyByIndex(index = 0) {
-    return config.networks[Utils.getCurrentNetwork()].accounts[index];
+    return config.networks[networkName].accounts[index];
   }
 
   static async updateAccountKeysViaHapi(
@@ -719,10 +716,6 @@ class Utils {
     await (
       await tx.freezeWith(clientSigner0).sign(pkSigners[0])
     ).execute(clientSigner0);
-  }
-
-  static getCurrentNetwork() {
-    return config.defaultNetwork;
   }
 
   static convertAccountIdToLongZeroAddress(accountId, prepend0x = false) {
@@ -832,7 +825,7 @@ class Utils {
    * @returns {string} - The response code as a string.
    */
   static async getHTSResponseCode(txHash) {
-    const network = hre.network.name;
+    const network = config.networks[networkName];
     const mirrorNodeUrl = Utils.getMirrorNodeUrl(network);
     const res = await axios.get(
       `${mirrorNodeUrl}/contracts/results/${txHash}/actions`
@@ -844,7 +837,7 @@ class Utils {
   }
 
   static async getTokenInfoByMN(tokenAddress) {
-    const network = hre.network.name;
+    const network = config.networks[networkName];
     const mirrorNodeUrl = Utils.getMirrorNodeUrl(network);
     const res = await axios.get(
       `${mirrorNodeUrl}/tokens/${tokenAddress}`
@@ -863,7 +856,7 @@ class Utils {
    */
   static async getContractResultFromMN(txHash) {
     const res = await axios.get(
-      `${Utils.getMirrorNodeUrl(hre.network.name)}/contracts/results/${txHash}`
+      `${Utils.getMirrorNodeUrl(config.networks[networkName])}/contracts/results/${txHash}`
     );
 
     return res.data;
@@ -879,7 +872,7 @@ class Utils {
    * @returns {string} - The response code as a string.
    */
   static async getHASResponseCode(txHash) {
-    const network = hre.network.name;
+    const network = config.networks[networkName];
     const mirrorNodeUrl = Utils.getMirrorNodeUrl(network);
     const res = await axios.get(
       `${mirrorNodeUrl}/contracts/results/${txHash}/actions`
@@ -1038,7 +1031,7 @@ class Utils {
    * @throws {Error} If there was an error fetching the data from mirror node
    */
   static async getMaxAutomaticTokenAssociations(evmAddress) {
-    const network = hre.network.name;
+    const network = config.networks[networkName];
     const mirrorNodeUrl = Utils.getMirrorNodeUrl(network);
     const response = await axios.get(`${mirrorNodeUrl}/accounts/${evmAddress}`);
     return response.data.max_automatic_token_associations;
