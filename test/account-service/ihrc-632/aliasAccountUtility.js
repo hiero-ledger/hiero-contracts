@@ -16,7 +16,7 @@ import path from 'path';
 import protobuf from 'protobufjs';
 import Hapi from '../../token-service/hapi.js';
 
-describe.only('@HAS IHRC-632 Test Suite', () => {
+describe('@HAS IHRC-632 Test Suite', () => {
   let walletA,
     walletB,
     walletC,
