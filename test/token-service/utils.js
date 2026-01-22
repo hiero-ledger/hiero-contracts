@@ -659,8 +659,7 @@ class Utils {
    * @returns {string} - The response code as a string.
    */
   static async getHTSResponseCode(txHash) {
-    const network = config.networks[networkName];
-    const mirrorNodeUrl = Utils.getMirrorNodeUrl(network);
+    const mirrorNodeUrl = Utils.getMirrorNodeUrl(networkName);
     const res = await axios.get(
       `${mirrorNodeUrl}/contracts/results/${txHash}/actions`
     );
@@ -680,7 +679,7 @@ class Utils {
    */
   static async getContractResultFromMN(txHash) {
     const res = await axios.get(
-      `${Utils.getMirrorNodeUrl(config.networks[networkName])}/contracts/results/${txHash}`
+      `${Utils.getMirrorNodeUrl(networkName)}/contracts/results/${txHash}`
     );
 
     return res.data;
@@ -696,8 +695,7 @@ class Utils {
    * @returns {string} - The response code as a string.
    */
   static async getHASResponseCode(txHash) {
-    const network = config.networks[networkName];
-    const mirrorNodeUrl = Utils.getMirrorNodeUrl(network);
+    const mirrorNodeUrl = Utils.getMirrorNodeUrl(networkName);
     const res = await axios.get(
       `${mirrorNodeUrl}/contracts/results/${txHash}/actions`
     );
@@ -855,8 +853,7 @@ class Utils {
    * @throws {Error} If there was an error fetching the data from mirror node
    */
   static async getMaxAutomaticTokenAssociations(evmAddress) {
-    const network = config.networks[networkName];
-    const mirrorNodeUrl = Utils.getMirrorNodeUrl(network);
+    const mirrorNodeUrl = Utils.getMirrorNodeUrl(networkName);
     const response = await axios.get(`${mirrorNodeUrl}/accounts/${evmAddress}`);
     return response.data.max_automatic_token_associations;
   }
