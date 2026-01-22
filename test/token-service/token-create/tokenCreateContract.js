@@ -22,8 +22,10 @@ describe('TokenCreateContract Test Suite', function () {
   let tokenManagmentContract;
   let tokenQueryContract;
   let erc20Contract;
+  let erc721Contract;
   let tokenAddress;
   let nftTokenAddress;
+  let mintedTokenSerialNumber;
   let signers;
 
   let hapi;

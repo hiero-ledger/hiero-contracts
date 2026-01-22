@@ -20,6 +20,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
   let receiverPrivateKey;
   let contractAddresses;
   let hapi;
+  let tokenAddress;
 
   before(async function () {
     hapi = new Hapi();

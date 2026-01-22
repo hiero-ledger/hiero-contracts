@@ -47,11 +47,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      - name: Install Docker Compose Plugin
-        run: |
-          sudo curl -fLo /usr/local/lib/docker/cli-plugins/docker-compose https://github.com/docker/compose/releases/download/v2.29.1/docker-compose-linux-x86_64
-          sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
-
       - name: Use Node.js [24]
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
@@ -102,7 +97,7 @@ jobs:
           wait: 120s
 
       - name: Start the solo node
-        run: npx @hashgraph/solo@${{ inputs.soloVersion || '0.52.0' }} one-shot falcon deploy --values-file .github/falcon.yml
+        run: npx @hashgraph/solo@${{ inputs.soloVersion || '0.52.0' }} one-shot falcon deploy --values-file .github/falcon.yml --dev
         timeout-minutes: 15
 
       - name: Forward solo ports
@@ -112,7 +107,9 @@ jobs:
         run: cp local.env .env
 
       - name: Run the test in ${{ inputs.testfilter }}
-        run: npx hardhat test --network=local --grep ${{ inputs.testfilter }}
+        run: npx hardhat test --grep ${{ inputs.testfilter }}
+        env:
+          HARDHAT_NETWORK: local
 
       - name: Upload Test Results
         if: always()

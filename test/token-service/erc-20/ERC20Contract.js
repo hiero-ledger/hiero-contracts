@@ -44,6 +44,7 @@ describe('ERC20Contract Test Suite', function () {
   });
 
   after(function () {
+    console.log('CLOSE HAPI CONNECTION!');
     hapi.client.close();
   });
 
