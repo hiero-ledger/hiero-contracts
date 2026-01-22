@@ -118,6 +118,9 @@ async function checkPRLabelsAndMilestone(pr) {
     if (!prLabels || prLabels.length === 0) {
         throw new Error('The PR has no labels.');
     }
+    if (!prMilestone) {
+        throw new Error('The PR has no milestone.');
+    }
 }
 
 function isDependabotOrSnykPR(pr) {
@@ -140,6 +143,9 @@ async function processIssueReferencesInText(text) {
 
                     if (!issueLabels || issueLabels.length === 0) {
                         throw new Error(`Associated issue #${issueRef.issueNumber} has no labels.`);
+                    }
+                    if (!issueMilestone) {
+                        throw new Error(`Associated issue #${issueRef.issueNumber} has no milestone.`);
                     }
                 }
             } else {
@@ -221,6 +227,11 @@ async function processReferencedPR(prRef, contributors) {
                     if (!issueLabels || issueLabels.length === 0) {
                         throw new Error(
                             `Associated issue #${issueRef.issueNumber} has no labels.`
+                        );
+                    }
+                    if (!issueMilestone) {
+                        throw new Error(
+                            `Associated issue #${issueRef.issueNumber} has no milestone.`
                         );
                     }
                 }
