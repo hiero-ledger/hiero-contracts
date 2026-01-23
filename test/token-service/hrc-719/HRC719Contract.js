@@ -4,7 +4,7 @@ import Constants from '../../constants';
 import { Contract } from 'ethers';
 import { expect } from 'chai';
 import hre from 'hardhat';
-const { ethers } = hre;
+const { ethers } = await hre.network.connect();
 import utils from '../utils';
 import Hapi from '../hapi';
 

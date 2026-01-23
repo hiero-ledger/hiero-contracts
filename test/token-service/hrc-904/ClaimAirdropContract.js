@@ -480,7 +480,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
   });
 
   it('should fail to delete contract if there is pending airdrop', async function () {
-    const sampleContractFactory = await ethers.getContractFactory('Sample');
+    const sampleContractFactory = await ethers.getContractFactory('contracts/mocks/Sample.sol:Sample');
     const sampleContract = await sampleContractFactory.deploy();
     await sampleContract.waitForDeployment();
 

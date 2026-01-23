@@ -528,8 +528,7 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
       );
     }
 
-    const tx =
-      await walletIHRC904NftFacadeReceiver.rejectTokenNFTs(serialNumbers);
+    await expect(walletIHRC904NftFacadeReceiver.rejectTokenNFTs(serialNumbers)).to.eventually.be.rejected;
     const responseCode = await utils.getHTSResponseCode(tx.hash);
     const responseText = utils.decimalToAscii(responseCode);
     expect(responseText).to.eq('TOKEN_REFERENCE_LIST_SIZE_LIMIT_EXCEEDED');

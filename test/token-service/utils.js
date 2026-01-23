@@ -586,9 +586,7 @@ class Utils {
    */
   static async getHTSResponseCode(txHash) {
     const mirrorNodeUrl = Utils.getMirrorNodeUrl(networkName);
-    const res = await axios.get(
-      `${mirrorNodeUrl}/contracts/results/${txHash}/actions`
-    );
+    const res = await Utils.retriedGetRequest(`${mirrorNodeUrl}/contracts/results/${txHash}/actions`);
     const precompileAction = res.data.actions.find(
       (x) => x.recipient === Constants.HTS_SYSTEM_CONTRACT_ID
     );
