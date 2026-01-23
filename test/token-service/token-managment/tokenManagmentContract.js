@@ -1398,6 +1398,10 @@ describe('TokenManagmentContract Test Suite', function () {
     let tenHbars;
     let twentyHbars;
     let tokenFeeAmount;
+    let initialSupply;
+    let maxSupply;
+    let decimals;
+    let setFeeScheduleKey;
 
     before(async function () {
       // The owner of the fee token is the tokenCreateContract
