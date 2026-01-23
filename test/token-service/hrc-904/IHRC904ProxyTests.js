@@ -242,7 +242,7 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
       }
     );
     await airdrop.wait();
-    await utils.associateWithSigner(receiverPrivateKey, tokenAddress);
+    await hapi.associateWithSigner(receiverPrivateKey, tokenAddress);
 
     const tx = await walletIHRC904TokenFacadeReceiver.claimAirdropFT(owner);
     await tx.wait();

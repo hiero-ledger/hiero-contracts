@@ -58,14 +58,14 @@ describe("HIP1215 Test Suite", function () {
   xit('should be able to execute IHRC1215ScheduleFacade.deleteSchedule()', async () => {
     const signerSender = signers[0];
     const signerReceiver = signers[1];
-    const { client: genesisSdkClient } = new Hapi();
-    const senderInfo = await Utils.getAccountInfo(signerSender.address, genesisSdkClient);
-    const receiverInfo = await Utils.getAccountInfo(signerReceiver.address, genesisSdkClient);
+    const hapi = new Hapi();
+    const senderInfo = await hapi.getAccountInfo(signerSender.address);
+    const receiverInfo = await hapi.getAccountInfo(signerReceiver.address);
 
     const adminPrivateKey = PrivateKey.fromStringECDSA(Utils.getHardhatSignerPrivateKeyByIndex(0));
     const {
       scheduleId
-    } = await Utils.createScheduleTransactionForTransfer(senderInfo, receiverInfo, genesisSdkClient, adminPrivateKey, 10000000000000);
+    } = await Utils.createScheduleTransactionForTransfer(senderInfo, receiverInfo, hapi.client, adminPrivateKey, 10000000000000);
     await new Promise(r => setTimeout(r, 2500));
 
     const infoBefore = await getScheduleInfoFromMN(parseInt(scheduleId.num));

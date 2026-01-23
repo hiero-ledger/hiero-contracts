@@ -117,7 +117,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
     );
     await airdropTx.wait();
 
-    await utils.associateWithSigner(receiverPrivateKey, tokenAddress);
+    await hapi.associateWithSigner(receiverPrivateKey, tokenAddress);
     const claimTx = await claimAirdropContract.claim(
       sender,
       receiver.address,
@@ -191,7 +191,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
     );
 
     for (let token of tokens) {
-      await utils.associateWithSigner(receiverPrivateKey, token);
+      await hapi.associateWithSigner(receiverPrivateKey, token);
     }
 
     const claimTx = await claimAirdropContract.claimMultipleAirdrops(
@@ -286,7 +286,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
       );
 
     for (let token of tokens) {
-      await utils.associateWithSigner(receiverPrivateKey, token);
+      await hapi.associateWithSigner(receiverPrivateKey, token);
     }
 
     const tx = await claimAirdropContract.claimMultipleAirdrops(

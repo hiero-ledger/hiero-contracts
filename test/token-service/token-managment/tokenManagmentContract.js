@@ -1557,15 +1557,15 @@ describe('TokenManagmentContract Test Suite', function () {
         (e) => e.fragment.name === Constants.Events.ResponseCode
       )[0].args.responseCode;
 
-      const balanceBeforeTransferTokenWithFees1 = await utils.getTokenBalance(
+      const balanceBeforeTransferTokenWithFees1 = await hapi.getTokenBalance(
         signers[1].address,
         tokenWithFees
       );
-      const balanceBeforeTransferTokenWithFees2 = await utils.getTokenBalance(
+      const balanceBeforeTransferTokenWithFees2 = await hapi.getTokenBalance(
         signers[2].address,
         tokenWithFees
       );
-      const balanceBeforeTransferFeeToken1 = await utils.getTokenBalance(
+      const balanceBeforeTransferFeeToken1 = await hapi.getTokenBalance(
         signers[1].address,
         feeToken
       );
@@ -1579,15 +1579,15 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await transferBeforeFeeUpdate.wait();
 
-      const balanceAfterTransferTokenWithFees1 = await utils.getTokenBalance(
+      const balanceAfterTransferTokenWithFees1 = await hapi.getTokenBalance(
         signers[1].address,
         tokenWithFees
       );
-      const balanceAfterTransferTokenWithFees2 = await utils.getTokenBalance(
+      const balanceAfterTransferTokenWithFees2 = await hapi.getTokenBalance(
         signers[2].address,
         tokenWithFees
       );
-      const balanceAfterTransferFeeToken1 = await utils.getTokenBalance(
+      const balanceAfterTransferFeeToken1 = await hapi.getTokenBalance(
         signers[1].address,
         feeToken
       );
@@ -1650,10 +1650,10 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       const transferFromContractReceipt = await transferFromContract.wait();
 
-      const balanceBeforeTransfer0 = await utils.getHbarBalance(
+      const balanceBeforeTransfer0 = await hapi.getHbarBalance(
         signers[1].address
       );
-      const balanceBeforeTransferContract0 = await utils.getHbarBalance(
+      const balanceBeforeTransferContract0 = await hapi.getHbarBalance(
         signers[2].address
       );
 
@@ -1666,10 +1666,10 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await transferBeforeFeeUpdate.wait();
 
-      const balanceAfterTransfer = await utils.getHbarBalance(
+      const balanceAfterTransfer = await hapi.getHbarBalance(
         signers[1].address
       );
-      const balanceAfterTransferContract = await utils.getHbarBalance(
+      const balanceAfterTransferContract = await hapi.getHbarBalance(
         signers[2].address
       );
 
@@ -1705,8 +1705,8 @@ describe('TokenManagmentContract Test Suite', function () {
           Constants.GAS_LIMIT_1_000_000
         );
       await transferAfterFeeUpdate.wait();
-      const balanceAfterUpdate = await utils.getHbarBalance(signers[1].address);
-      const balanceAfterUpdateContract = await utils.getHbarBalance(
+      const balanceAfterUpdate = await hapi.getHbarBalance(signers[1].address);
+      const balanceAfterUpdateContract = await hapi.getHbarBalance(
         signers[2].address
       );
 
@@ -1851,7 +1851,7 @@ describe('TokenManagmentContract Test Suite', function () {
           keys
         );
       expect(
-        await utils.getTokenBalance(signers[0].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[0].address, tokenWithFees)
       ).to.be.equal(utils.initialSupply);
       await hapi.updateTokenKeys(tokenWithFees, [
         tokenManagementContractAddress,
@@ -1952,7 +1952,7 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await transferFromContract.wait();
 
-      const balanceBeforeTransfer0 = await utils.getHbarBalance(
+      const balanceBeforeTransfer0 = await hapi.getHbarBalance(
         signers[1].address
       );
 
@@ -1965,7 +1965,7 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await transferBeforeFeeUpdate.wait();
 
-      const balanceAfterTransfer = await utils.getHbarBalance(
+      const balanceAfterTransfer = await hapi.getHbarBalance(
         signers[1].address
       );
 
@@ -2005,7 +2005,7 @@ describe('TokenManagmentContract Test Suite', function () {
           Constants.GAS_LIMIT_1_000_000
         );
       await transferAfterFeeUpdate.wait();
-      const balanceAfterUpdate = await utils.getHbarBalance(signers[1].address);
+      const balanceAfterUpdate = await hapi.getHbarBalance(signers[1].address);
 
       expect(parseFloat(balanceAfterUpdate)).to.be.equal(
         parseFloat(balanceAfterTransfer) -
@@ -2121,11 +2121,11 @@ describe('TokenManagmentContract Test Suite', function () {
       expect(tokenInfoResponse[6][0][2]).to.equal(BigInt(100));
       expect(updateFeeResponseCode).to.equal(TX_SUCCESS_CODE);
 
-      const feeCollectorBalanceBeforeTransfer = await utils.getTokenBalance(
+      const feeCollectorBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[0].address,
         tokenWithFees
       );
-      const senderBalanceBeforeTransfer = await utils.getTokenBalance(
+      const senderBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[1].address,
         tokenWithFees
       );
@@ -2142,13 +2142,13 @@ describe('TokenManagmentContract Test Suite', function () {
 
       //ensure the fee has been updated and collected
       expect(
-        await utils.getTokenBalance(signers[0].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[0].address, tokenWithFees)
       ).to.be.equal(feeCollectorBalanceBeforeTransfer + feeToBeCharged);
       expect(
-        await utils.getTokenBalance(signers[1].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[1].address, tokenWithFees)
       ).to.be.equal(senderBalanceBeforeTransfer - 400);
       expect(
-        await utils.getTokenBalance(signers[2].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[2].address, tokenWithFees)
       ).to.be.equal(400 - feeToBeCharged);
     });
 
@@ -2251,11 +2251,11 @@ describe('TokenManagmentContract Test Suite', function () {
       expect(tokenInfoResponse[6][0][2]).to.equal(BigInt(100));
       expect(updateFeeResponseCode).to.equal(TX_SUCCESS_CODE);
 
-      const feeCollectorBalanceBeforeTransfer = await utils.getTokenBalance(
+      const feeCollectorBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[0].address,
         tokenWithFees
       );
-      const senderBalanceBeforeTransfer = await utils.getTokenBalance(
+      const senderBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[1].address,
         tokenWithFees
       );
@@ -2272,13 +2272,13 @@ describe('TokenManagmentContract Test Suite', function () {
 
       //ensure the fee has been updated and collected
       expect(
-        await utils.getTokenBalance(signers[0].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[0].address, tokenWithFees)
       ).to.be.equal(feeCollectorBalanceBeforeTransfer + feeToBeCharged);
       expect(
-        await utils.getTokenBalance(signers[1].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[1].address, tokenWithFees)
       ).to.be.equal(senderBalanceBeforeTransfer - 400 - feeToBeCharged);
       expect(
-        await utils.getTokenBalance(signers[2].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[2].address, tokenWithFees)
       ).to.be.equal(400);
     });
 
@@ -2401,11 +2401,11 @@ describe('TokenManagmentContract Test Suite', function () {
       expect(tokenInfoResponse[6][1][0]).to.equal(BigInt(5));
       expect(updateFeeResponseCode).to.equal(TX_SUCCESS_CODE);
 
-      const feeCollectorBalanceBeforeTransfer = await utils.getTokenBalance(
+      const feeCollectorBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[0].address,
         tokenWithFees
       );
-      const senderBalanceBeforeTransfer = await utils.getTokenBalance(
+      const senderBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[1].address,
         tokenWithFees
       );
@@ -2423,17 +2423,17 @@ describe('TokenManagmentContract Test Suite', function () {
       );
       await transferTx1.wait();
 
-      const signer2BalanceAfterTransfer = await utils.getTokenBalance(
+      const signer2BalanceAfterTransfer = await hapi.getTokenBalance(
         signers[2].address,
         tokenWithFees
       );
 
       //ensure the fee has been updated and collected
       expect(
-        await utils.getTokenBalance(signers[0].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[0].address, tokenWithFees)
       ).to.be.equal(feeCollectorBalanceBeforeTransfer + feeToBeCharged);
       expect(
-        await utils.getTokenBalance(signers[1].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[1].address, tokenWithFees)
       ).to.be.equal(senderBalanceBeforeTransfer - 400);
       expect(signer2BalanceAfterTransfer).to.be.equal(400 - feeToBeCharged);
     });
@@ -2494,10 +2494,10 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await updateRoyaltyFeeTx.wait();
 
-      const beforeNftTransferHbars2 = await utils.getHbarBalance(
+      const beforeNftTransferHbars2 = await hapi.getHbarBalance(
         signers[2].address
       );
-      const beforeNftTransferHbars3 = await utils.getHbarBalance(
+      const beforeNftTransferHbars3 = await hapi.getHbarBalance(
         signers[3].address
       );
 
@@ -2510,15 +2510,15 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await transferNftToSigner3.wait();
 
-      expect(await utils.getTokenBalance(signers[3].address, nft)).to.equal(1);
+      expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
       expect(
-        parseFloat(await utils.getHbarBalance(signers[2].address))
+        parseFloat(await hapi.getHbarBalance(signers[2].address))
       ).to.equal(
         beforeNftTransferHbars2 +
         parseFloat(twentyHbars / utils.tinybarToHbarCoef)
       );
       expect(
-        parseFloat(await utils.getHbarBalance(signers[3].address))
+        parseFloat(await hapi.getHbarBalance(signers[3].address))
       ).to.equal(
         beforeNftTransferHbars3 -
         parseFloat(twentyHbars / utils.tinybarToHbarCoef)
@@ -2589,10 +2589,10 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await updateRoyaltyFeeTx.wait();
 
-      const beforeNftTransferHbars2 = await utils.getHbarBalance(
+      const beforeNftTransferHbars2 = await hapi.getHbarBalance(
         signers[2].address
       );
-      const beforeNftTransferHbars3 = await utils.getHbarBalance(
+      const beforeNftTransferHbars3 = await hapi.getHbarBalance(
         signers[3].address
       );
 
@@ -2605,15 +2605,15 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await transferNftToSigner3.wait();
 
-      expect(await utils.getTokenBalance(signers[3].address, nft)).to.equal(1);
+      expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
       expect(
-        parseFloat(await utils.getHbarBalance(signers[2].address))
+        parseFloat(await hapi.getHbarBalance(signers[2].address))
       ).to.equal(
         beforeNftTransferHbars2 +
         parseFloat((twentyHbars + tenHbars) / utils.tinybarToHbarCoef)
       );
       expect(
-        parseFloat(await utils.getHbarBalance(signers[3].address))
+        parseFloat(await hapi.getHbarBalance(signers[3].address))
       ).to.equal(
         beforeNftTransferHbars3 -
         parseFloat((twentyHbars + tenHbars) / utils.tinybarToHbarCoef)
@@ -2674,10 +2674,10 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await updateRoyaltyFeeTx.wait();
 
-      const beforeNftTransferHbars2 = await utils.getHbarBalance(
+      const beforeNftTransferHbars2 = await hapi.getHbarBalance(
         signers[2].address
       );
-      const beforeNftTransferHbars1 = await utils.getHbarBalance(
+      const beforeNftTransferHbars1 = await hapi.getHbarBalance(
         signers[1].address
       );
 
@@ -2690,15 +2690,15 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await transferNftToSigner3.wait();
 
-      expect(await utils.getTokenBalance(signers[3].address, nft)).to.equal(1);
+      expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
       expect(
-        parseFloat(await utils.getHbarBalance(signers[2].address))
+        parseFloat(await hapi.getHbarBalance(signers[2].address))
       ).to.equal(
         beforeNftTransferHbars2 +
         parseFloat(twentyHbars / utils.tinybarToHbarCoef)
       );
       expect(
-        parseFloat(await utils.getHbarBalance(signers[1].address))
+        parseFloat(await hapi.getHbarBalance(signers[1].address))
       ).to.equal(
         beforeNftTransferHbars1 -
         parseFloat(twentyHbars / utils.tinybarToHbarCoef)
@@ -2772,10 +2772,10 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await updateRoyaltyFeeTx.wait();
 
-      const beforeNftTransferHbars2 = await utils.getHbarBalance(
+      const beforeNftTransferHbars2 = await hapi.getHbarBalance(
         signers[2].address
       );
-      const beforeNftTransferHbars1 = await utils.getHbarBalance(
+      const beforeNftTransferHbars1 = await hapi.getHbarBalance(
         signers[1].address
       );
 
@@ -2807,11 +2807,11 @@ describe('TokenManagmentContract Test Suite', function () {
       );
       await transferFeeToken.wait();
 
-      const balanceBeforeFeeCollector = await utils.getTokenBalance(
+      const balanceBeforeFeeCollector = await hapi.getTokenBalance(
         signers[0].address,
         feeToken
       );
-      const balanceBeforeSigner1 = await utils.getTokenBalance(
+      const balanceBeforeSigner1 = await hapi.getTokenBalance(
         signers[1].address,
         feeToken
       );
@@ -2824,12 +2824,12 @@ describe('TokenManagmentContract Test Suite', function () {
           );
         await transferNftToSigner3.wait();
         expect(
-          await utils.getTokenBalance(signers[1].address, feeToken)
+          await hapi.getTokenBalance(signers[1].address, feeToken)
         ).to.equal(balanceBeforeSigner1 - (tokenFeeAmount + 13));
         expect(
-          await utils.getTokenBalance(signers[0].address, feeToken)
+          await hapi.getTokenBalance(signers[0].address, feeToken)
         ).to.equal(balanceBeforeFeeCollector + (tokenFeeAmount + 13));
-        expect(await utils.getTokenBalance(signers[3].address, nft)).to.equal(1);
+        expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
     });
 
     it('should be able to update fixed HTS fee and royalty fee in NFT', async function () {
@@ -2966,18 +2966,18 @@ describe('TokenManagmentContract Test Suite', function () {
       );
       await transferFeeToken.wait();
 
-      const balanceBeforeFeeCollector = await utils.getTokenBalance(
+      const balanceBeforeFeeCollector = await hapi.getTokenBalance(
         signers[0].address,
         feeToken
       );
-      const balanceBeforeSigner1 = await utils.getTokenBalance(
+      const balanceBeforeSigner1 = await hapi.getTokenBalance(
         signers[1].address,
         feeToken
       );
-      const beforeNftTransferHbars2 = await utils.getHbarBalance(
+      const beforeNftTransferHbars2 = await hapi.getHbarBalance(
         signers[2].address
       );
-      const beforeNftTransferHbars3 = await utils.getHbarBalance(
+      const beforeNftTransferHbars3 = await hapi.getHbarBalance(
         signers[3].address
       );
       const transferNftToSigner3 =
@@ -2990,20 +2990,20 @@ describe('TokenManagmentContract Test Suite', function () {
       await transferNftToSigner3.wait();
 
       expect(
-        await utils.getTokenBalance(signers[1].address, feeToken)
+        await hapi.getTokenBalance(signers[1].address, feeToken)
       ).to.equal(balanceBeforeSigner1 - (tokenFeeAmount + 13));
       expect(
-        await utils.getTokenBalance(signers[0].address, feeToken)
+        await hapi.getTokenBalance(signers[0].address, feeToken)
       ).to.equal(balanceBeforeFeeCollector + (tokenFeeAmount + 13));
-      expect(await utils.getTokenBalance(signers[3].address, nft)).to.equal(1);
+      expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
       expect(
-        parseFloat(await utils.getHbarBalance(signers[2].address))
+        parseFloat(await hapi.getHbarBalance(signers[2].address))
       ).to.equal(
         beforeNftTransferHbars2 +
         parseFloat(twentyHbars / utils.tinybarToHbarCoef)
       );
       expect(
-        parseFloat(await utils.getHbarBalance(signers[3].address))
+        parseFloat(await hapi.getHbarBalance(signers[3].address))
       ).to.equal(
         beforeNftTransferHbars3 -
         parseFloat(twentyHbars / utils.tinybarToHbarCoef)

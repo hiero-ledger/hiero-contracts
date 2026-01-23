@@ -380,29 +380,6 @@ class Utils {
     return receipt.revertReason;
   }
 
-  static async getHbarBalance(address) {
-    const balanceJson = (await this.getAccountBalance(address)).toJSON();
-    const balanceFloat = parseFloat(balanceJson.hbars);
-
-    return balanceFloat;
-  }
-
-  static async getTokenBalance(accountAddress, tokenAddress) {
-    const accountBalanceJson = (
-      await this.getAccountBalance(accountAddress)
-    ).toJSON();
-    const tokenId = await AccountId.fromEvmAddress(
-      0,
-      0,
-      tokenAddress
-    ).toString();
-    const balance = accountBalanceJson.tokens.find(
-      (e) => e.tokenId === tokenId
-    );
-
-    return parseInt(balance.balance);
-  }
-
   static async getSerialNumbers(mintNftTx) {
     const tokenAddressReceipt = await mintNftTx.wait();
     const { serialNumbers } = tokenAddressReceipt.logs.filter(
@@ -501,23 +478,6 @@ class Utils {
     }
   }
 
-  static async getAccountId(evmAddress, client) {
-    const query = new AccountInfoQuery().setAccountId(
-      AccountId.fromEvmAddress(0, 0, evmAddress)
-    );
-
-    const accountInfo = await query.execute(client);
-    return accountInfo.accountId.toString();
-  }
-
-  static async getAccountInfo(evmAddress, client) {
-    const query = new AccountInfoQuery().setAccountId(
-      AccountId.fromEvmAddress(0, 0, evmAddress)
-    );
-
-    return await query.execute(client);
-  }
-
   static getSignerCompressedPublicKey(
     index = 0,
     asBuffer = true,
@@ -543,44 +503,10 @@ class Utils {
     return config.networks[networkName].accounts[index];
   }
 
-  static async getAccountBalance(address) {
-    const client = await Utils.createSDKClient();
-    const accountId = await Utils.getAccountId(address, client);
-    const tokenBalance = await new AccountBalanceQuery()
-      .setAccountId(accountId)
-      .execute(client);
-    return tokenBalance;
-  }
-
   static convertAccountIdToLongZeroAddress(accountId, prepend0x = false) {
     const address = AccountId.fromString(accountId).toSolidityAddress();
 
     return prepend0x ? '0x' + address : address;
-  }
-
-  static async associateWithSigner(privateKey, tokenAddress) {
-    const genesisClient = await this.createSDKClient();
-
-    const wallet = new ethers.Wallet(privateKey);
-    const accountIdAsString = await this.getAccountId(
-      wallet.address,
-      genesisClient
-    );
-    const signerPk = PrivateKey.fromStringECDSA(wallet.signingKey.privateKey);
-
-    const signerClient = await this.createSDKClient(
-      accountIdAsString,
-      signerPk.toString() // DER encoded
-    );
-
-    const transaction = new TokenAssociateTransaction()
-      .setAccountId(AccountId.fromString(accountIdAsString))
-      .setTokenIds([TokenId.fromSolidityAddress(tokenAddress)])
-      .freezeWith(signerClient);
-
-    const signTx = await transaction.sign(signerPk);
-    const txResponse = await signTx.execute(signerClient);
-    await txResponse.getReceipt(signerClient);
   }
 
   static defaultKeyValues = {
@@ -685,6 +611,20 @@ class Utils {
     return res.data;
   }
 
+  static async sleep(ms){
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  static async retriedGetRequest(url, maxAttempts = 30, intervalMs = 1000, attempt = 0) {
+    try {
+      return await axios.get(url);
+    } catch (e) {
+      if (attempt >= maxAttempts) throw e;
+      await Utils.sleep(intervalMs);
+      return Utils.retriedGetRequest(url, maxAttempts, intervalMs, ++attempt);
+    }
+  }
+
   /**
    * This method fetches the transaction actions from the mirror node corresponding to the current network,
    * filters the actions to find the one directed to the Hedera Account Service (HAS) system contract,
@@ -696,9 +636,7 @@ class Utils {
    */
   static async getHASResponseCode(txHash) {
     const mirrorNodeUrl = Utils.getMirrorNodeUrl(networkName);
-    const res = await axios.get(
-      `${mirrorNodeUrl}/contracts/results/${txHash}/actions`
-    );
+    const res = await Utils.retriedGetRequest(`${mirrorNodeUrl}/contracts/results/${txHash}/actions`);
     const precompileAction = res.data.actions.find(
       (x) => x.recipient === Constants.HAS_SYSTEM_CONTRACT_ID
     );
@@ -769,6 +707,8 @@ class Utils {
    * @param {string} owner - The owner's address
    * @param {Contract} tokenCreateContract - The token create contract instance
    * @param {number} count - Number of pending airdrops to create
+   * @param {string} receiver - Airdrop receive address
+   * @param {Hapi} hapi - Hapi client
    * @returns {Object} Object containing arrays of senders, receivers, tokens, serials, and amounts
    */
   static async createPendingAirdrops(
