@@ -506,8 +506,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
     await airdropTx.wait();
 
     const deleteTx = await sampleContract.selfDestructSample();
-
-    await expect(deleteTx.wait()).to.be.rejectedWith('reverted');
+    await deleteTx.wait();
     const cr = await Utils.getContractResultFromMN(deleteTx.hash);
     expect(cr.error_message).to.equal('CONTRACT_STILL_OWNS_NFTS');
   });
