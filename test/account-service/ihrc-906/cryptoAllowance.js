@@ -2,8 +2,8 @@
 
 import Utils from '../../token-service/utils';
 import { expect } from 'chai';
-import { network } from 'hardhat';
-const { ethers } = await network.connect();
+import hre from 'hardhat';
+const { ethers } = await hre.network.connect();
 import Constants from '../../constants';
 import {
   pollForNewSignerBalanceUsingProvider,
