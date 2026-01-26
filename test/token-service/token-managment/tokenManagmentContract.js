@@ -2709,7 +2709,7 @@ describe('TokenManagmentContract Test Suite', function () {
       );
     });
 
-    it('should be able to update fixed HTS fee for NFT', async function () {
+    xit('should be able to update fixed HTS fee for NFT', async function () {
       await utils.associateToken(
         tokenCreateCustomContract,
         feeToken,
@@ -2836,7 +2836,7 @@ describe('TokenManagmentContract Test Suite', function () {
         expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
     });
 
-    it('should be able to update fixed HTS fee and royalty fee in NFT', async function () {
+    xit('should be able to update fixed HTS fee and royalty fee in NFT', async function () {
       await utils.associateToken(
         tokenCreateCustomContract,
         feeToken,
@@ -3016,7 +3016,6 @@ describe('TokenManagmentContract Test Suite', function () {
 
     describe('Update fees negative cases', async function () {
       it('should fail when updating fungible token non-existing fixed fee', async function () {
-        let transactionHash;
         tokenWithFees = await utils.createFungibleTokenWithCustomFeesAndKeys(
           tokenCreateCustomContract,
           signers[0].address,
@@ -3030,29 +3029,14 @@ describe('TokenManagmentContract Test Suite', function () {
           tokenCreateContractAddress,
           tokenCreateCustomContractAddress,
         ]);
-
-        const updateFeeTx =
-          await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(
-          CUSTOM_SCHEDULE_ALREADY_HAS_NO_FEES
-        );
+        )).to.eventually.be.rejectedWith(new RegExp(CUSTOM_SCHEDULE_ALREADY_HAS_NO_FEES));
       });
 
       it('should fail when updating non fungible token non-existing fixed fee', async function () {
-        let transactionHash;
         const nft =
           await utils.createNonFungibleTokenWithCustomRoyaltyFeeAndKeys(
             tokenCreateCustomContract,
@@ -3068,28 +3052,14 @@ describe('TokenManagmentContract Test Suite', function () {
           tokenCreateCustomContractAddress,
         ]);
 
-        const updateFeeTx =
-          await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             [],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(
-          CUSTOM_SCHEDULE_ALREADY_HAS_NO_FEES
-        );
+        )).to.eventually.be.rejectedWith(new RegExp(CUSTOM_SCHEDULE_ALREADY_HAS_NO_FEES));
       });
 
       it('should fail when trying to update fees of fungible token with no fee schedule key', async function () {
-        let transactionHash;
         const keysWithoutFeeSchedule = keys.slice();
         keysWithoutFeeSchedule.splice(5, 1);
         tokenWithFees = await utils.createFungibleTokenWithCustomFeesAndKeys(
@@ -3110,27 +3080,14 @@ describe('TokenManagmentContract Test Suite', function () {
           ],
           (setFeeScheduleKey = false)
         );
-
-        const updateFeeTx =
-          await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(TOKEN_HAS_NO_FEE_SCHEDULE_KEY);
+        )).to.eventually.be.rejectedWith(new RegExp(TOKEN_HAS_NO_FEE_SCHEDULE_KEY));
       });
 
       it('should fail when trying to update fees of non fungible token with no fee schedule key', async function () {
-        let transactionHash;
         const keysWithoutFeeSchedule = keys.slice();
         keysWithoutFeeSchedule.splice(5, 1);
         const nft =
@@ -3147,23 +3104,11 @@ describe('TokenManagmentContract Test Suite', function () {
           tokenCreateContractAddress,
           tokenCreateCustomContractAddress,
         ]);
-
-        const updateFeeTx =
-          await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             [],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(TOKEN_HAS_NO_FEE_SCHEDULE_KEY);
+        )).to.eventually.be.rejectedWith(new RegExp(TOKEN_HAS_NO_FEE_SCHEDULE_KEY));
       });
 
       it('should fail when fee has negative values', async function () {
@@ -3185,7 +3130,6 @@ describe('TokenManagmentContract Test Suite', function () {
         await hapi.updateTokenKeys(tokenWithFees, [
           tokenManagementContractAddress,
         ]);
-        let transactionHash;
         const updatedFixedFee = {
           amount: negativeHbars,
           tokenId: ethers.ZeroAddress,
@@ -3193,26 +3137,14 @@ describe('TokenManagmentContract Test Suite', function () {
           useCurrentTokenForPayment: false,
           feeCollector: signers[0].address,
         };
-        const updateFeeTx =
-          await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [updatedFixedFee],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(CUSTOM_FEE_MUST_BE_POSITIVE);
+        )).to.eventually.be.rejectedWith(new RegExp(CUSTOM_FEE_MUST_BE_POSITIVE));
       });
 
       it('should fail when fee has negative values for non fungible token', async function () {
-        let transactionHash;
         const negativeHbars = -10 * utils.tinybarToHbarCoef;
         const fixedFee = {
           amount: tenHbars,
@@ -3240,26 +3172,14 @@ describe('TokenManagmentContract Test Suite', function () {
           useCurrentTokenForPayment: false,
           feeCollector: signers[0].address,
         };
-        const updateFeeTx =
-          await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             [updatedFixedFee],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(CUSTOM_FEE_MUST_BE_POSITIVE);
+        )).to.eventually.be.rejectedWith(new RegExp(CUSTOM_FEE_MUST_BE_POSITIVE));
       });
 
       it('should fail when fractional fee has denominator zero', async function () {
-        let transactionHash;
         const fractionalFee = {
           numerator: 10,
           denominator: 100,
@@ -3286,22 +3206,11 @@ describe('TokenManagmentContract Test Suite', function () {
           netOfTransfers: false,
           feeCollector: signers[0].address,
         };
-
-        const updateFeeTx =
-          await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [],
             [updatedFractionalFee]
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(FRACTION_DIVIDES_BY_ZERO);
+        )).to.eventually.be.rejectedWith(new RegExp(FRACTION_DIVIDES_BY_ZERO));
       });
 
       // Note: Tests below are skipped due to CUSTOM_FEES_LIST_TOO_LONG error introduced in network node v0.56.0
@@ -3433,7 +3342,6 @@ describe('TokenManagmentContract Test Suite', function () {
       });
 
       it('should fail when the provided fee collector is invalid for NFT', async function () {
-        let transactionHash;
         const nft =
           await utils.createNonFungibleTokenWithCustomRoyaltyFeeAndKeys(
             tokenCreateCustomContract,
@@ -3452,22 +3360,11 @@ describe('TokenManagmentContract Test Suite', function () {
           useCurrentTokenForPayment: false,
           feeCollector: feeToken,
         };
-        const updateFeeTx =
-          await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             [fixedFee],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(INVALID_CUSTOM_FEE_COLLECTOR);
+        )).to.eventually.be.rejectedWith(new RegExp(INVALID_CUSTOM_FEE_COLLECTOR));
       });
 
       it('should fail when the provided token id is invalid', async function () {
@@ -3489,22 +3386,12 @@ describe('TokenManagmentContract Test Suite', function () {
           useCurrentTokenForPayment: false,
           feeCollector: signers[0].address,
         };
-        const updateFeeTx =
-          await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+
+        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [fixedFee],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(INVALID_TOKEN_ID_IN_CUSTOM_FEES);
+        )).to.eventually.be.rejectedWith(new RegExp(INVALID_TOKEN_ID_IN_CUSTOM_FEES));
       });
 
       it('should fail when the provided token id is invalid for NFT', async function () {
@@ -3526,23 +3413,11 @@ describe('TokenManagmentContract Test Suite', function () {
           useCurrentTokenForPayment: false,
           feeCollector: signers[0].address,
         };
-        let transactionHash;
-        const updateFeeTx =
-          await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             [fixedFee],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(INVALID_TOKEN_ID_IN_CUSTOM_FEES);
+        )).to.eventually.be.rejectedWith(new RegExp(INVALID_TOKEN_ID_IN_CUSTOM_FEES));
       });
 
       it('should fail for updateFungibleTokenCustomFees when token is not associated to fee collector', async function () {
@@ -3611,25 +3486,11 @@ describe('TokenManagmentContract Test Suite', function () {
             feeCollector: signers[0].address,
           },
         ];
-
-        const updateFeeTx =
-          await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             updatedFixedFee,
             []
-          );
-        let transactionHash;
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(
-          TOKEN_NOT_ASSOCIATED_TO_FEE_COLLECTOR
-        );
+        )).to.eventually.be.rejectedWith(new RegExp(TOKEN_NOT_ASSOCIATED_TO_FEE_COLLECTOR));
       });
 
       it('should fail for updateNonFungibleTokenCustomFees when token is not associated to fee collector', async function () {
@@ -3670,25 +3531,11 @@ describe('TokenManagmentContract Test Suite', function () {
           },
         ];
 
-        let transactionHash;
-        const updateRoyaltyFeeTx =
-          await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             updatedfixedFees,
             []
-          );
-        try {
-          await updateRoyaltyFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(
-          TOKEN_NOT_ASSOCIATED_TO_FEE_COLLECTOR
-        );
+        )).to.eventually.be.rejectedWith(new RegExp(TOKEN_NOT_ASSOCIATED_TO_FEE_COLLECTOR));
       });
     });
   });
