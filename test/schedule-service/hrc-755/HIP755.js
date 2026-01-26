@@ -34,8 +34,8 @@ describe('HIP755 Test Suite', function () {
     signerSender = signers[0];
     signerReceiver = signers[1];
 
-    senderInfo = await Utils.getAccountInfo(signerSender.address, hapi.client);
-    receiverInfo = await Utils.getAccountInfo(signerReceiver.address, hapi.client);
+    senderInfo = await hapi.getAccountInfo(signerSender.address);
+    receiverInfo = await hapi.getAccountInfo(signerReceiver.address);
 
     const contractHRC755Factory = await ethers.getContractFactory('HRC755Contract');
     contractHRC755 = await contractHRC755Factory.deploy();

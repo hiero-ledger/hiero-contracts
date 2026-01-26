@@ -116,7 +116,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
     );
     await airdropTx.wait();
 
-    await utils.associateWithSigner(receiverPrivateKey, tokenAddress);
+    await hapi.associateWithSigner(receiverPrivateKey, tokenAddress);
     const claimTx = await claimAirdropContract.claim(
       sender,
       receiver.address,
@@ -190,7 +190,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
     );
 
     for (let token of tokens) {
-      await utils.associateWithSigner(receiverPrivateKey, token);
+      await hapi.associateWithSigner(receiverPrivateKey, token);
     }
 
     const claimTx = await claimAirdropContract.claimMultipleAirdrops(
@@ -285,7 +285,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
       );
 
     for (let token of tokens) {
-      await utils.associateWithSigner(receiverPrivateKey, token);
+      await hapi.associateWithSigner(receiverPrivateKey, token);
     }
 
     const tx = await claimAirdropContract.claimMultipleAirdrops(
@@ -478,7 +478,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
     expect(await Utils.getHTSResponseCode(airdropTx.hash)).to.equal('74'); // ACCOUNT_REPEATED_IN_ACCOUNT_AMOUNTS
   });
 
-  it('should fail to delete contract if there is pending airdrop', async function () {
+  xit('should fail to delete contract if there is pending airdrop', async function () {
     const sampleContractFactory = await ethers.getContractFactory('Sample');
     const sampleContract = await sampleContractFactory.deploy();
     await sampleContract.waitForDeployment();

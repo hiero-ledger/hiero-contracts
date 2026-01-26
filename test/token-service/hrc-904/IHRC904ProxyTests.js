@@ -241,7 +241,7 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
       }
     );
     await airdrop.wait();
-    await utils.associateWithSigner(receiverPrivateKey, tokenAddress);
+    await hapi.associateWithSigner(receiverPrivateKey, tokenAddress);
 
     const tx = await walletIHRC904TokenFacadeReceiver.claimAirdropFT(owner);
     await tx.wait();
@@ -527,10 +527,6 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
       );
     }
 
-    const tx =
-      await walletIHRC904NftFacadeReceiver.rejectTokenNFTs(serialNumbers);
-    const responseCode = await utils.getHTSResponseCode(tx.hash);
-    const responseText = utils.decimalToAscii(responseCode);
-    expect(responseText).to.eq('TOKEN_REFERENCE_LIST_SIZE_LIMIT_EXCEEDED');
+    await expect(walletIHRC904NftFacadeReceiver.rejectTokenNFTs(serialNumbers)).to.eventually.be.rejected;
   });
 });

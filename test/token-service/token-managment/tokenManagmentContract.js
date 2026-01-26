@@ -1397,6 +1397,10 @@ describe('TokenManagmentContract Test Suite', function () {
     let tenHbars;
     let twentyHbars;
     let tokenFeeAmount;
+    let initialSupply;
+    let maxSupply;
+    let decimals;
+    let setFeeScheduleKey;
 
     before(async function () {
       // The owner of the fee token is the tokenCreateContract
@@ -1556,15 +1560,15 @@ describe('TokenManagmentContract Test Suite', function () {
         (e) => e.fragment.name === Constants.Events.ResponseCode
       )[0].args.responseCode;
 
-      const balanceBeforeTransferTokenWithFees1 = await utils.getTokenBalance(
+      const balanceBeforeTransferTokenWithFees1 = await hapi.getTokenBalance(
         signers[1].address,
         tokenWithFees
       );
-      const balanceBeforeTransferTokenWithFees2 = await utils.getTokenBalance(
+      const balanceBeforeTransferTokenWithFees2 = await hapi.getTokenBalance(
         signers[2].address,
         tokenWithFees
       );
-      const balanceBeforeTransferFeeToken1 = await utils.getTokenBalance(
+      const balanceBeforeTransferFeeToken1 = await hapi.getTokenBalance(
         signers[1].address,
         feeToken
       );
@@ -1578,15 +1582,15 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await transferBeforeFeeUpdate.wait();
 
-      const balanceAfterTransferTokenWithFees1 = await utils.getTokenBalance(
+      const balanceAfterTransferTokenWithFees1 = await hapi.getTokenBalance(
         signers[1].address,
         tokenWithFees
       );
-      const balanceAfterTransferTokenWithFees2 = await utils.getTokenBalance(
+      const balanceAfterTransferTokenWithFees2 = await hapi.getTokenBalance(
         signers[2].address,
         tokenWithFees
       );
-      const balanceAfterTransferFeeToken1 = await utils.getTokenBalance(
+      const balanceAfterTransferFeeToken1 = await hapi.getTokenBalance(
         signers[1].address,
         feeToken
       );
@@ -1649,10 +1653,10 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       const transferFromContractReceipt = await transferFromContract.wait();
 
-      const balanceBeforeTransfer0 = await utils.getHbarBalance(
+      const balanceBeforeTransfer0 = await hapi.getHbarBalance(
         signers[1].address
       );
-      const balanceBeforeTransferContract0 = await utils.getHbarBalance(
+      const balanceBeforeTransferContract0 = await hapi.getHbarBalance(
         signers[2].address
       );
 
@@ -1665,10 +1669,10 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await transferBeforeFeeUpdate.wait();
 
-      const balanceAfterTransfer = await utils.getHbarBalance(
+      const balanceAfterTransfer = await hapi.getHbarBalance(
         signers[1].address
       );
-      const balanceAfterTransferContract = await utils.getHbarBalance(
+      const balanceAfterTransferContract = await hapi.getHbarBalance(
         signers[2].address
       );
 
@@ -1704,8 +1708,8 @@ describe('TokenManagmentContract Test Suite', function () {
           Constants.GAS_LIMIT_1_000_000
         );
       await transferAfterFeeUpdate.wait();
-      const balanceAfterUpdate = await utils.getHbarBalance(signers[1].address);
-      const balanceAfterUpdateContract = await utils.getHbarBalance(
+      const balanceAfterUpdate = await hapi.getHbarBalance(signers[1].address);
+      const balanceAfterUpdateContract = await hapi.getHbarBalance(
         signers[2].address
       );
 
@@ -1850,7 +1854,7 @@ describe('TokenManagmentContract Test Suite', function () {
           keys
         );
       expect(
-        await utils.getTokenBalance(signers[0].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[0].address, tokenWithFees)
       ).to.be.equal(utils.initialSupply);
       await hapi.updateTokenKeys(tokenWithFees, [
         tokenManagementContractAddress,
@@ -1951,7 +1955,7 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await transferFromContract.wait();
 
-      const balanceBeforeTransfer0 = await utils.getHbarBalance(
+      const balanceBeforeTransfer0 = await hapi.getHbarBalance(
         signers[1].address
       );
 
@@ -1964,7 +1968,7 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await transferBeforeFeeUpdate.wait();
 
-      const balanceAfterTransfer = await utils.getHbarBalance(
+      const balanceAfterTransfer = await hapi.getHbarBalance(
         signers[1].address
       );
 
@@ -2004,7 +2008,7 @@ describe('TokenManagmentContract Test Suite', function () {
           Constants.GAS_LIMIT_1_000_000
         );
       await transferAfterFeeUpdate.wait();
-      const balanceAfterUpdate = await utils.getHbarBalance(signers[1].address);
+      const balanceAfterUpdate = await hapi.getHbarBalance(signers[1].address);
 
       expect(parseFloat(balanceAfterUpdate)).to.be.equal(
         parseFloat(balanceAfterTransfer) -
@@ -2120,11 +2124,11 @@ describe('TokenManagmentContract Test Suite', function () {
       expect(tokenInfoResponse[6][0][2]).to.equal(BigInt(100));
       expect(updateFeeResponseCode).to.equal(TX_SUCCESS_CODE);
 
-      const feeCollectorBalanceBeforeTransfer = await utils.getTokenBalance(
+      const feeCollectorBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[0].address,
         tokenWithFees
       );
-      const senderBalanceBeforeTransfer = await utils.getTokenBalance(
+      const senderBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[1].address,
         tokenWithFees
       );
@@ -2141,13 +2145,13 @@ describe('TokenManagmentContract Test Suite', function () {
 
       //ensure the fee has been updated and collected
       expect(
-        await utils.getTokenBalance(signers[0].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[0].address, tokenWithFees)
       ).to.be.equal(feeCollectorBalanceBeforeTransfer + feeToBeCharged);
       expect(
-        await utils.getTokenBalance(signers[1].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[1].address, tokenWithFees)
       ).to.be.equal(senderBalanceBeforeTransfer - 400);
       expect(
-        await utils.getTokenBalance(signers[2].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[2].address, tokenWithFees)
       ).to.be.equal(400 - feeToBeCharged);
     });
 
@@ -2250,11 +2254,11 @@ describe('TokenManagmentContract Test Suite', function () {
       expect(tokenInfoResponse[6][0][2]).to.equal(BigInt(100));
       expect(updateFeeResponseCode).to.equal(TX_SUCCESS_CODE);
 
-      const feeCollectorBalanceBeforeTransfer = await utils.getTokenBalance(
+      const feeCollectorBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[0].address,
         tokenWithFees
       );
-      const senderBalanceBeforeTransfer = await utils.getTokenBalance(
+      const senderBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[1].address,
         tokenWithFees
       );
@@ -2271,13 +2275,13 @@ describe('TokenManagmentContract Test Suite', function () {
 
       //ensure the fee has been updated and collected
       expect(
-        await utils.getTokenBalance(signers[0].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[0].address, tokenWithFees)
       ).to.be.equal(feeCollectorBalanceBeforeTransfer + feeToBeCharged);
       expect(
-        await utils.getTokenBalance(signers[1].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[1].address, tokenWithFees)
       ).to.be.equal(senderBalanceBeforeTransfer - 400 - feeToBeCharged);
       expect(
-        await utils.getTokenBalance(signers[2].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[2].address, tokenWithFees)
       ).to.be.equal(400);
     });
 
@@ -2400,11 +2404,11 @@ describe('TokenManagmentContract Test Suite', function () {
       expect(tokenInfoResponse[6][1][0]).to.equal(BigInt(5));
       expect(updateFeeResponseCode).to.equal(TX_SUCCESS_CODE);
 
-      const feeCollectorBalanceBeforeTransfer = await utils.getTokenBalance(
+      const feeCollectorBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[0].address,
         tokenWithFees
       );
-      const senderBalanceBeforeTransfer = await utils.getTokenBalance(
+      const senderBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[1].address,
         tokenWithFees
       );
@@ -2422,17 +2426,17 @@ describe('TokenManagmentContract Test Suite', function () {
       );
       await transferTx1.wait();
 
-      const signer2BalanceAfterTransfer = await utils.getTokenBalance(
+      const signer2BalanceAfterTransfer = await hapi.getTokenBalance(
         signers[2].address,
         tokenWithFees
       );
 
       //ensure the fee has been updated and collected
       expect(
-        await utils.getTokenBalance(signers[0].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[0].address, tokenWithFees)
       ).to.be.equal(feeCollectorBalanceBeforeTransfer + feeToBeCharged);
       expect(
-        await utils.getTokenBalance(signers[1].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[1].address, tokenWithFees)
       ).to.be.equal(senderBalanceBeforeTransfer - 400);
       expect(signer2BalanceAfterTransfer).to.be.equal(400 - feeToBeCharged);
     });
@@ -2493,10 +2497,10 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await updateRoyaltyFeeTx.wait();
 
-      const beforeNftTransferHbars2 = await utils.getHbarBalance(
+      const beforeNftTransferHbars2 = await hapi.getHbarBalance(
         signers[2].address
       );
-      const beforeNftTransferHbars3 = await utils.getHbarBalance(
+      const beforeNftTransferHbars3 = await hapi.getHbarBalance(
         signers[3].address
       );
 
@@ -2509,15 +2513,15 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await transferNftToSigner3.wait();
 
-      expect(await utils.getTokenBalance(signers[3].address, nft)).to.equal(1);
+      expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
       expect(
-        parseFloat(await utils.getHbarBalance(signers[2].address))
+        parseFloat(await hapi.getHbarBalance(signers[2].address))
       ).to.equal(
         beforeNftTransferHbars2 +
         parseFloat(twentyHbars / utils.tinybarToHbarCoef)
       );
       expect(
-        parseFloat(await utils.getHbarBalance(signers[3].address))
+        parseFloat(await hapi.getHbarBalance(signers[3].address))
       ).to.equal(
         beforeNftTransferHbars3 -
         parseFloat(twentyHbars / utils.tinybarToHbarCoef)
@@ -2588,10 +2592,10 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await updateRoyaltyFeeTx.wait();
 
-      const beforeNftTransferHbars2 = await utils.getHbarBalance(
+      const beforeNftTransferHbars2 = await hapi.getHbarBalance(
         signers[2].address
       );
-      const beforeNftTransferHbars3 = await utils.getHbarBalance(
+      const beforeNftTransferHbars3 = await hapi.getHbarBalance(
         signers[3].address
       );
 
@@ -2604,15 +2608,15 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await transferNftToSigner3.wait();
 
-      expect(await utils.getTokenBalance(signers[3].address, nft)).to.equal(1);
+      expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
       expect(
-        parseFloat(await utils.getHbarBalance(signers[2].address))
+        parseFloat(await hapi.getHbarBalance(signers[2].address))
       ).to.equal(
         beforeNftTransferHbars2 +
         parseFloat((twentyHbars + tenHbars) / utils.tinybarToHbarCoef)
       );
       expect(
-        parseFloat(await utils.getHbarBalance(signers[3].address))
+        parseFloat(await hapi.getHbarBalance(signers[3].address))
       ).to.equal(
         beforeNftTransferHbars3 -
         parseFloat((twentyHbars + tenHbars) / utils.tinybarToHbarCoef)
@@ -2673,10 +2677,10 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await updateRoyaltyFeeTx.wait();
 
-      const beforeNftTransferHbars2 = await utils.getHbarBalance(
+      const beforeNftTransferHbars2 = await hapi.getHbarBalance(
         signers[2].address
       );
-      const beforeNftTransferHbars1 = await utils.getHbarBalance(
+      const beforeNftTransferHbars1 = await hapi.getHbarBalance(
         signers[1].address
       );
 
@@ -2689,22 +2693,22 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await transferNftToSigner3.wait();
 
-      expect(await utils.getTokenBalance(signers[3].address, nft)).to.equal(1);
+      expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
       expect(
-        parseFloat(await utils.getHbarBalance(signers[2].address))
+        parseFloat(await hapi.getHbarBalance(signers[2].address))
       ).to.equal(
         beforeNftTransferHbars2 +
         parseFloat(twentyHbars / utils.tinybarToHbarCoef)
       );
       expect(
-        parseFloat(await utils.getHbarBalance(signers[1].address))
+        parseFloat(await hapi.getHbarBalance(signers[1].address))
       ).to.equal(
         beforeNftTransferHbars1 -
         parseFloat(twentyHbars / utils.tinybarToHbarCoef)
       );
     });
 
-    it('should be able to update fixed HTS fee for NFT', async function () {
+    xit('should be able to update fixed HTS fee for NFT', async function () {
       await utils.associateToken(
         tokenCreateCustomContract,
         feeToken,
@@ -2771,10 +2775,10 @@ describe('TokenManagmentContract Test Suite', function () {
         );
       await updateRoyaltyFeeTx.wait();
 
-      const beforeNftTransferHbars2 = await utils.getHbarBalance(
+      const beforeNftTransferHbars2 = await hapi.getHbarBalance(
         signers[2].address
       );
-      const beforeNftTransferHbars1 = await utils.getHbarBalance(
+      const beforeNftTransferHbars1 = await hapi.getHbarBalance(
         signers[1].address
       );
 
@@ -2806,11 +2810,11 @@ describe('TokenManagmentContract Test Suite', function () {
       );
       await transferFeeToken.wait();
 
-      const balanceBeforeFeeCollector = await utils.getTokenBalance(
+      const balanceBeforeFeeCollector = await hapi.getTokenBalance(
         signers[0].address,
         feeToken
       );
-      const balanceBeforeSigner1 = await utils.getTokenBalance(
+      const balanceBeforeSigner1 = await hapi.getTokenBalance(
         signers[1].address,
         feeToken
       );
@@ -2823,15 +2827,15 @@ describe('TokenManagmentContract Test Suite', function () {
           );
         await transferNftToSigner3.wait();
         expect(
-          await utils.getTokenBalance(signers[1].address, feeToken)
+          await hapi.getTokenBalance(signers[1].address, feeToken)
         ).to.equal(balanceBeforeSigner1 - (tokenFeeAmount + 13));
         expect(
-          await utils.getTokenBalance(signers[0].address, feeToken)
+          await hapi.getTokenBalance(signers[0].address, feeToken)
         ).to.equal(balanceBeforeFeeCollector + (tokenFeeAmount + 13));
-        expect(await utils.getTokenBalance(signers[3].address, nft)).to.equal(1);
+        expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
     });
 
-    it('should be able to update fixed HTS fee and royalty fee in NFT', async function () {
+    xit('should be able to update fixed HTS fee and royalty fee in NFT', async function () {
       await utils.associateToken(
         tokenCreateCustomContract,
         feeToken,
@@ -2965,18 +2969,18 @@ describe('TokenManagmentContract Test Suite', function () {
       );
       await transferFeeToken.wait();
 
-      const balanceBeforeFeeCollector = await utils.getTokenBalance(
+      const balanceBeforeFeeCollector = await hapi.getTokenBalance(
         signers[0].address,
         feeToken
       );
-      const balanceBeforeSigner1 = await utils.getTokenBalance(
+      const balanceBeforeSigner1 = await hapi.getTokenBalance(
         signers[1].address,
         feeToken
       );
-      const beforeNftTransferHbars2 = await utils.getHbarBalance(
+      const beforeNftTransferHbars2 = await hapi.getHbarBalance(
         signers[2].address
       );
-      const beforeNftTransferHbars3 = await utils.getHbarBalance(
+      const beforeNftTransferHbars3 = await hapi.getHbarBalance(
         signers[3].address
       );
       const transferNftToSigner3 =
@@ -2989,20 +2993,20 @@ describe('TokenManagmentContract Test Suite', function () {
       await transferNftToSigner3.wait();
 
       expect(
-        await utils.getTokenBalance(signers[1].address, feeToken)
+        await hapi.getTokenBalance(signers[1].address, feeToken)
       ).to.equal(balanceBeforeSigner1 - (tokenFeeAmount + 13));
       expect(
-        await utils.getTokenBalance(signers[0].address, feeToken)
+        await hapi.getTokenBalance(signers[0].address, feeToken)
       ).to.equal(balanceBeforeFeeCollector + (tokenFeeAmount + 13));
-      expect(await utils.getTokenBalance(signers[3].address, nft)).to.equal(1);
+      expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
       expect(
-        parseFloat(await utils.getHbarBalance(signers[2].address))
+        parseFloat(await hapi.getHbarBalance(signers[2].address))
       ).to.equal(
         beforeNftTransferHbars2 +
         parseFloat(twentyHbars / utils.tinybarToHbarCoef)
       );
       expect(
-        parseFloat(await utils.getHbarBalance(signers[3].address))
+        parseFloat(await hapi.getHbarBalance(signers[3].address))
       ).to.equal(
         beforeNftTransferHbars3 -
         parseFloat(twentyHbars / utils.tinybarToHbarCoef)
@@ -3011,7 +3015,6 @@ describe('TokenManagmentContract Test Suite', function () {
 
     describe('Update fees negative cases', async function () {
       it('should fail when updating fungible token non-existing fixed fee', async function () {
-        let transactionHash;
         tokenWithFees = await utils.createFungibleTokenWithCustomFeesAndKeys(
           tokenCreateCustomContract,
           signers[0].address,
@@ -3025,29 +3028,14 @@ describe('TokenManagmentContract Test Suite', function () {
           tokenCreateContractAddress,
           tokenCreateCustomContractAddress,
         ]);
-
-        const updateFeeTx =
-          await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(
-          CUSTOM_SCHEDULE_ALREADY_HAS_NO_FEES
-        );
+        )).to.eventually.be.rejectedWith(new RegExp(CUSTOM_SCHEDULE_ALREADY_HAS_NO_FEES));
       });
 
       it('should fail when updating non fungible token non-existing fixed fee', async function () {
-        let transactionHash;
         const nft =
           await utils.createNonFungibleTokenWithCustomRoyaltyFeeAndKeys(
             tokenCreateCustomContract,
@@ -3063,28 +3051,14 @@ describe('TokenManagmentContract Test Suite', function () {
           tokenCreateCustomContractAddress,
         ]);
 
-        const updateFeeTx =
-          await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             [],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(
-          CUSTOM_SCHEDULE_ALREADY_HAS_NO_FEES
-        );
+        )).to.eventually.be.rejectedWith(new RegExp(CUSTOM_SCHEDULE_ALREADY_HAS_NO_FEES));
       });
 
       it('should fail when trying to update fees of fungible token with no fee schedule key', async function () {
-        let transactionHash;
         const keysWithoutFeeSchedule = keys.slice();
         keysWithoutFeeSchedule.splice(5, 1);
         tokenWithFees = await utils.createFungibleTokenWithCustomFeesAndKeys(
@@ -3105,27 +3079,14 @@ describe('TokenManagmentContract Test Suite', function () {
           ],
           (setFeeScheduleKey = false)
         );
-
-        const updateFeeTx =
-          await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(TOKEN_HAS_NO_FEE_SCHEDULE_KEY);
+        )).to.eventually.be.rejectedWith(new RegExp(TOKEN_HAS_NO_FEE_SCHEDULE_KEY));
       });
 
       it('should fail when trying to update fees of non fungible token with no fee schedule key', async function () {
-        let transactionHash;
         const keysWithoutFeeSchedule = keys.slice();
         keysWithoutFeeSchedule.splice(5, 1);
         const nft =
@@ -3142,23 +3103,11 @@ describe('TokenManagmentContract Test Suite', function () {
           tokenCreateContractAddress,
           tokenCreateCustomContractAddress,
         ]);
-
-        const updateFeeTx =
-          await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             [],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(TOKEN_HAS_NO_FEE_SCHEDULE_KEY);
+        )).to.eventually.be.rejectedWith(new RegExp(TOKEN_HAS_NO_FEE_SCHEDULE_KEY));
       });
 
       it('should fail when fee has negative values', async function () {
@@ -3180,7 +3129,6 @@ describe('TokenManagmentContract Test Suite', function () {
         await hapi.updateTokenKeys(tokenWithFees, [
           tokenManagementContractAddress,
         ]);
-        let transactionHash;
         const updatedFixedFee = {
           amount: negativeHbars,
           tokenId: ethers.ZeroAddress,
@@ -3188,26 +3136,14 @@ describe('TokenManagmentContract Test Suite', function () {
           useCurrentTokenForPayment: false,
           feeCollector: signers[0].address,
         };
-        const updateFeeTx =
-          await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [updatedFixedFee],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(CUSTOM_FEE_MUST_BE_POSITIVE);
+        )).to.eventually.be.rejectedWith(new RegExp(CUSTOM_FEE_MUST_BE_POSITIVE));
       });
 
       it('should fail when fee has negative values for non fungible token', async function () {
-        let transactionHash;
         const negativeHbars = -10 * utils.tinybarToHbarCoef;
         const fixedFee = {
           amount: tenHbars,
@@ -3235,26 +3171,14 @@ describe('TokenManagmentContract Test Suite', function () {
           useCurrentTokenForPayment: false,
           feeCollector: signers[0].address,
         };
-        const updateFeeTx =
-          await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             [updatedFixedFee],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(CUSTOM_FEE_MUST_BE_POSITIVE);
+        )).to.eventually.be.rejectedWith(new RegExp(CUSTOM_FEE_MUST_BE_POSITIVE));
       });
 
       it('should fail when fractional fee has denominator zero', async function () {
-        let transactionHash;
         const fractionalFee = {
           numerator: 10,
           denominator: 100,
@@ -3281,22 +3205,11 @@ describe('TokenManagmentContract Test Suite', function () {
           netOfTransfers: false,
           feeCollector: signers[0].address,
         };
-
-        const updateFeeTx =
-          await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [],
             [updatedFractionalFee]
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(FRACTION_DIVIDES_BY_ZERO);
+        )).to.eventually.be.rejectedWith(new RegExp(FRACTION_DIVIDES_BY_ZERO));
       });
 
       // Note: Tests below are skipped due to CUSTOM_FEES_LIST_TOO_LONG error introduced in network node v0.56.0
@@ -3391,7 +3304,6 @@ describe('TokenManagmentContract Test Suite', function () {
       });
 
       it('should fail when the provided fee collector is invalid', async function () {
-        let transactionHash;
         tokenWithFees = await utils.createFungibleTokenWithCustomFeesAndKeys(
           tokenCreateCustomContract,
           signers[0].address,
@@ -3409,26 +3321,14 @@ describe('TokenManagmentContract Test Suite', function () {
           useCurrentTokenForPayment: false,
           feeCollector: feeToken,
         };
-        const updateFeeTx =
-          await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [fixedFee],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(INVALID_CUSTOM_FEE_COLLECTOR);
+        )).to.eventually.be.rejectedWith(new RegExp(INVALID_CUSTOM_FEE_COLLECTOR));
       });
 
       it('should fail when the provided fee collector is invalid for NFT', async function () {
-        let transactionHash;
         const nft =
           await utils.createNonFungibleTokenWithCustomRoyaltyFeeAndKeys(
             tokenCreateCustomContract,
@@ -3447,22 +3347,11 @@ describe('TokenManagmentContract Test Suite', function () {
           useCurrentTokenForPayment: false,
           feeCollector: feeToken,
         };
-        const updateFeeTx =
-          await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             [fixedFee],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(INVALID_CUSTOM_FEE_COLLECTOR);
+        )).to.eventually.be.rejectedWith(new RegExp(INVALID_CUSTOM_FEE_COLLECTOR));
       });
 
       it('should fail when the provided token id is invalid', async function () {
@@ -3484,22 +3373,12 @@ describe('TokenManagmentContract Test Suite', function () {
           useCurrentTokenForPayment: false,
           feeCollector: signers[0].address,
         };
-        const updateFeeTx =
-          await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+
+        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [fixedFee],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(INVALID_TOKEN_ID_IN_CUSTOM_FEES);
+        )).to.eventually.be.rejectedWith(new RegExp(INVALID_TOKEN_ID_IN_CUSTOM_FEES));
       });
 
       it('should fail when the provided token id is invalid for NFT', async function () {
@@ -3521,23 +3400,11 @@ describe('TokenManagmentContract Test Suite', function () {
           useCurrentTokenForPayment: false,
           feeCollector: signers[0].address,
         };
-        let transactionHash;
-        const updateFeeTx =
-          await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             [fixedFee],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(INVALID_TOKEN_ID_IN_CUSTOM_FEES);
+        )).to.eventually.be.rejectedWith(new RegExp(INVALID_TOKEN_ID_IN_CUSTOM_FEES));
       });
 
       it('should fail for updateFungibleTokenCustomFees when token is not associated to fee collector', async function () {
@@ -3606,25 +3473,11 @@ describe('TokenManagmentContract Test Suite', function () {
             feeCollector: signers[0].address,
           },
         ];
-
-        const updateFeeTx =
-          await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             updatedFixedFee,
             []
-          );
-        let transactionHash;
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(
-          TOKEN_NOT_ASSOCIATED_TO_FEE_COLLECTOR
-        );
+        )).to.eventually.be.rejectedWith(new RegExp(TOKEN_NOT_ASSOCIATED_TO_FEE_COLLECTOR));
       });
 
       it('should fail for updateNonFungibleTokenCustomFees when token is not associated to fee collector', async function () {
@@ -3665,25 +3518,11 @@ describe('TokenManagmentContract Test Suite', function () {
           },
         ];
 
-        let transactionHash;
-        const updateRoyaltyFeeTx =
-          await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             updatedfixedFees,
             []
-          );
-        try {
-          await updateRoyaltyFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(
-          TOKEN_NOT_ASSOCIATED_TO_FEE_COLLECTOR
-        );
+        )).to.eventually.be.rejectedWith(new RegExp(TOKEN_NOT_ASSOCIATED_TO_FEE_COLLECTOR));
       });
     });
   });

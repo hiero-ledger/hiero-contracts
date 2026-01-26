@@ -68,7 +68,7 @@ describe('TokenCreateContract Test Suite', function () {
       tokenAddress,
       Constants.Contract.TokenCreateContract
     );
-    await hapi.grantTokenKyc(tokenCreateContract, tokenAddress); ///!
+    await utils.grantTokenKyc(tokenCreateContract, tokenAddress); ///!
 
 
     await utils.associateToken(
@@ -77,7 +77,7 @@ describe('TokenCreateContract Test Suite', function () {
       Constants.Contract.TokenCreateContract
     );
 
-    await hapi.grantTokenKyc(tokenCreateContract, nftTokenAddress);
+    await utils.grantTokenKyc(tokenCreateContract, nftTokenAddress);
     mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress

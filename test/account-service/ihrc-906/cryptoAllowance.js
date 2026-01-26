@@ -18,6 +18,7 @@ describe('@HAS IHRC-906 Test Suite', () => {
     cryptoOwnerContract,
     cryptoAllowanceAddress,
     cryptoOwnerAddress,
+    receiver,
     hapi;
   const amount = 3000;
 

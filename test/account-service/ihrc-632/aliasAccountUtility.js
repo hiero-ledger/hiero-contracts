@@ -35,10 +35,7 @@ describe('@HAS IHRC-632 Test Suite', () => {
 
     hapi = new Hapi();
 
-    const walletAAccountId = await Utils.getAccountId(
-      walletA.address,
-      hapi.client
-    );
+    const walletAAccountId = await hapi.getAccountId(walletA.address);
 
     walletAHederaAccountNumAlias =
       `0x` + (await Utils.convertAccountIdToLongZeroAddress(walletAAccountId));
