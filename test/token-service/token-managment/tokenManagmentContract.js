@@ -3305,7 +3305,6 @@ describe('TokenManagmentContract Test Suite', function () {
       });
 
       it('should fail when the provided fee collector is invalid', async function () {
-        let transactionHash;
         tokenWithFees = await utils.createFungibleTokenWithCustomFeesAndKeys(
           tokenCreateCustomContract,
           signers[0].address,
@@ -3323,22 +3322,11 @@ describe('TokenManagmentContract Test Suite', function () {
           useCurrentTokenForPayment: false,
           feeCollector: feeToken,
         };
-        const updateFeeTx =
-          await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [fixedFee],
             []
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(INVALID_CUSTOM_FEE_COLLECTOR);
+        )).to.eventually.be.rejectedWith(new RegExp(INVALID_CUSTOM_FEE_COLLECTOR));
       });
 
       it('should fail when the provided fee collector is invalid for NFT', async function () {
