@@ -2,7 +2,7 @@
 
 import { expect } from 'chai';
 import hre from 'hardhat';
-const { ethers, networkName } = hre;
+const { ethers, networkName } = await hre.network.connect();
 import Constants from '../../constants';
 import Utils from '../../token-service/utils.js';
 import axios from 'axios';

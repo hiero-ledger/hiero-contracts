@@ -508,7 +508,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
     const deleteTx = await sampleContract.selfDestructSample();
     await deleteTx.wait();
     const cr = await Utils.getContractResultFromMN(deleteTx.hash);
-    expect(cr.error_message).to.equal('CONTRACT_STILL_OWNS_NFTS');
+    expect(JSON.stringify(cr)).to.equal('CONTRACT_STILL_OWNS_NFTS');
   });
 
   it('should fail to airdrop Number.MAX_SAFE_INTEGER + 1 tokens', async function () {
