@@ -28,7 +28,7 @@
     "system-contracts"
   ],
   "bugs": {
-    "url": "https://github.com/hiero-ledger/hiero-contracts//issues"
+    "url": "https://github.com/hiero-ledger/hiero-contracts/issues"
   },
   "homepage": "https://github.com/hiero-ledger/hiero-contracts/#readme",
   "scripts": {
