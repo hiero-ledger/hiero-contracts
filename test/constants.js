@@ -96,9 +96,9 @@ const MINUTE = 60 * SECOND;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 const WEEK = 7 * DAY;
-const GWEI = 1e9;
 const HTS_SYSTEM_CONTRACT_ID = '0.0.359';
 const HAS_SYSTEM_CONTRACT_ID = '0.0.362';
+const HEDERA_PROTOBUF_URL = 'https://raw.githubusercontent.com/hashgraph/hedera-protobufs/refs/heads/main/services/basic_types.proto';
 
 export default {
   Events,
@@ -126,4 +126,5 @@ export default {
   GWEI: ethers.GWEI,
   HTS_SYSTEM_CONTRACT_ID,
   HAS_SYSTEM_CONTRACT_ID,
+  HEDERA_PROTOBUF_URL,
 };

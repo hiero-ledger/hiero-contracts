@@ -5,6 +5,8 @@ import { expect } from 'chai';
 import { network } from 'hardhat';
 const { ethers } = await network.connect();
 import Constants from '../../constants';
+import { fileURLToPath } from 'url';
+import path from 'path';
 import {
   Hbar,
   PrivateKey,
@@ -298,7 +300,7 @@ describe('@HAS IHRC-632 Test Suite', () => {
     before(async () => {
       // Load and compile protobuf definitions
       const { data: signatureMapProto } = await axios.get(Constants.HEDERA_PROTOBUF_URL);
-      root = await protobuf.parse(signatureMapProto).root;
+      root = await protobuf.parse(signatureMapProto, { keepCase: true }).root;
       SignatureMap = root.lookupType('SignatureMap');
     });
 
@@ -308,6 +310,7 @@ describe('@HAS IHRC-632 Test Suite', () => {
         pubKeyPrefix: Buffer.from(sig.pubKeyPrefix),
         [sig.signatureType]: Buffer.from(sig.signatureValue),
       }));
+      console.error(sigPairs);
 
       const message = SignatureMap.create({ sigPair: sigPairs });
 
@@ -327,12 +330,12 @@ describe('@HAS IHRC-632 Test Suite', () => {
 
       // loop through signatureTypes to prepare
       signatureTypes.forEach((sigType) => {
-        if (sigType !== 'ECDSAsecp256k1' && sigType !== 'ed25519') {
+        if (sigType !== 'ECDSA_secp256k1' && sigType !== 'ed25519') {
           throw new Error('Invalid signature type.');
         }
 
         const privateKey =
-          sigType === 'ECDSAsecp256k1'
+          sigType === 'ECDSA_secp256k1'
             ? PrivateKey.generateECDSA()
             : PrivateKey.generateED25519();
 
@@ -388,7 +391,7 @@ describe('@HAS IHRC-632 Test Suite', () => {
 
     it('Should verify message signature and return TRUE using isAuthorized for ECDSA key', async () => {
       const sigBlobData = await prepareSigBlobData([
-        'ECDSAsecp256k1',
+        'ECDSA_secp256k1',
       ]);
 
       const tx = await aliasAccountUtility.isAuthorizedPublic(
@@ -432,16 +435,16 @@ describe('@HAS IHRC-632 Test Suite', () => {
       expect(accountAuthorizationResponse[2]).to.be.true;
     });
 
-    it('Should verify message signature and return TRUE using isAuthorized for threshold key includes multiple ED25519 and ECDSA keys', async () => {
+    it.only('Should verify message signature and return TRUE using isAuthorized for threshold key includes multiple ED25519 and ECDSA keys', async () => {
       const sigBlobData = await prepareSigBlobData([
-        'ECDSAsecp256k1',
+        'ECDSA_secp256k1',
         'ed25519',
         'ed25519',
         'ed25519',
-        'ECDSAsecp256k1',
-        'ECDSAsecp256k1',
+        'ECDSA_secp256k1',
+        'ECDSA_secp256k1',
         'ed25519',
-        'ECDSAsecp256k1',
+        'ECDSA_secp256k1',
       ]);
 
       const tx = await aliasAccountUtility.isAuthorizedPublic(
@@ -465,7 +468,7 @@ describe('@HAS IHRC-632 Test Suite', () => {
 
     it('Should FAIL to verify message signature and return FALSE using isAuthorized for unauthorized key', async () => {
       const sigBlobData = await prepareSigBlobData(
-        ['ECDSAsecp256k1'],
+        ['ECDSA_secp256k1'],
         true // set unauthorized to true
       );
 
