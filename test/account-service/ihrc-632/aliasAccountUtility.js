@@ -10,9 +10,9 @@ const {
   AccountCreateTransaction,
   KeyList,
 } = require('@hashgraph/sdk');
-const path = require('path');
 const protobuf = require('protobufjs');
 const Hapi = require("../../token-service/hapi");
+const axios = require('axios');
 
 describe('@HAS IHRC-632 Test Suite', () => {
   let walletA,
@@ -299,8 +299,8 @@ describe('@HAS IHRC-632 Test Suite', () => {
 
     before(async () => {
       // Load and compile protobuf definitions
-      const signatureMapProto = path.resolve(__dirname, 'signature_map.proto');
-      root = await protobuf.load(signatureMapProto);
+      const { data: signatureMapProto } = await axios.get(Constants.HEDERA_PROTOBUF_URL);
+      root = await protobuf.parse(signatureMapProto).root;
       SignatureMap = root.lookupType('SignatureMap');
     });
 
