@@ -1,5 +1,5 @@
 {
-  "name": "@hiero-ledger/contracts",
+  "name": "@hiero-ledger/hiero-contracts",
   "version": "0.1.0",
   "description": "Secure Solidity Smart Contract Library for integrations with Hiero Ledger-based system contracts",
   "files": [
