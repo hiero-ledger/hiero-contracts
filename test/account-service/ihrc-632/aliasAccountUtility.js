@@ -435,7 +435,7 @@ describe('@HAS IHRC-632 Test Suite', () => {
       expect(accountAuthorizationResponse[2]).to.be.true;
     });
 
-    it.only('Should verify message signature and return TRUE using isAuthorized for threshold key includes multiple ED25519 and ECDSA keys', async () => {
+    it('Should verify message signature and return TRUE using isAuthorized for threshold key includes multiple ED25519 and ECDSA keys', async () => {
       const sigBlobData = await prepareSigBlobData([
         'ECDSA_secp256k1',
         'ed25519',
