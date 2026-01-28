@@ -13,8 +13,8 @@ import {
   TokenAssociateTransaction
 } from '@hashgraph/sdk';
 const connection = await hre.network.connect();
-import global from '../config.js';
-const { sdkClient: config } = global.config.networks[connection.networkName];
+import { config as globalConfig } from '../config.js';
+const { sdkClient: config } = globalConfig.networks[connection.networkName];
 import utils from './utils';
 
 class Hapi {
