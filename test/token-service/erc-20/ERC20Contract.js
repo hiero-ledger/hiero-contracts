@@ -4,7 +4,7 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const utils = require('../utils');
 const Constants = require('../../constants');
-const Hapi = require("../hapi");
+const hapi = require('../hapi');
 
 describe('ERC20Contract Test Suite', function () {
   let tokenCreateContract;
@@ -12,11 +12,10 @@ describe('ERC20Contract Test Suite', function () {
   let tokenAddress;
   let erc20Contract;
   let signers;
-  let hapi;
+
   const TOTAL_SUPPLY = 10000000000;
 
   before(async function () {
-    hapi = new Hapi();
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenTransferContract = await utils.deployTokenTransferContract();

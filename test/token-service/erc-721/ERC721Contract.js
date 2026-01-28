@@ -4,7 +4,7 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const utils = require('../utils');
 const Constants = require('../../constants');
-const Hapi = require("../hapi");
+const hapi = require('../hapi');
 
 describe('ERC721Contract Test Suite', function () {
   let tokenCreateContract;
@@ -14,10 +14,8 @@ describe('ERC721Contract Test Suite', function () {
   let mintedTokenSerialNumber;
   let nftInitialOwnerAddress;
   let signers, firstWallet, secondWallet;
-  let hapi;
 
   before(async function () {
-    hapi = new Hapi();
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenTransferContract = await utils.deployTokenTransferContract();

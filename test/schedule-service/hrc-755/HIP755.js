@@ -4,11 +4,11 @@ const { ethers } = require('hardhat');
 const Utils = require('../../token-service/utils.js');
 const Constants = require('../../constants');
 const HashgraphProto = require('@hashgraph/proto');
-const { expect } = require("chai");
+const { expect } = require('chai');
 const {
   PrivateKey
 } = require('@hashgraph/sdk');
-const Hapi = require("../../token-service/hapi");
+const hapi = require('../../token-service/hapi');
 
 const convertScheduleIdToUint8Array = (scheduleId) => {
   const [shard, realm, num] = scheduleId.split('.');
@@ -26,10 +26,9 @@ const convertScheduleIdToUint8Array = (scheduleId) => {
 };
 
 describe('HIP755 Test Suite', function () {
-  let signers, signerSender, signerReceiver, senderInfo, receiverInfo, contractHRC755, hapi;
+  let signers, signerSender, signerReceiver, senderInfo, receiverInfo, contractHRC755;
 
   before(async () => {
-    hapi = new Hapi();
     signers = await ethers.getSigners();
     signerSender = signers[0];
     signerReceiver = signers[1];

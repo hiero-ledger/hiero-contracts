@@ -6,7 +6,7 @@ const { expect } = require('chai');
 const hre = require('hardhat');
 const { ethers } = hre;
 const utils = require('../utils');
-const Hapi = require('../hapi');
+const hapi = require('../hapi');
 
 describe('@HRC-719 Test Suite', function () {
   let tokenCreateContract;
@@ -15,7 +15,6 @@ describe('@HRC-719 Test Suite', function () {
   let signers;
   let hrcToken;
   let IHRC719;
-  let hapi;
 
   const parseCallResponseEventData = async (tx) => {
     return (await tx.wait()).logs.filter(
@@ -29,7 +28,6 @@ describe('@HRC-719 Test Suite', function () {
   };
 
   before(async function () {
-    hapi = new Hapi();
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     await hapi.updateAccountKeys([

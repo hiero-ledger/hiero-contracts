@@ -4,8 +4,9 @@ const { expect } = require('chai');
 const hre = require('hardhat');
 const { ethers } = hre;
 const Constants = require('../../constants');
-const Utils = require('../../token-service/utils.js');
-const axios = require("axios");
+const Utils = require('../../token-service/utils');
+const axios = require('axios');
+const hapi = require('../../token-service/hapi');
 
 const { PrivateKey } = require('@hashgraph/sdk');
 
@@ -57,7 +58,6 @@ describe("HIP1215 Test Suite", function () {
   xit('should be able to execute IHRC1215ScheduleFacade.deleteSchedule()', async () => {
     const signerSender = signers[0];
     const signerReceiver = signers[1];
-    const hapi = new Hapi();
     const senderInfo = await hapi.getAccountInfo(signerSender.address);
     const receiverInfo = await hapi.getAccountInfo(signerReceiver.address);
 

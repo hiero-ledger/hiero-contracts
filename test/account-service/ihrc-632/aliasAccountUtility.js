@@ -11,7 +11,7 @@ const {
   KeyList,
 } = require('@hashgraph/sdk');
 const protobuf = require('protobufjs');
-const Hapi = require("../../token-service/hapi");
+const hapi = require('../../token-service/hapi');
 const axios = require('axios');
 
 describe('@HAS IHRC-632 Test Suite', () => {
@@ -19,8 +19,7 @@ describe('@HAS IHRC-632 Test Suite', () => {
     walletB,
     walletC,
     aliasAccountUtility,
-    walletAHederaAccountNumAlias,
-    hapi
+    walletAHederaAccountNumAlias
   ;
 
   before(async () => {
@@ -32,8 +31,6 @@ describe('@HAS IHRC-632 Test Suite', () => {
     );
     aliasAccountUtility = await AliasAccountUtilityFactory.deploy();
     await aliasAccountUtility.waitForDeployment();
-
-    hapi = new Hapi();
 
     const walletAAccountId = await hapi.getAccountId(walletA.address);
 

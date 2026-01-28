@@ -5,7 +5,7 @@ const { ethers } = require('hardhat');
 const utils = require('../utils');
 const Constants = require('../../constants');
 const { pollForNewERC20Balance } = require('../../helpers');
-const Hapi = require('../hapi');
+const hapi = require('../hapi');
 
 describe('TokenManagmentContract Test Suite', function () {
   const TX_SUCCESS_CODE = 22;
@@ -35,10 +35,8 @@ describe('TokenManagmentContract Test Suite', function () {
   let tokenTransferContractAddress;
   let tokenQueryContractAddress;
   let tokenManagementContractAddress;
-  let hapi;
 
   before(async function () {
-    hapi = new Hapi();
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenQueryContract = await utils.deployTokenQueryContract();

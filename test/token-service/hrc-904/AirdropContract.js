@@ -4,7 +4,7 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const utils = require('../utils');
 const Constants = require('../../constants');
-const Hapi = require('../hapi');
+const hapi = require('../hapi');
 
 describe('HIP904Batch1 AirdropContract Test Suite', function () {
   let airdropContract;
@@ -18,10 +18,9 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
   let accounts;
   let contractAddresses;
   let walletIHRC904AccountFacade;
-  let hapi;
 
   before(async function () {
-    hapi = new Hapi();
+    hapi.connect();
     signers = await ethers.getSigners();
     airdropContract = await utils.deployContract(Constants.Contract.Airdrop);
     tokenCreateContract = await utils.deployContract(
@@ -57,7 +56,7 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
   });
 
   after(function () {
-    hapi.client.close();
+    hapi.disconnect();
   });
 
   it('should airdrop a fungible token (FT) to a single account', async function () {

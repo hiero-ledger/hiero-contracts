@@ -5,7 +5,7 @@ const { ethers } = require('hardhat');
 const utils = require('../utils');
 const Constants = require('../../constants');
 const Utils = require('../utils');
-const Hapi = require('../hapi');
+const hapi = require('../hapi');
 
 describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
   let airdropContract;
@@ -18,11 +18,9 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
   let receiver;
   let receiverPrivateKey;
   let contractAddresses;
-  let hapi;
   let tokenAddress;
 
   before(async function () {
-    hapi = new Hapi();
     signers = await ethers.getSigners();
     airdropContract = await utils.deployContract(Constants.Contract.Airdrop);
     claimAirdropContract = await utils.deployContract(

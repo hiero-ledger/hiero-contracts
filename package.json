@@ -1,7 +1,7 @@
 {
-  "name": "@hashgraph/contracts",
+  "name": "@hiero-ledger/contracts",
   "version": "0.1.0",
-  "description": "Secure Hedera System Smart Contract Library for Solidity",
+  "description": "Secure Solidity Smart Contract Library for integrations with Hiero Ledger-based system contracts",
   "files": [
     "/contracts/**/*.sol",
     "!/contracts/mocks/**/*"

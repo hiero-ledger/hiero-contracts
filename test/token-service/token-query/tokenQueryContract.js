@@ -4,7 +4,7 @@ const { expect } = require('chai');
 const { ethers } = require('hardhat');
 const utils = require('../utils');
 const Constants = require('../../constants');
-const Hapi = require('../hapi');
+const hapi = require('../hapi');
 
 describe('TokenQueryContract Test Suite', function () {
   const TX_SUCCESS_CODE = 22;
@@ -16,10 +16,8 @@ describe('TokenQueryContract Test Suite', function () {
   let nftTokenAddress;
   let mintedTokenSerialNumber;
   let signers;
-  let hapi;
 
   before(async function () {
-    hapi = new Hapi();
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenQueryContract = await utils.deployTokenQueryContract();

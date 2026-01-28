@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const utils = require('../../token-service/utils');
 const Utils = require('../../token-service/utils');
 const { expect } = require('chai');
 const { ethers } = require('hardhat');
@@ -8,7 +7,7 @@ const Constants = require('../../constants');
 const {
   pollForNewSignerBalanceUsingProvider,
 } = require('../../helpers');
-const Hapi = require("../../token-service/hapi");
+const hapi = require('../../token-service/hapi');
 
 describe('@HAS IHRC-906 Test Suite', () => {
   let walletA,
@@ -18,12 +17,10 @@ describe('@HAS IHRC-906 Test Suite', () => {
     cryptoOwnerContract,
     cryptoAllowanceAddress,
     cryptoOwnerAddress,
-    receiver,
-    hapi;
+    receiver;
   const amount = 3000;
 
   before(async () => {
-    hapi = new Hapi();
     [walletA, walletB, walletC, receiver] = await ethers.getSigners();
 
     // deploy cyprtoAllowanceContract
