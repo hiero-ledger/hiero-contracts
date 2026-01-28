@@ -10,7 +10,7 @@ import {
   pollForNewSignerBalance,
 } from '../../helpers';
 
-import Hapi from '../hapi';
+import hapi from '../hapi';
 
 const sleep = () => new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -21,12 +21,10 @@ describe('IERC20 Test Suite', function () {
   let tokenAddress;
   let IERC20;
   let signers;
-  let hapi;
   const TOTAL_SUPPLY = BigInt(10000000000);
   const AMOUNT = BigInt(33);
 
   before(async function () {
-    hapi = new Hapi();
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenTransferContract = await utils.deployTokenTransferContract();

@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import utils from './utils';
 import Constants from '../constants';
 import hre from 'hardhat';
-import Hapi from './hapi';
+import hapi from './hapi';
 const { ethers } = hre;
 
 describe('RedirectForToken Test Suite', function () {
@@ -13,7 +13,6 @@ describe('RedirectForToken Test Suite', function () {
   let tokenCreateContract;
   let tokenAddress;
   let IERC20;
-  let hapi;
 
   const parseCallResponseEventData = async (tx) => {
     return (await tx.wait()).logs.filter(
@@ -36,7 +35,6 @@ describe('RedirectForToken Test Suite', function () {
   };
 
   before(async () => {
-    hapi = new Hapi();
     signers = await ethers.getSigners();
 
     const tokenCreateFactory = await ethers.getContractFactory(

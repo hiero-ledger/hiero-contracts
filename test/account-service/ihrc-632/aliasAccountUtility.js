@@ -11,18 +11,16 @@ import {
   AccountCreateTransaction,
   KeyList,
 } from '@hashgraph/sdk';
-import { fileURLToPath } from 'url';
-import path from 'path';
 import protobuf from 'protobufjs';
-import Hapi from '../../token-service/hapi.js';
+import hapi from '../../token-service/hapi';
+import axios from 'axios';
 
 describe('@HAS IHRC-632 Test Suite', () => {
   let walletA,
     walletB,
     walletC,
     aliasAccountUtility,
-    walletAHederaAccountNumAlias,
-    hapi
+    walletAHederaAccountNumAlias
   ;
 
   before(async () => {
@@ -34,8 +32,6 @@ describe('@HAS IHRC-632 Test Suite', () => {
     );
     aliasAccountUtility = await AliasAccountUtilityFactory.deploy();
     await aliasAccountUtility.waitForDeployment();
-
-    hapi = new Hapi();
 
     const walletAAccountId = await hapi.getAccountId(walletA.address);
 
@@ -301,8 +297,8 @@ describe('@HAS IHRC-632 Test Suite', () => {
 
     before(async () => {
       // Load and compile protobuf definitions
-      const signatureMapProto = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'signature_map.proto');
-      root = await protobuf.load(signatureMapProto);
+      const { data: signatureMapProto } = await axios.get(Constants.HEDERA_PROTOBUF_URL);
+      root = await protobuf.parse(signatureMapProto).root;
       SignatureMap = root.lookupType('SignatureMap');
     });
 

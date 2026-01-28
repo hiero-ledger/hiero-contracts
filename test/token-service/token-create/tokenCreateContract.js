@@ -14,7 +14,7 @@ import {
   TokenSupplyType,
   AccountId,
 } from '@hashgraph/sdk';
-import Hapi from '../hapi';
+import hapi from '../hapi';
 
 describe('TokenCreateContract Test Suite', function () {
   let tokenCreateContract;
@@ -28,15 +28,12 @@ describe('TokenCreateContract Test Suite', function () {
   let mintedTokenSerialNumber;
   let signers;
 
-  let hapi;
-
   before(async function () {
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenTransferContract = await utils.deployTokenTransferContract();
     tokenManagmentContract = await utils.deployTokenManagementContract();
-    hapi = new Hapi();
-    await hapi.updateAccountKeys([
+      await hapi.updateAccountKeys([
       await tokenCreateContract.getAddress(),
       await tokenTransferContract.getAddress(),
       await tokenManagmentContract.getAddress(),

@@ -6,7 +6,7 @@ const { ethers } = await network.connect();
 import utils from '../utils';
 import Constants from '../../constants';
 import { pollForNewERC20Balance } from '../../helpers';
-import Hapi from '../hapi';
+import hapi from '../hapi';
 
 describe('TokenManagmentContract Test Suite', function () {
   const TX_SUCCESS_CODE = 22;
@@ -36,10 +36,8 @@ describe('TokenManagmentContract Test Suite', function () {
   let tokenTransferContractAddress;
   let tokenQueryContractAddress;
   let tokenManagementContractAddress;
-  let hapi;
 
   before(async function () {
-    hapi = new Hapi();
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenQueryContract = await utils.deployTokenQueryContract();

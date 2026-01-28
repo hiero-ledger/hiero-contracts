@@ -9,7 +9,7 @@ import {
   pollForNewERC20Balance,
   pollForNewSignerBalanceUsingProvider,
 } from '../../helpers';
-import Hapi from '../hapi';
+import hapi from '../hapi';
 
 describe('TokenTransferContract Test Suite', function () {
   const TX_SUCCESS_CODE = 22;
@@ -23,10 +23,8 @@ describe('TokenTransferContract Test Suite', function () {
   let nftTokenAddress;
   let mintedTokenSerialNumber;
   let signers;
-  let hapi;
 
   before(async function () {
-    hapi = new Hapi();
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenQueryContract = await utils.deployTokenQueryContract();

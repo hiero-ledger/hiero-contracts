@@ -13,21 +13,22 @@ import {
   TokenAssociateTransaction
 } from '@hashgraph/sdk';
 const connection = await hre.network.connect();
-import { config } from '../config.js';
-const network = config.networks[connection.networkName];
+import global from '../config.js';
+const { sdkClient: config } = global.config.networks[connection.networkName];
 import utils from './utils';
 
 class Hapi {
-  client;
-  config;
-  constructor() {
-    this.config = network.sdkClient;
+  _client;
+
+  get client() {
+    if (this._client && !this._client.isClientShutDown) return this._client;
     const hederaNetwork = {};
-    hederaNetwork[this.config.networkNodeUrl] = AccountId.fromString(this.config.nodeId);
-    this.client = Client.forNetwork(hederaNetwork)
-      .setMirrorNetwork(this.config.mirrorNode)
-      .setOperator(this.config.operatorId, this.config.operatorKey)
+    hederaNetwork[config.networkNodeUrl] = AccountId.fromString(config.nodeId);
+    this._client = Client.forNetwork(hederaNetwork)
+        .setMirrorNetwork(config.mirrorNode)
+        .setOperator(config.operatorId, config.operatorKey)
     ;
+    return this._client;
   }
 
   async updateAccountKeys(
@@ -59,7 +60,7 @@ class Hapi {
           .sign(pkSigner)
       ).execute(this.client);
     }
-    this.client.setOperator(this.config.operatorId, this.config.operatorKey);
+    this.client.setOperator(config.operatorId, config.operatorKey);
   }
 
   async updateTokenKeys(
@@ -105,7 +106,7 @@ class Hapi {
     await (
       await tx.freezeWith(this.client).sign(pkSigners[0])
     ).execute(this.client);
-    this.client.setOperator(this.config.operatorId, this.config.operatorKey);
+    this.client.setOperator(config.operatorId, config.operatorKey);
   }
 
   async getAccountBalance(address) {
@@ -153,7 +154,7 @@ class Hapi {
     const txResponse = await signTx.execute(signerClient);
     await txResponse.getReceipt(signerClient);
 
-    this.client.setOperator(this.config.operatorId, this.config.operatorKey);
+    this.client.setOperator(config.operatorId, config.operatorKey);
   }
 
   async getHbarBalance(address) {
@@ -178,4 +179,4 @@ class Hapi {
   }
 }
 
-export default Hapi;
+export default new Hapi();

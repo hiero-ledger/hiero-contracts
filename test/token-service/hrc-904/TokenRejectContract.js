@@ -5,7 +5,7 @@ import hre from 'hardhat';
 const { ethers } = await hre.network.connect();
 import utils from '../utils';
 import Constants from '../../constants';
-import Hapi from '../hapi';
+import hapi from '../hapi';
 
 describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
   let tokenRejectContract;
@@ -16,10 +16,8 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
   let receiver;
   let walletIHRC904AccountFacade;
   let contractAddresses;
-  let hapi;
 
   before(async function () {
-    hapi = new Hapi();
     signers = await ethers.getSigners();
     tokenRejectContract = await utils.deployContract(
       Constants.Contract.TokenReject

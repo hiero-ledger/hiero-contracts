@@ -8,7 +8,7 @@ import Constants from '../../constants';
 import {
   pollForNewSignerBalanceUsingProvider,
 } from '../../helpers';
-import Hapi from '../../token-service/hapi';
+import hapi from '../../token-service/hapi';
 
 describe('@HAS IHRC-906 Test Suite', () => {
   let walletA,
@@ -18,12 +18,10 @@ describe('@HAS IHRC-906 Test Suite', () => {
     cryptoOwnerContract,
     cryptoAllowanceAddress,
     cryptoOwnerAddress,
-    receiver,
-    hapi;
+    receiver;
   const amount = 3000;
 
   before(async () => {
-    hapi = new Hapi();
     [walletA, walletB, walletC, receiver] = await ethers.getSigners();
 
     // deploy cyprtoAllowanceContract

@@ -9,7 +9,7 @@ import { expect } from 'chai';
 import {
   PrivateKey
 } from '@hashgraph/sdk';
-import Hapi from '../../token-service/hapi.js';
+import hapi from '../../token-service/hapi.js';
 
 const convertScheduleIdToUint8Array = (scheduleId) => {
   const [shard, realm, num] = scheduleId.split('.');
@@ -27,10 +27,9 @@ const convertScheduleIdToUint8Array = (scheduleId) => {
 };
 
 describe('HIP755 Test Suite', function () {
-  let signers, signerSender, signerReceiver, senderInfo, receiverInfo, contractHRC755, hapi;
+  let signers, signerSender, signerReceiver, senderInfo, receiverInfo, contractHRC755;
 
   before(async () => {
-    hapi = new Hapi();
     signers = await ethers.getSigners();
     signerSender = signers[0];
     signerReceiver = signers[1];

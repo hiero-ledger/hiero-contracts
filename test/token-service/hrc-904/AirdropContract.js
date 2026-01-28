@@ -5,7 +5,7 @@ import hre from 'hardhat';
 const { ethers } = await hre.network.connect();
 import utils from '../utils';
 import Constants from '../../constants';
-import Hapi from '../hapi';
+import hapi from '../hapi';
 
 describe('HIP904Batch1 AirdropContract Test Suite', function () {
   let airdropContract;
@@ -19,10 +19,8 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
   let accounts;
   let contractAddresses;
   let walletIHRC904AccountFacade;
-  let hapi;
 
   before(async function () {
-    hapi = new Hapi();
     signers = await ethers.getSigners();
     airdropContract = await utils.deployContract(Constants.Contract.Airdrop);
     tokenCreateContract = await utils.deployContract(

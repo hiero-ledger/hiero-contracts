@@ -5,7 +5,7 @@ import { network } from 'hardhat';
 const { ethers } = await network.connect();
 import utils from '../utils';
 import Constants from '../../constants';
-import Hapi from '../hapi';
+import hapi from '../hapi';
 
 describe('ERC721Contract Test Suite', function () {
   let tokenCreateContract;
@@ -15,10 +15,8 @@ describe('ERC721Contract Test Suite', function () {
   let mintedTokenSerialNumber;
   let nftInitialOwnerAddress;
   let signers, firstWallet, secondWallet;
-  let hapi;
 
   before(async function () {
-    hapi = new Hapi();
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenTransferContract = await utils.deployTokenTransferContract();

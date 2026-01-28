@@ -8,7 +8,7 @@ import Utils from '../../token-service/utils.js';
 import axios from 'axios';
 
 import { PrivateKey } from '@hashgraph/sdk';
-import Hapi from '../../token-service/hapi.js';
+import hapi from '../../token-service/hapi.js';
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -54,11 +54,14 @@ describe("HIP1215 Test Suite", function () {
     SCHEDULE_GAS_LIMIT = await internalCalleeContract.externalFunction.estimateGas();
   });
 
+  after(function () {
+    hapi.client.close();
+  });
+
   // disabled due to a issue
   xit('should be able to execute IHRC1215ScheduleFacade.deleteSchedule()', async () => {
     const signerSender = signers[0];
     const signerReceiver = signers[1];
-    const hapi = new Hapi();
     const senderInfo = await hapi.getAccountInfo(signerSender.address);
     const receiverInfo = await hapi.getAccountInfo(signerReceiver.address);
 

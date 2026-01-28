@@ -6,7 +6,7 @@ const { ethers } = await hre.network.connect();
 import utils from '../utils';
 import Constants from '../../constants';
 import { Contract } from 'ethers';
-import Hapi from '../hapi';
+import hapi from '../hapi';
 
 describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
   let airdropContract;
@@ -26,11 +26,9 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
   let erc20Contract;
   let erc721Contract;
   let contractAddresses;
-  let hapi;
   let invalidSender;
 
   before(async function () {
-    hapi = new Hapi();
     signers = await ethers.getSigners();
     airdropContract = await utils.deployContract(Constants.Contract.Airdrop);
     tokenCreateContract = await utils.deployContract(
