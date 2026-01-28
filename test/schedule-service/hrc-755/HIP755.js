@@ -84,7 +84,7 @@ describe('HIP755 Test Suite', function () {
     const sigMapProtoEncoded = await HashgraphProto.proto.SignatureMap.encode({
       sigPair: [{
         pubKeyPrefix: privateKey.publicKey.toBytesRaw(),
-        ECDSA_secp256k1: privateKey.sign(scheduleIdAsBytes)
+        ECDSASecp256k1: privateKey.sign(scheduleIdAsBytes)
       }]
     }).finish();
 
