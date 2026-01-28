@@ -306,7 +306,7 @@ describe('TokenCreateContract Test Suite', function () {
     });
 
     async function createTokenviaHapi() {
-      const { client } = await hapi;
+      const { client } = hapi;
 
       const tokenCreate = await new TokenCreateTransaction()
         .setTokenName(tokenName)
