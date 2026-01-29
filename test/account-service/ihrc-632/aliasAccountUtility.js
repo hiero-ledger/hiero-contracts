@@ -5,17 +5,14 @@ import { expect } from 'chai';
 import { network } from 'hardhat';
 const { ethers } = await network.connect();
 import Constants from '../../constants';
-import { fileURLToPath } from 'url';
-import path from 'path';
+import HashgraphProto from '@hashgraph/proto';
 import {
   Hbar,
   PrivateKey,
   AccountCreateTransaction,
   KeyList,
 } from '@hashgraph/sdk';
-import protobuf from 'protobufjs';
 import hapi from '../../token-service/hapi';
-import axios from 'axios';
 
 describe('@HAS IHRC-632 Test Suite', () => {
   let walletA,
@@ -295,28 +292,16 @@ describe('@HAS IHRC-632 Test Suite', () => {
   describe(`IsAuthorized`, () => {
     // raw messageToSign
     const messageToSign = 'Hedera Account Service';
-    let root, SignatureMap;
-
-    before(async () => {
-      // Load and compile protobuf definitions
-      const { data: signatureMapProto } = await axios.get(Constants.HEDERA_PROTOBUF_URL);
-      root = await protobuf.parse(signatureMapProto, { keepCase: true }).root;
-      SignatureMap = root.lookupType('SignatureMap');
-    });
 
     // Helper function to create a signature blob which align with the SignatureMap protobuf message struct
-    const createSignatureBlob = (signatures) => {
+    const createSignatureBlob = async (signatures) => {
       const sigPairs = signatures.map((sig) => ({
         pubKeyPrefix: Buffer.from(sig.pubKeyPrefix),
         [sig.signatureType]: Buffer.from(sig.signatureValue),
       }));
-      console.error(sigPairs);
-
-      const message = SignatureMap.create({ sigPair: sigPairs });
-
-      const encodedMessage = SignatureMap.encode(message).finish();
-
-      return encodedMessage;
+      return HashgraphProto.proto.SignatureMap.encode({
+        sigPair: sigPairs
+      }).finish();
     };
 
     const prepareSigBlobData = async (
@@ -330,12 +315,12 @@ describe('@HAS IHRC-632 Test Suite', () => {
 
       // loop through signatureTypes to prepare
       signatureTypes.forEach((sigType) => {
-        if (sigType !== 'ECDSA_secp256k1' && sigType !== 'ed25519') {
+        if (sigType !== 'ECDSASecp256k1' && sigType !== 'ed25519') {
           throw new Error('Invalid signature type.');
         }
 
         const privateKey =
-          sigType === 'ECDSA_secp256k1'
+          sigType === 'ECDSASecp256k1'
             ? PrivateKey.generateECDSA()
             : PrivateKey.generateED25519();
 
@@ -384,14 +369,14 @@ describe('@HAS IHRC-632 Test Suite', () => {
       const accountAddress = `0x${newAccount.toSolidityAddress()}`;
 
       // Create signature blob
-      const signatureBlob = createSignatureBlob(keyData.signatureBlobDatas);
+      const signatureBlob = await createSignatureBlob(keyData.signatureBlobDatas);
 
       return { accountAddress, signatureBlob };
     };
 
     it('Should verify message signature and return TRUE using isAuthorized for ECDSA key', async () => {
       const sigBlobData = await prepareSigBlobData([
-        'ECDSA_secp256k1',
+        'ECDSASecp256k1',
       ]);
 
       const tx = await aliasAccountUtility.isAuthorizedPublic(
@@ -437,14 +422,14 @@ describe('@HAS IHRC-632 Test Suite', () => {
 
     it('Should verify message signature and return TRUE using isAuthorized for threshold key includes multiple ED25519 and ECDSA keys', async () => {
       const sigBlobData = await prepareSigBlobData([
-        'ECDSA_secp256k1',
+        'ECDSASecp256k1',
         'ed25519',
         'ed25519',
         'ed25519',
-        'ECDSA_secp256k1',
-        'ECDSA_secp256k1',
+        'ECDSASecp256k1',
+        'ECDSASecp256k1',
         'ed25519',
-        'ECDSA_secp256k1',
+        'ECDSASecp256k1',
       ]);
 
       const tx = await aliasAccountUtility.isAuthorizedPublic(
@@ -468,7 +453,7 @@ describe('@HAS IHRC-632 Test Suite', () => {
 
     it('Should FAIL to verify message signature and return FALSE using isAuthorized for unauthorized key', async () => {
       const sigBlobData = await prepareSigBlobData(
-        ['ECDSA_secp256k1'],
+        ['ECDSASecp256k1'],
         true // set unauthorized to true
       );
 
