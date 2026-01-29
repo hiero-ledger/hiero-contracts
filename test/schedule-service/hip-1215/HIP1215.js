@@ -58,37 +58,6 @@ describe("HIP1215 Test Suite", function () {
     hapi.client.close();
   });
 
-  // disabled due to a issue
-  xit('should be able to execute IHRC1215ScheduleFacade.deleteSchedule()', async () => {
-    const signerSender = signers[0];
-    const signerReceiver = signers[1];
-    const senderInfo = await hapi.getAccountInfo(signerSender.address);
-    const receiverInfo = await hapi.getAccountInfo(signerReceiver.address);
-
-    const adminPrivateKey = PrivateKey.fromStringECDSA(Utils.getHardhatSignerPrivateKeyByIndex(0));
-    const {
-      scheduleId
-    } = await Utils.createScheduleTransactionForTransfer(senderInfo, receiverInfo, hapi.client, adminPrivateKey, 10000000000000);
-    await new Promise(r => setTimeout(r, 2500));
-
-    const infoBefore = await getScheduleInfoFromMN(parseInt(scheduleId.num));
-
-    const contractIHRC1215 = await ethers.getContractAt(
-      'IHRC1215ScheduleFacade',
-      Utils.convertAccountIdToLongZeroAddress(scheduleId.toString(), true),
-      signerSender
-    );
-    const deleteScheduleTx = await contractIHRC1215.deleteSchedule(Constants.GAS_LIMIT_2_000_000);
-    await deleteScheduleTx.wait();
-
-    const infoAfter = await getScheduleInfoFromMN(parseInt(scheduleId.num));
-
-    expect(infoBefore.deleted).to.be.false;
-    expect(infoAfter.deleted).to.be.true;
-
-    genesisSdkClient.close();
-  });
-
   it("should be able to execute scheduleCallDirect", async () => {
     const beforeCount = await internalCalleeContract.calledTimes();
 

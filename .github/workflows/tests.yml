@@ -63,6 +63,12 @@ jobs:
     with:
       testfilter: HIP755
 
+  HIP1215:
+    name: HIP1215 Test Suite
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: HIP1215
+
   HRC:
     name: HRC Test Suite
     uses: ./.github/workflows/test-workflow.yml
@@ -110,6 +116,7 @@ jobs:
       - TokenManagmentContract
       - TokenTransferContract
       - HIP755
+      - HIP1215
       - HRC
       - PrngSystemContract
       - HederaAccountService
