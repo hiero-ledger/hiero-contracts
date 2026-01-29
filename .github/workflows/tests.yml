@@ -1,11 +1,11 @@
 name: Tests CI
 
 on:
-  push:
   pull_request:
-    branches:
-      - "main"
-  workflow_dispatch:
+    branches: [main, release/**]
+  push:
+    branches: [main, release/**]
+    tags: [v*]
 
 concurrency:
   group: tests-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
