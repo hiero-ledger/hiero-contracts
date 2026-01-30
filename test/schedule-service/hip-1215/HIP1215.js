@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const { expect } = require('chai');
-const hre = require('hardhat');
-const { ethers } = hre;
-const Constants = require('../../constants');
-const Utils = require('../../token-service/utils');
-const axios = require('axios');
-const hapi = require('../../token-service/hapi');
+import { expect } from 'chai';
+import hre from 'hardhat';
+const { ethers, networkName } = await hre.network.connect();
+import Constants from '../../constants';
+import Utils from '../../token-service/utils.js';
+import axios from 'axios';
 
-const { PrivateKey } = require('@hashgraph/sdk');
+import { PrivateKey } from '@hashgraph/sdk';
+import hapi from '../../token-service/hapi.js';
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 const getScheduleInfoFromMN = async (scheduleAddress) => {
-  const url = Utils.getMirrorNodeUrl(hre.network.name) + `/schedules/0.0.${Number(scheduleAddress)}`;
+  const url = Utils.getMirrorNodeUrl(networkName) + `/schedules/0.0.${Number(scheduleAddress)}`;
 
   return axios.get(url).then(r => r.data);
 };

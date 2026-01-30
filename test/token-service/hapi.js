@@ -1,5 +1,5 @@
-const hre = require('hardhat');
-const {
+import hre from 'hardhat';
+import {
   AccountId,
   Client,
   AccountUpdateTransaction,
@@ -11,9 +11,11 @@ const {
   AccountInfoQuery,
   AccountBalanceQuery,
   TokenAssociateTransaction
-} = require('@hashgraph/sdk');
-const utils = require('./utils');
-const config = hre.config.networks[hre.network.name].sdkClient;
+} from '@hashgraph/sdk';
+const connection = await hre.network.connect();
+import { config as globalConfig } from '../config.js';
+const { sdkClient: config } = globalConfig.networks[connection.networkName];
+import utils from './utils';
 
 class Hapi {
   _client;
@@ -72,7 +74,7 @@ class Hapi {
     setWipe = true,
     setFeeSchedule = true
   ) {
-    const signers = await hre.ethers.getSigners();
+    const signers = await connection.ethers.getSigners();
     const pkSigners = (await utils.getHardhatSignersPrivateKeys()).map((pk) =>
       PrivateKey.fromStringECDSA(pk)
     );
@@ -132,7 +134,7 @@ class Hapi {
   }
 
   async associateWithSigner(privateKey, tokenAddress) {
-    const wallet = new hre.ethers.Wallet(privateKey);
+    const wallet = new connection.ethers.Wallet(privateKey);
     const accountIdAsString = await this.getAccountId(
         wallet.address
     );
@@ -177,4 +179,4 @@ class Hapi {
   }
 }
 
-module.exports = new Hapi();
+export default new Hapi();
