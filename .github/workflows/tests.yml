@@ -1,0 +1,138 @@
+name: Tests CI
+
+on:
+  pull_request:
+    branches: [main, release/**]
+  push:
+    branches: [main, release/**]
+    tags: [v*]
+
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  ERC20Contract:
+    name: ERC20 Contract Test Suite
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: ERC20
+
+  ERC721Contract:
+    name: ERC721 Contract Test Suite
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: ERC721
+
+  TokenCreateContract:
+    name: Token Create Test Suite
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: TokenCreateContract
+
+  TokenQueryContract:
+    name: Token Query Test Suite
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: TokenQueryContract
+
+  TokenManagmentContract:
+    name: Token Managment Test Suite
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: TokenManagmentContract
+
+  TokenTransferContract:
+    name: Token Transfer Test Suite
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: TokenTransferContract
+
+  HIP755:
+    name: HIP755 Test Suite
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: HIP755
+
+  HRC:
+    name: HRC Test Suite
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: HRC
+
+  PrngSystemContract:
+    name: PrngSystemContract Test Suite
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: PrngSystemContract
+
+  HederaAccountService:
+    name: HederaAccountService Test Suite
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: HAS
+
+  HIP904Batch1:
+    name: HIP904 Contract Test Suite Batch 1
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: HIP904Batch1
+
+  HIP904Batch2:
+    name: HIP904 Contract Test Suite Batch 2
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: HIP904Batch2
+
+  HIP904Batch3:
+    name: HIP904 Contract Test Suite Batch 3
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: HIP904Batch3
+
+  PublishResults:
+    name: Publish Results
+    if: ${{ !cancelled() }}
+    needs:
+      - ERC20Contract
+      - ERC721Contract
+      - TokenCreateContract
+      - TokenQueryContract
+      - TokenManagmentContract
+      - TokenTransferContract
+      - HIP755
+      - HRC
+      - PrngSystemContract
+      - HederaAccountService
+      - HIP904Batch1
+      - HIP904Batch2
+      - HIP904Batch3
+
+    runs-on: hl-contr-lin-md
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+
+      - name: Download Test Reports
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          pattern: Test Results (*)
+          merge-multiple: true
+
+      - name: Publish Test Report
+        uses: step-security/publish-unit-test-result-action@43e0c963eea0ace6eca353cb1d814d857fee5c53 # v2.20.2
+        with:
+          check_name: Test Results
+          json_thousands_separator: ','
+          junit_files: 'test-*.xml'
