@@ -142,3 +142,12 @@ jobs:
       networkTag: ${{inputs.networkNodeTag}}
       mirrorTag: ${{inputs.mirrorNodeTag}}
       relayTag: ${{inputs.relayTag}}
+
+  HIP1215:
+    name: HIP1215 Test Suite
+    uses: ./.github/workflows/test-workflow.yml
+    with:
+      testfilter: HIP1215
+      networkTag: ${{inputs.networkNodeTag}}
+      mirrorTag: ${{inputs.mirrorNodeTag}}
+      relayTag: ${{inputs.relayTag}}
