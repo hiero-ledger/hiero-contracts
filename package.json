@@ -53,6 +53,6 @@
     "elliptic": "^6.6.1",
     "ethers": "^6.16.0",
     "mcl-wasm": "^2.0.0",
-    "protobufjs": "^7.5.3"
+    "protobufjs": "^8.0.0"
   }
 }
