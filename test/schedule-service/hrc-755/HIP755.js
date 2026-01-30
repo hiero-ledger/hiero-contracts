@@ -2,14 +2,13 @@
 
 import { network } from 'hardhat';
 const { ethers } = await network.connect();
-import Utils from '../../token-service/utils.js';
-import Constants from '../../constants';
 import HashgraphProto from '@hashgraph/proto';
+import { PrivateKey } from '@hashgraph/sdk';
 import { expect } from 'chai';
-import {
-  PrivateKey
-} from '@hashgraph/sdk';
+
+import Constants from '../../constants';
 import hapi from '../../token-service/hapi.js';
+import Utils from '../../token-service/utils.js';
 
 const convertScheduleIdToUint8Array = (scheduleId) => {
   const [shard, realm, num] = scheduleId.split('.');
@@ -27,7 +26,12 @@ const convertScheduleIdToUint8Array = (scheduleId) => {
 };
 
 describe('HIP755 Test Suite', function () {
-  let signers, signerSender, signerReceiver, senderInfo, receiverInfo, contractHRC755;
+  let signers,
+    signerSender,
+    signerReceiver,
+    senderInfo,
+    receiverInfo,
+    contractHRC755;
 
   before(async () => {
     signers = await ethers.getSigners();
@@ -37,7 +41,8 @@ describe('HIP755 Test Suite', function () {
     senderInfo = await hapi.getAccountInfo(signerSender.address);
     receiverInfo = await hapi.getAccountInfo(signerReceiver.address);
 
-    const contractHRC755Factory = await ethers.getContractFactory('HRC755Contract');
+    const contractHRC755Factory =
+      await ethers.getContractFactory('HRC755Contract');
     contractHRC755 = await contractHRC755Factory.deploy();
     await contractHRC755.waitForDeployment();
   });
@@ -47,83 +52,116 @@ describe('HIP755 Test Suite', function () {
   });
 
   it('should be able to signSchedule via IHRC755ScheduleFacade', async () => {
-    const {
-      scheduleId,
-      transferAmountAsWeibar
-    } = await Utils.createScheduleTransactionForTransfer(senderInfo, receiverInfo, hapi.client);
+    const { scheduleId, transferAmountAsWeibar } =
+      await Utils.createScheduleTransactionForTransfer(
+        senderInfo,
+        receiverInfo,
+        hapi.client,
+      );
 
-    const senderBalanceBefore = await signers[0].provider.getBalance(signerSender);
-    const receiverBalanceBefore = await signers[0].provider.getBalance(signerReceiver);
+    const senderBalanceBefore =
+      await signers[0].provider.getBalance(signerSender);
+    const receiverBalanceBefore =
+      await signers[0].provider.getBalance(signerReceiver);
 
     const contract = await ethers.getContractAt(
-        'IHRC755ScheduleFacade',
-        Utils.convertAccountIdToLongZeroAddress(scheduleId.toString(), true),
-        signerSender
+      'IHRC755ScheduleFacade',
+      Utils.convertAccountIdToLongZeroAddress(scheduleId.toString(), true),
+      signerSender,
     );
-    const signScheduleTx = await contract.signSchedule(Constants.GAS_LIMIT_2_000_000);
+    const signScheduleTx = await contract.signSchedule(
+      Constants.GAS_LIMIT_2_000_000,
+    );
     await signScheduleTx.wait();
 
-    const senderBalanceAfter = await signers[0].provider.getBalance(signerSender);
-    const receiverBalanceAfter = await signers[0].provider.getBalance(signerReceiver);
+    const senderBalanceAfter =
+      await signers[0].provider.getBalance(signerSender);
+    const receiverBalanceAfter =
+      await signers[0].provider.getBalance(signerReceiver);
 
     expect(receiverBalanceBefore).to.not.equal(receiverBalanceAfter);
     expect(senderBalanceBefore).to.not.equal(senderBalanceAfter);
-    expect(senderBalanceAfter + transferAmountAsWeibar).to.be.lessThanOrEqual(senderBalanceBefore);
-    expect(receiverBalanceBefore + transferAmountAsWeibar).to.equal(receiverBalanceAfter);
+    expect(senderBalanceAfter + transferAmountAsWeibar).to.be.lessThanOrEqual(
+      senderBalanceBefore,
+    );
+    expect(receiverBalanceBefore + transferAmountAsWeibar).to.equal(
+      receiverBalanceAfter,
+    );
   });
 
   it('should be able to signSchedule via HRC755 contract', async () => {
-    const {
-      scheduleId,
-      transferAmountAsWeibar
-    } = await Utils.createScheduleTransactionForTransfer(senderInfo, receiverInfo, hapi.client);
+    const { scheduleId, transferAmountAsWeibar } =
+      await Utils.createScheduleTransactionForTransfer(
+        senderInfo,
+        receiverInfo,
+        hapi.client,
+      );
 
     const rawPk = await Utils.getHardhatSignerPrivateKeyByIndex(0);
     const privateKey = PrivateKey.fromStringECDSA(rawPk.replace('0x', ''));
-    const scheduleIdAsBytes = convertScheduleIdToUint8Array(scheduleId.toString());
+    const scheduleIdAsBytes = convertScheduleIdToUint8Array(
+      scheduleId.toString(),
+    );
     const sigMapProtoEncoded = await HashgraphProto.proto.SignatureMap.encode({
-      sigPair: [{
-        pubKeyPrefix: privateKey.publicKey.toBytesRaw(),
-        ECDSASecp256k1: privateKey.sign(scheduleIdAsBytes)
-      }]
+      sigPair: [
+        {
+          pubKeyPrefix: privateKey.publicKey.toBytesRaw(),
+          ECDSASecp256k1: privateKey.sign(scheduleIdAsBytes),
+        },
+      ],
     }).finish();
 
-    const senderBalanceBefore = await signers[0].provider.getBalance(signerSender);
-    const receiverBalanceBefore = await signers[0].provider.getBalance(signerReceiver);
+    const senderBalanceBefore =
+      await signers[0].provider.getBalance(signerSender);
+    const receiverBalanceBefore =
+      await signers[0].provider.getBalance(signerReceiver);
 
     const signScheduleCallTx = await contractHRC755.signScheduleCall(
-        Utils.convertAccountIdToLongZeroAddress(scheduleId.toString(), true),
-        sigMapProtoEncoded,
-        Constants.GAS_LIMIT_2_000_000
+      Utils.convertAccountIdToLongZeroAddress(scheduleId.toString(), true),
+      sigMapProtoEncoded,
+      Constants.GAS_LIMIT_2_000_000,
     );
     await signScheduleCallTx.wait();
 
-    const senderBalanceAfter = await signers[0].provider.getBalance(signerSender);
-    const receiverBalanceAfter = await signers[0].provider.getBalance(signerReceiver);
+    const senderBalanceAfter =
+      await signers[0].provider.getBalance(signerSender);
+    const receiverBalanceAfter =
+      await signers[0].provider.getBalance(signerReceiver);
 
     expect(receiverBalanceBefore).to.not.equal(receiverBalanceAfter);
     expect(senderBalanceBefore).to.not.equal(senderBalanceAfter);
-    expect(senderBalanceAfter + transferAmountAsWeibar).to.be.lessThanOrEqual(senderBalanceBefore);
-    expect(receiverBalanceBefore + transferAmountAsWeibar).to.equal(receiverBalanceAfter);
+    expect(senderBalanceAfter + transferAmountAsWeibar).to.be.lessThanOrEqual(
+      senderBalanceBefore,
+    );
+    expect(receiverBalanceBefore + transferAmountAsWeibar).to.equal(
+      receiverBalanceAfter,
+    );
   });
 
   it('should be able to authorizeSchedule via HRC755 contract', async () => {
-    const { scheduleId } = await Utils.createScheduleTransactionForTransfer(senderInfo, receiverInfo, hapi.client);
+    const { scheduleId } = await Utils.createScheduleTransactionForTransfer(
+      senderInfo,
+      receiverInfo,
+      hapi.client,
+    );
 
     const signScheduleCallTx = await contractHRC755.authorizeScheduleCall(
-        Utils.convertAccountIdToLongZeroAddress(scheduleId.toString(), true),
-        Constants.GAS_LIMIT_2_000_000
+      Utils.convertAccountIdToLongZeroAddress(scheduleId.toString(), true),
+      Constants.GAS_LIMIT_2_000_000,
     );
     await signScheduleCallTx.wait();
 
-    const debugTraceRes = await signers[0].provider.send('debug_traceTransaction', [
-          signScheduleCallTx.hash, {
-            tracer: 'callTracer',
-            tracerConfig: {
-              onlyTopCall: true,
-            }
-          }
-        ]
+    const debugTraceRes = await signers[0].provider.send(
+      'debug_traceTransaction',
+      [
+        signScheduleCallTx.hash,
+        {
+          tracer: 'callTracer',
+          tracerConfig: {
+            onlyTopCall: true,
+          },
+        },
+      ],
     );
     expect(parseInt(debugTraceRes.output)).to.equal(Constants.TX_SUCCESS_CODE);
   });

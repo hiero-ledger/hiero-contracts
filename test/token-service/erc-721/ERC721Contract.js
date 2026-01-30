@@ -3,9 +3,9 @@
 import { expect } from 'chai';
 import { network } from 'hardhat';
 const { ethers } = await network.connect();
-import utils from '../utils';
 import Constants from '../../constants';
 import hapi from '../hapi';
+import utils from '../utils';
 
 describe('ERC721Contract Test Suite', function () {
   let tokenCreateContract;
@@ -27,7 +27,7 @@ describe('ERC721Contract Test Suite', function () {
     erc721Contract = await utils.deployERC721Contract();
     tokenAddress = await utils.createNonFungibleToken(
       tokenCreateContract,
-      signers[0].address
+      signers[0].address,
     );
     await hapi.updateTokenKeys(tokenAddress, [
       await tokenCreateContract.getAddress(),
@@ -35,12 +35,12 @@ describe('ERC721Contract Test Suite', function () {
     ]);
     mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
-      tokenAddress
+      tokenAddress,
     );
     await utils.associateToken(
       tokenCreateContract,
       tokenAddress,
-      Constants.Contract.TokenCreateContract
+      Constants.Contract.TokenCreateContract,
     );
     await utils.grantTokenKyc(tokenCreateContract, tokenAddress);
     firstWallet = signers[0];
@@ -49,13 +49,13 @@ describe('ERC721Contract Test Suite', function () {
     await tokenCreateContract.associateTokenPublic(
       await erc721Contract.getAddress(),
       tokenAddress,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
 
     await tokenCreateContract.grantTokenKycPublic(
       tokenAddress,
       await erc721Contract.getAddress(),
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
 
     await tokenTransferContract.transferNFTPublic(
@@ -63,7 +63,7 @@ describe('ERC721Contract Test Suite', function () {
       await tokenCreateContract.getAddress(),
       signers[0].address,
       mintedTokenSerialNumber,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     nftInitialOwnerAddress = signers[0].address;
   });
@@ -90,7 +90,7 @@ describe('ERC721Contract Test Suite', function () {
   it('should be able to get token uri via tokenURI', async function () {
     const tokenURI = await erc721Contract.tokenURI(
       tokenAddress,
-      mintedTokenSerialNumber
+      mintedTokenSerialNumber,
     );
     expect(tokenURI).to.equal('\u0001');
   });
@@ -98,7 +98,7 @@ describe('ERC721Contract Test Suite', function () {
   it('should be able to execute ownerOf', async function () {
     const owner = await erc721Contract.ownerOf(
       tokenAddress,
-      mintedTokenSerialNumber
+      mintedTokenSerialNumber,
     );
     expect(owner).to.equal(nftInitialOwnerAddress);
   });
@@ -106,7 +106,7 @@ describe('ERC721Contract Test Suite', function () {
   it('should be able to execute balanceOf', async function () {
     const balance = await erc721Contract.balanceOf(
       tokenAddress,
-      nftInitialOwnerAddress
+      nftInitialOwnerAddress,
     );
     expect(balance).to.equal(1);
   });
@@ -114,7 +114,7 @@ describe('ERC721Contract Test Suite', function () {
   it('should be able to execute getApproved', async function () {
     const approved = await erc721Contract.getApproved(
       tokenAddress,
-      mintedTokenSerialNumber
+      mintedTokenSerialNumber,
     );
     expect(approved).to.equal('0x0000000000000000000000000000000000000000');
   });
@@ -124,18 +124,18 @@ describe('ERC721Contract Test Suite', function () {
     const isApprovedForAllBefore = await erc721Contract.isApprovedForAll(
       tokenAddress,
       firstWallet.address,
-      secondWallet.address
+      secondWallet.address,
     );
     await erc721Contract.delegateSetApprovalForAll(
       tokenAddress,
       secondWallet.address,
       true,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     const isApprovedForAllAfter = await erc721Contract.isApprovedForAll(
       tokenAddress,
       firstWallet.address,
-      secondWallet.address
+      secondWallet.address,
     );
 
     expect(isApprovedForAllBefore).to.equal(false);
@@ -145,23 +145,23 @@ describe('ERC721Contract Test Suite', function () {
   it('should be able to execute delegate transferFrom', async function () {
     const ownerBefore = await erc721Contract.ownerOf(
       tokenAddress,
-      mintedTokenSerialNumber
+      mintedTokenSerialNumber,
     );
     const erc721ContractNFTOwner = await ethers.getContractAt(
       Constants.Contract.ERC721Contract,
       await erc721Contract.getAddress(),
-      firstWallet
+      firstWallet,
     );
     await erc721ContractNFTOwner.delegateTransferFrom(
       tokenAddress,
       firstWallet.address,
       secondWallet.address,
       mintedTokenSerialNumber,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     const ownerAfter = await erc721Contract.ownerOf(
       tokenAddress,
-      mintedTokenSerialNumber
+      mintedTokenSerialNumber,
     );
 
     expect(ownerBefore).to.equal(firstWallet.address);
@@ -172,50 +172,50 @@ describe('ERC721Contract Test Suite', function () {
     const erc721ContractNFTOwner = await ethers.getContractAt(
       Constants.Contract.ERC721Contract,
       await erc721Contract.getAddress(),
-      secondWallet
+      secondWallet,
     );
     const beforeApproval = await erc721ContractNFTOwner.getApproved(
       tokenAddress,
       mintedTokenSerialNumber,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     await erc721ContractNFTOwner.delegateApprove(
       tokenAddress,
       firstWallet.address,
       mintedTokenSerialNumber,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     const afterApproval = await erc721ContractNFTOwner.getApproved(
       tokenAddress,
       mintedTokenSerialNumber,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
 
     expect(beforeApproval).to.equal(
-      '0x0000000000000000000000000000000000000000'
+      '0x0000000000000000000000000000000000000000',
     );
     expect(afterApproval).to.not.equal(firstWallet.address);
   });
 
   it('should be able execute safeTransferFrom', async function () {
     const tx = erc721Contract.safeTransferFrom(
-        tokenAddress,
-        firstWallet.address,
-        secondWallet.address,
-        mintedTokenSerialNumber,
-        Constants.GAS_LIMIT_1_000_000
+      tokenAddress,
+      firstWallet.address,
+      secondWallet.address,
+      mintedTokenSerialNumber,
+      Constants.GAS_LIMIT_1_000_000,
     );
     await expect((await tx).wait()).to.eventually.not.be.rejected;
   });
 
   it('should be able execute safeTransferFromWithData', async function () {
     const tx = erc721Contract.safeTransferFromWithData(
-        tokenAddress,
-        firstWallet.address,
-        secondWallet.address,
-        mintedTokenSerialNumber,
-        '0x01',
-        Constants.GAS_LIMIT_1_000_000
+      tokenAddress,
+      firstWallet.address,
+      secondWallet.address,
+      mintedTokenSerialNumber,
+      '0x01',
+      Constants.GAS_LIMIT_1_000_000,
     );
 
     await expect((await tx).wait()).to.eventually.not.be.rejected;
@@ -233,7 +233,7 @@ describe('ERC721Contract Test Suite', function () {
         await tokenCreateContract.getAddress(),
         signers[0].address,
         serialNumber,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
     });
 
@@ -241,44 +241,44 @@ describe('ERC721Contract Test Suite', function () {
       const erc721ContractNFTOwner = await ethers.getContractAt(
         Constants.Contract.ERC721Contract,
         await erc721Contract.getAddress(),
-        secondWallet
+        secondWallet,
       );
       const beforeApproval = await erc721ContractNFTOwner.getApproved(
         tokenAddress,
         serialNumber,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       await utils.expectToFail(
         erc721ContractNFTOwner.approve(
           tokenAddress,
           firstWallet.address,
           serialNumber,
-          Constants.GAS_LIMIT_1_000_000
-        )
+          Constants.GAS_LIMIT_1_000_000,
+        ),
       );
       const afterApproval = await erc721ContractNFTOwner.getApproved(
         tokenAddress,
         serialNumber,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
 
       expect(beforeApproval).to.equal(
-        '0x0000000000000000000000000000000000000000'
+        '0x0000000000000000000000000000000000000000',
       );
       expect(afterApproval).to.equal(
-        '0x0000000000000000000000000000000000000000'
+        '0x0000000000000000000000000000000000000000',
       );
     });
 
     it('should NOT be able to execute transferFrom', async function () {
       const ownerBefore = await erc721Contract.ownerOf(
         tokenAddress,
-        serialNumber
+        serialNumber,
       );
       const erc721ContractNFTOwner = await ethers.getContractAt(
         Constants.Contract.ERC721Contract,
         await erc721Contract.getAddress(),
-        firstWallet
+        firstWallet,
       );
       await utils.expectToFail(
         erc721ContractNFTOwner.transferFrom(
@@ -286,12 +286,12 @@ describe('ERC721Contract Test Suite', function () {
           firstWallet.address,
           secondWallet.address,
           serialNumber,
-          Constants.GAS_LIMIT_1_000_000
-        )
+          Constants.GAS_LIMIT_1_000_000,
+        ),
       );
       const ownerAfter = await erc721Contract.ownerOf(
         tokenAddress,
-        serialNumber
+        serialNumber,
       );
 
       expect(ownerBefore).to.equal(firstWallet.address);
@@ -301,7 +301,7 @@ describe('ERC721Contract Test Suite', function () {
     it('should NOT be able call tokenByIndex', async function () {
       await utils.expectToFail(
         erc721Contract.tokenByIndex(tokenAddress, 0),
-        Constants.CONTRACT_REVERT_EXECUTED_CODE
+        Constants.CONTRACT_REVERT_EXECUTED_CODE,
       );
     });
 
@@ -310,9 +310,9 @@ describe('ERC721Contract Test Suite', function () {
         erc721Contract.tokenOfOwnerByIndex(
           tokenAddress,
           firstWallet.address,
-          0
+          0,
         ),
-        Constants.CONTRACT_REVERT_EXECUTED_CODE
+        Constants.CONTRACT_REVERT_EXECUTED_CODE,
       );
     });
   });

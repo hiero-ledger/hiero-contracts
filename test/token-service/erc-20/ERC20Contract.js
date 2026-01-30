@@ -3,9 +3,9 @@
 import { expect } from 'chai';
 import { network } from 'hardhat';
 const { ethers } = await network.connect();
-import utils from '../utils';
 import Constants from '../../constants';
 import hapi from '../hapi';
+import utils from '../utils';
 
 describe('ERC20Contract Test Suite', function () {
   let tokenCreateContract;
@@ -26,7 +26,7 @@ describe('ERC20Contract Test Suite', function () {
     erc20Contract = await utils.deployERC20Contract();
     tokenAddress = await utils.createFungibleToken(
       tokenCreateContract,
-      signers[0].address
+      signers[0].address,
     );
 
     await hapi.updateTokenKeys(tokenAddress, [
@@ -36,7 +36,7 @@ describe('ERC20Contract Test Suite', function () {
     await utils.associateToken(
       tokenCreateContract,
       tokenAddress,
-      Constants.Contract.TokenCreateContract
+      Constants.Contract.TokenCreateContract,
     );
     await utils.grantTokenKyc(tokenCreateContract, tokenAddress);
   });
@@ -68,15 +68,15 @@ describe('ERC20Contract Test Suite', function () {
   it('should be able to get token balance of any account', async function () {
     const contractOwnerBalance = await erc20Contract.balanceOf(
       tokenAddress,
-      await tokenCreateContract.getAddress()
+      await tokenCreateContract.getAddress(),
     );
     const wallet1Balance = await erc20Contract.balanceOf(
       tokenAddress,
-      signers[0].address
+      signers[0].address,
     );
     const wallet2Balance = await erc20Contract.balanceOf(
       tokenAddress,
-      signers[1].address
+      signers[1].address,
     );
 
     expect(contractOwnerBalance).to.exist;
@@ -93,15 +93,15 @@ describe('ERC20Contract Test Suite', function () {
 
     const contractOwnerBalanceBefore = await erc20Contract.balanceOf(
       tokenAddress,
-      await tokenCreateContract.getAddress()
+      await tokenCreateContract.getAddress(),
     );
     const wallet1BalanceBefore = await erc20Contract.balanceOf(
       tokenAddress,
-      signers[0].address
+      signers[0].address,
     );
     const wallet2BalanceBefore = await erc20Contract.balanceOf(
       tokenAddress,
-      signers[1].address
+      signers[1].address,
     );
 
     try {
@@ -111,7 +111,7 @@ describe('ERC20Contract Test Suite', function () {
           tokenAddress,
           signers[1].address,
           amount,
-          Constants.GAS_LIMIT_1_000_000
+          Constants.GAS_LIMIT_1_000_000,
         );
       await tx.wait();
     } catch (e) {
@@ -121,15 +121,15 @@ describe('ERC20Contract Test Suite', function () {
 
     const contractOwnerBalanceAfter = await erc20Contract.balanceOf(
       tokenAddress,
-      await tokenCreateContract.getAddress()
+      await tokenCreateContract.getAddress(),
     );
     const wallet1BalanceAfter = await erc20Contract.balanceOf(
       tokenAddress,
-      signers[0].address
+      signers[0].address,
     );
     const wallet2BalanceAfter = await erc20Contract.balanceOf(
       tokenAddress,
-      signers[1].address
+      signers[1].address,
     );
 
     expect(contractOwnerBalanceBefore).to.eq(contractOwnerBalanceAfter);
@@ -143,11 +143,11 @@ describe('ERC20Contract Test Suite', function () {
 
     const wallet1BalanceBefore = await erc20Contract.balanceOf(
       tokenAddress,
-      signers[0].address
+      signers[0].address,
     );
     const wallet2BalanceBefore = await erc20Contract.balanceOf(
       tokenAddress,
-      signers[1].address
+      signers[1].address,
     );
 
     try {
@@ -157,7 +157,7 @@ describe('ERC20Contract Test Suite', function () {
           tokenAddress,
           signers[1].address,
           amount,
-          Constants.GAS_LIMIT_1_000_000
+          Constants.GAS_LIMIT_1_000_000,
         );
       await tx.wait();
     } catch (e) {
@@ -167,11 +167,11 @@ describe('ERC20Contract Test Suite', function () {
 
     const wallet1BalanceAfter = await erc20Contract.balanceOf(
       tokenAddress,
-      signers[0].address
+      signers[0].address,
     );
     const wallet2BalanceAfter = await erc20Contract.balanceOf(
       tokenAddress,
-      signers[1].address
+      signers[1].address,
     );
 
     expect(wallet1BalanceBefore).to.eq(wallet1BalanceAfter);
@@ -185,7 +185,7 @@ describe('ERC20Contract Test Suite', function () {
     const allowanceBefore = await erc20Contract.allowance(
       tokenAddress,
       signers[0].address,
-      signers[1].address
+      signers[1].address,
     );
     expect(allowanceBefore).to.eq(0);
 
@@ -196,7 +196,7 @@ describe('ERC20Contract Test Suite', function () {
           tokenAddress,
           signers[1].address,
           approvedAmount,
-          Constants.GAS_LIMIT_1_000_000
+          Constants.GAS_LIMIT_1_000_000,
         );
       await tx.wait();
     } catch (e) {
@@ -207,7 +207,7 @@ describe('ERC20Contract Test Suite', function () {
     const allowanceAfter = await erc20Contract.allowance(
       tokenAddress,
       signers[0].address,
-      signers[1].address
+      signers[1].address,
     );
     expect(allowanceAfter).to.eq(0);
   });
@@ -219,7 +219,7 @@ describe('ERC20Contract Test Suite', function () {
     const allowanceBefore = await erc20Contract.allowance(
       tokenAddress,
       signers[0].address,
-      signers[1].address
+      signers[1].address,
     );
     expect(allowanceBefore).to.eq(0);
 
@@ -230,7 +230,7 @@ describe('ERC20Contract Test Suite', function () {
           tokenAddress,
           signers[1].address,
           approvedAmount,
-          Constants.GAS_LIMIT_1_000_000
+          Constants.GAS_LIMIT_1_000_000,
         );
       await tx.wait();
     } catch (e) {
@@ -241,7 +241,7 @@ describe('ERC20Contract Test Suite', function () {
     const allowanceAfter = await erc20Contract.allowance(
       tokenAddress,
       signers[0].address,
-      signers[1].address
+      signers[1].address,
     );
     expect(allowanceAfter).to.eq(allowanceBefore);
   });
@@ -252,16 +252,16 @@ describe('ERC20Contract Test Suite', function () {
 
     const wallet1BalanceBefore = await erc20Contract.balanceOf(
       tokenAddress,
-      signers[0].address
+      signers[0].address,
     );
     const wallet2BalanceBefore = await erc20Contract.balanceOf(
       tokenAddress,
-      signers[1].address
+      signers[1].address,
     );
     const allowanceBefore = await erc20Contract.allowance(
       tokenAddress,
       signers[0].address,
-      signers[1].address
+      signers[1].address,
     );
 
     try {
@@ -272,7 +272,7 @@ describe('ERC20Contract Test Suite', function () {
           signers[0].address,
           signers[1].address,
           amount,
-          Constants.GAS_LIMIT_1_000_000
+          Constants.GAS_LIMIT_1_000_000,
         );
       await tx.wait();
     } catch (e) {
@@ -282,16 +282,16 @@ describe('ERC20Contract Test Suite', function () {
 
     const wallet1BalanceAfter = await erc20Contract.balanceOf(
       tokenAddress,
-      signers[0].address
+      signers[0].address,
     );
     const wallet2BalanceAfter = await erc20Contract.balanceOf(
       tokenAddress,
-      signers[1].address
+      signers[1].address,
     );
     const allowanceAfter = await erc20Contract.allowance(
       tokenAddress,
       signers[0].address,
-      signers[1].address
+      signers[1].address,
     );
 
     expect(allowanceAfter).to.eq(allowanceBefore);

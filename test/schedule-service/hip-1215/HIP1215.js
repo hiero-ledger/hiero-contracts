@@ -3,39 +3,41 @@
 import { expect } from 'chai';
 import hre from 'hardhat';
 const { ethers, networkName } = await hre.network.connect();
-import Constants from '../../constants';
-import Utils from '../../token-service/utils.js';
 import axios from 'axios';
 
-import { PrivateKey } from '@hashgraph/sdk';
+import Constants from '../../constants';
 import hapi from '../../token-service/hapi.js';
+import Utils from '../../token-service/utils.js';
 
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const getScheduleInfoFromMN = async (scheduleAddress) => {
-  const url = Utils.getMirrorNodeUrl(networkName) + `/schedules/0.0.${Number(scheduleAddress)}`;
+  const url =
+    Utils.getMirrorNodeUrl(networkName) +
+    `/schedules/0.0.${Number(scheduleAddress)}`;
 
-  return axios.get(url).then(r => r.data);
+  return axios.get(url).then((r) => r.data);
 };
 
 const FIVE_MINUTES_AS_SECONDS = 300n;
 
-// disable the tests in CI until a new version of the local node with the latest CN is released
-describe("HIP1215 Test Suite", function () {
+describe('HIP1215 Test Suite', function () {
   let internalCalleeContract;
   let HRC1215Contract;
   let signers;
   let SCHEDULE_GAS_LIMIT;
 
   const executeScheduleCall = async (timestampOffset = 0) => {
-    return (await HRC1215Contract.scheduleCallDirect(
-      internalCalleeContract.target,
-      timestampOffset,
-      SCHEDULE_GAS_LIMIT,
-      0,
-      "0x3a32b549", // selector of externalFunction() in Internal Callee
-      Constants.GAS_LIMIT_2_000_000
-    )).wait();
+    return (
+      await HRC1215Contract.scheduleCallDirect(
+        internalCalleeContract.target,
+        timestampOffset,
+        SCHEDULE_GAS_LIMIT,
+        0,
+        '0x3a32b549', // selector of externalFunction() in Internal Callee
+        Constants.GAS_LIMIT_2_000_000,
+      )
+    ).wait();
   };
 
   before(async () => {
@@ -47,45 +49,19 @@ describe("HIP1215 Test Suite", function () {
     await internalCalleeContract.waitForDeployment();
 
     HRC1215Contract = await (
-      await ethers.getContractFactory("HRC1215Contract")
-    ).deploy({value: ethers.parseEther("5")}); // fund the contract with 5 HBARs
+      await ethers.getContractFactory('HRC1215Contract')
+    ).deploy({ value: ethers.parseEther('5') }); // fund the contract with 5 HBARs
     await HRC1215Contract.waitForDeployment();
 
-    SCHEDULE_GAS_LIMIT = await internalCalleeContract.externalFunction.estimateGas();
+    SCHEDULE_GAS_LIMIT =
+      await internalCalleeContract.externalFunction.estimateGas();
   });
 
-  // disabled due to a issue
-  xit('should be able to execute IHRC1215ScheduleFacade.deleteSchedule()', async () => {
-    const signerSender = signers[0];
-    const signerReceiver = signers[1];
-    const senderInfo = await hapi.getAccountInfo(signerSender.address);
-    const receiverInfo = await hapi.getAccountInfo(signerReceiver.address);
-
-    const adminPrivateKey = PrivateKey.fromStringECDSA(Utils.getHardhatSignerPrivateKeyByIndex(0));
-    const {
-      scheduleId
-    } = await Utils.createScheduleTransactionForTransfer(senderInfo, receiverInfo, hapi.client, adminPrivateKey, 10000000000000);
-    await new Promise(r => setTimeout(r, 2500));
-
-    const infoBefore = await getScheduleInfoFromMN(parseInt(scheduleId.num));
-
-    const contractIHRC1215 = await ethers.getContractAt(
-      'IHRC1215ScheduleFacade',
-      Utils.convertAccountIdToLongZeroAddress(scheduleId.toString(), true),
-      signerSender
-    );
-    const deleteScheduleTx = await contractIHRC1215.deleteSchedule(Constants.GAS_LIMIT_2_000_000);
-    await deleteScheduleTx.wait();
-
-    const infoAfter = await getScheduleInfoFromMN(parseInt(scheduleId.num));
-
-    expect(infoBefore.deleted).to.be.false;
-    expect(infoAfter.deleted).to.be.true;
-
-    genesisSdkClient.close();
+  after(function () {
+    hapi.client.close();
   });
 
-  it("should be able to execute scheduleCallDirect", async () => {
+  it('should be able to execute scheduleCallDirect', async () => {
     const beforeCount = await internalCalleeContract.calledTimes();
 
     await executeScheduleCall();
@@ -96,45 +72,51 @@ describe("HIP1215 Test Suite", function () {
     expect(afterCount).to.equal(beforeCount + 1n);
   });
 
-  it("should be able to execute scheduleCallWithPayerDirect", async () => {
+  it('should be able to execute scheduleCallWithPayerDirect', async () => {
     const beforeCount = await internalCalleeContract.calledTimes();
 
-    await (await HRC1215Contract.scheduleCallWithPayerDirect(
-      internalCalleeContract.target,
-      HRC1215Contract.target,
-      0,
-      SCHEDULE_GAS_LIMIT,
-      0,
-      "0x3a32b549", // selector of externalFunction() in Internal Callee
-      Constants.GAS_LIMIT_2_000_000
-    )).wait();
+    await (
+      await HRC1215Contract.scheduleCallWithPayerDirect(
+        internalCalleeContract.target,
+        HRC1215Contract.target,
+        0,
+        SCHEDULE_GAS_LIMIT,
+        0,
+        '0x3a32b549', // selector of externalFunction() in Internal Callee
+        Constants.GAS_LIMIT_2_000_000,
+      )
+    ).wait();
     await sleep(10_000);
 
     const afterCount = await internalCalleeContract.calledTimes();
     expect(afterCount).to.equal(beforeCount + 1n);
   });
 
-  it("should be able to execute executeCallOnPayerSignature", async () => {
+  it('should be able to execute executeCallOnPayerSignature', async () => {
     const beforeCount = await internalCalleeContract.calledTimes();
 
-    const receipt = await (await HRC1215Contract.executeCallOnPayerSignatureDirect(
-      internalCalleeContract.target,
-      signers[0].address,
-      (await HRC1215Contract.getBlockTimestamp()) + FIVE_MINUTES_AS_SECONDS, // add buffer to the expiry
-      SCHEDULE_GAS_LIMIT,
-      0,
-      "0x3a32b549", // selector of externalFunction() in Internal Callee
-      Constants.GAS_LIMIT_2_000_000
-    )).wait();
+    const receipt = await (
+      await HRC1215Contract.executeCallOnPayerSignatureDirect(
+        internalCalleeContract.target,
+        signers[0].address,
+        (await HRC1215Contract.getBlockTimestamp()) + FIVE_MINUTES_AS_SECONDS, // add buffer to the expiry
+        SCHEDULE_GAS_LIMIT,
+        0,
+        '0x3a32b549', // selector of externalFunction() in Internal Callee
+        Constants.GAS_LIMIT_2_000_000,
+      )
+    ).wait();
     const scheduleAddress = receipt.logs[0].args[0];
     const beforeSignScheduleInfo = await getScheduleInfoFromMN(scheduleAddress);
 
     const IHRC755Facade = await ethers.getContractAt(
-      "IHRC755ScheduleFacade",
+      'IHRC755ScheduleFacade',
       scheduleAddress,
-      signers[0]
+      signers[0],
     );
-    await (await IHRC755Facade.signSchedule(Constants.GAS_LIMIT_2_000_000)).wait();
+    await (
+      await IHRC755Facade.signSchedule(Constants.GAS_LIMIT_2_000_000)
+    ).wait();
 
     const afterSignScheduleInfo = await getScheduleInfoFromMN(scheduleAddress);
     const afterCount = await internalCalleeContract.calledTimes();
@@ -143,33 +125,33 @@ describe("HIP1215 Test Suite", function () {
     expect(afterSignScheduleInfo.executed_timestamp).to.not.be.null;
   });
 
-  it("should be able to execute hasScheduleCapacityProxyExample", async () => {
+  it('should be able to execute hasScheduleCapacityProxyExample', async () => {
     const timestamp = (await HRC1215Contract.getBlockTimestamp()) + 20n;
 
-    expect(
-      await HRC1215Contract.hasScheduleCapacityProxy(timestamp, 200_000n)
-    ).to.be.true;
+    expect(await HRC1215Contract.hasScheduleCapacityProxy(timestamp, 200_000n))
+      .to.be.true;
   });
 
   it("should be able to execute hasScheduleCapacityProxyExample and get false if it's not after current consensus time", async () => {
     const timestamp = (await HRC1215Contract.getBlockTimestamp()) - 200n;
 
-    expect(
-      await HRC1215Contract.hasScheduleCapacityProxy(timestamp, 200_000n)
-    ).to.be.false;
+    expect(await HRC1215Contract.hasScheduleCapacityProxy(timestamp, 200_000n))
+      .to.be.false;
   });
 
   it("should be able to execute hasScheduleCapacityProxyExample and get false if it's too far in the future", async () => {
-    const timestamp = (await HRC1215Contract.getBlockTimestamp()) + 100_000_000n;
+    const timestamp =
+      (await HRC1215Contract.getBlockTimestamp()) + 100_000_000n;
 
-    expect(
-      await HRC1215Contract.hasScheduleCapacityProxy(timestamp, 200_000n)
-    ).to.be.false;
+    expect(await HRC1215Contract.hasScheduleCapacityProxy(timestamp, 200_000n))
+      .to.be.false;
   });
 
-  it("should be able to execute deleteScheduleDirect", async () => {
-    const timestamp = (await HRC1215Contract.getBlockTimestamp()) + FIVE_MINUTES_AS_SECONDS;
-    const scheduleAddress = (await executeScheduleCall(timestamp)).logs[0].args[0];
+  it('should be able to execute deleteScheduleDirect', async () => {
+    const timestamp =
+      (await HRC1215Contract.getBlockTimestamp()) + FIVE_MINUTES_AS_SECONDS;
+    const scheduleAddress = (await executeScheduleCall(timestamp)).logs[0]
+      .args[0];
     expect(scheduleAddress).to.not.be.null;
 
     const before = await getScheduleInfoFromMN(scheduleAddress);
@@ -181,17 +163,17 @@ describe("HIP1215 Test Suite", function () {
     expect(after.deleted).to.be.true;
   });
 
-  it("should be able to execute deleteScheduleProxy", async () => {
-    const timestamp = (await HRC1215Contract.getBlockTimestamp()) + FIVE_MINUTES_AS_SECONDS;
-    const scheduleAddress = (await executeScheduleCall(timestamp)).logs[0].args[0];
+  it('should be able to execute deleteScheduleProxy', async () => {
+    const timestamp =
+      (await HRC1215Contract.getBlockTimestamp()) + FIVE_MINUTES_AS_SECONDS;
+    const scheduleAddress = (await executeScheduleCall(timestamp)).logs[0]
+      .args[0];
     expect(scheduleAddress).to.not.be.null;
 
     const before = await getScheduleInfoFromMN(scheduleAddress);
     expect(before.deleted).to.be.false;
 
-    await (
-      await HRC1215Contract.deleteScheduleProxy(scheduleAddress)
-    ).wait();
+    await (await HRC1215Contract.deleteScheduleProxy(scheduleAddress)).wait();
 
     const after = await getScheduleInfoFromMN(scheduleAddress);
     expect(after.deleted).to.be.true;
