@@ -1,0 +1,54 @@
+##
+# Copyright (C) 2023 Hedera Hashgraph, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+##
+
+name: 'PR Check'
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-checks-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  title-check:
+    name: Title Check
+    runs-on: hl-contr-lin-md
+    if: ${{ !github.event.pull_request.head.repo.fork }}
+    permissions:
+      statuses: write
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+
+      - name: Check PR Title
+        uses: step-security/conventional-pr-title-action@d47e8818876fa91d2010b65c4d699bb5f0d34d56 # v3.2.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
