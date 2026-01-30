@@ -1,0 +1,62 @@
+{
+  "name": "@hiero-ledger/hiero-contracts",
+  "version": "0.1.0",
+  "description": "Secure Solidity Smart Contract Library for integrations with Hiero Ledger-based system contracts",
+  "files": [
+    "/contracts/**/*.sol",
+    "!/contracts/mocks/**/*"
+  ],
+  "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hiero-ledger/hiero-contracts.git"
+  },
+  "author": "2025 Hedera Hashgraph, LLC",
+  "license": "Apache-2.0",
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "evm",
+    "hardhat",
+    "hardhat-plugin",
+    "hashgraph",
+    "hedera",
+    "hedera-account-service",
+    "hedera-token-service",
+    "precompiles",
+    "smart-contracts",
+    "system-contracts"
+  ],
+  "bugs": {
+    "url": "https://github.com/hiero-ledger/hiero-contracts/issues"
+  },
+  "homepage": "https://github.com/hiero-ledger/hiero-contracts/#readme",
+  "scripts": {
+    "hh:compile": "hardhat compile",
+    "hh:test": "hardhat test",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@hashgraph/hedera-local": "^2.35.0",
+    "@hashgraph/sdk": "^2.70.0",
+    "@nomicfoundation/hardhat-chai-matchers": "^2.0.8",
+    "@openzeppelin/contracts": "^5.3.0",
+    "@openzeppelin/contracts-upgradeable": "^5.4.0",
+    "@openzeppelin/hardhat-upgrades": "^3.9.0",
+    "hardhat": "^2.26.1",
+    "hardhat-abi-exporter": "^2.11.0",
+    "husky": "^9.1.7",
+    "mocha-junit-reporter": "^2.2.0",
+    "mocha-multi-reporters": "^1.5.1",
+    "prettier": "3.6.2"
+  },
+  "dependencies": {
+    "@nomicfoundation/solidity-analyzer": "^0.1.2",
+    "bn.js": "^5.2.2",
+    "dotenv": "^17.2.1",
+    "elliptic": "^6.6.1",
+    "mcl-wasm": "^2.0.0",
+    "protobufjs": "^7.5.3",
+    "solidity-coverage": "^0.8.16"
+  }
+}
