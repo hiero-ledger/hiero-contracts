@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const { expect } = require('chai');
-const { ethers } = require('hardhat');
-const Constants = require('../constants');
+import { expect } from 'chai';
+import { network } from 'hardhat';
+const { ethers } = await network.connect();
+import Constants from '../constants';
 
 describe('ExchangeRateMock Test Suite', function () {
   let exchangeRateMock;

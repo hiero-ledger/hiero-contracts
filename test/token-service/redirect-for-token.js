@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const { expect } = require('chai');
-const utils = require('./utils');
-const Constants = require('../constants');
-const hre = require('hardhat');
-const hapi = require("./hapi");
+import { expect } from 'chai';
+import utils from './utils';
+import Constants from '../constants';
+import hre from 'hardhat';
+import hapi from './hapi';
 const { ethers } = hre;
 
 describe('RedirectForToken Test Suite', function () {

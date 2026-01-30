@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const { expect } = require('chai');
-const { ethers } = require('hardhat');
-const utils = require('../utils');
-const Constants = require('../../constants');
-const hapi = require('../hapi');
+import { expect } from 'chai';
+import { network } from 'hardhat';
+const { ethers } = await network.connect();
+import utils from '../utils';
+import Constants from '../../constants';
+import hapi from '../hapi';
 
 describe('ERC721Contract Test Suite', function () {
   let tokenCreateContract;

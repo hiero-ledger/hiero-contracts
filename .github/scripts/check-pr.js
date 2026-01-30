@@ -1,4 +1,4 @@
-const axios = require('axios');
+import axios from 'axios';
 
 const githubToken = process.env.GITHUB_TOKEN;
 const { GITHUB_REPOSITORY, GITHUB_PR_NUMBER } = process.env;

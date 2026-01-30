@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const { expect } = require('chai');
-const { ethers } = require('hardhat');
-const utils = require('../utils');
-const Constants = require('../../constants');
-const hapi = require('../hapi');
+import { expect } from 'chai';
+import hre from 'hardhat';
+const { ethers } = await hre.network.connect();
+import utils from '../utils';
+import Constants from '../../constants';
+import hapi from '../hapi';
 
 describe('HIP904Batch1 AirdropContract Test Suite', function () {
   let airdropContract;
@@ -20,7 +21,6 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
   let walletIHRC904AccountFacade;
 
   before(async function () {
-    hapi.connect();
     signers = await ethers.getSigners();
     airdropContract = await utils.deployContract(Constants.Contract.Airdrop);
     tokenCreateContract = await utils.deployContract(
@@ -56,7 +56,7 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
   });
 
   after(function () {
-    hapi.disconnect();
+    hapi.client.close();
   });
 
   it('should airdrop a fungible token (FT) to a single account', async function () {

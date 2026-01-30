@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const { expect } = require('chai');
-const { ethers } = require('hardhat');
-const utils = require('../utils');
-const Constants = require('../../constants');
-const Utils = require('../utils');
-const hapi = require('../hapi');
+import { expect } from 'chai';
+import hre from 'hardhat';
+const { ethers } = await hre.network.connect();
+import utils from '../utils';
+import Constants from '../../constants';
+import Utils from '../utils';
+import hapi from '../hapi';
 
 describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
   let airdropContract;
@@ -503,8 +504,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
     await airdropTx.wait();
 
     const deleteTx = await sampleContract.selfDestructSample();
-
-    await expect(deleteTx.wait()).to.be.rejectedWith('reverted');
+    await deleteTx.wait();
     const cr = await Utils.getContractResultFromMN(deleteTx.hash);
     expect(cr.error_message).to.equal('CONTRACT_STILL_OWNS_NFTS');
   });

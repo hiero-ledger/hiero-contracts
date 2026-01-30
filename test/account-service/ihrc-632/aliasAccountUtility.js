@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
-const Utils = require('../../token-service/utils');
-const { expect } = require('chai');
-const { ethers } = require('hardhat');
-const Constants = require('../../constants');
-const {
+import Utils from '../../token-service/utils';
+import { expect } from 'chai';
+import { network } from 'hardhat';
+const { ethers } = await network.connect();
+import Constants from '../../constants';
+import HashgraphProto from '@hashgraph/proto';
+import {
   Hbar,
   PrivateKey,
   AccountCreateTransaction,
   KeyList,
-} = require('@hashgraph/sdk');
-const HashgraphProto = require('@hashgraph/proto');
-const hapi = require('../../token-service/hapi');
+} from '@hashgraph/sdk';
+import hapi from '../../token-service/hapi';
 
 describe('@HAS IHRC-632 Test Suite', () => {
   let walletA,
@@ -161,8 +162,7 @@ describe('@HAS IHRC-632 Test Suite', () => {
 
   describe(`IsAuthorizedRaw`, () => {
     const messageToSign = 'Hedera Account Service';
-    const messageHashEC = ethers.hashMessage(messageToSign);
-    const messageHashED = Buffer.from(messageToSign);
+    const messageHash = ethers.hashMessage(messageToSign);
     const EDItems = [];
 
     before(async () => {
@@ -178,7 +178,8 @@ describe('@HAS IHRC-632 Test Suite', () => {
           ).getReceipt(hapi.client)
         ).accountId;
         const signerAlias = `0x${edSignerAccount.toSolidityAddress()}`;
-        const signature = `0x${Buffer.from(newEdPK.sign(messageHashED)).toString('hex')}`;
+        const signPk = newEdPK.sign(ethers.getBytes(messageHash));
+        const signature = ethers.hexlify(signPk);
         const obj = {
           signature,
           signerAlias,
@@ -194,7 +195,7 @@ describe('@HAS IHRC-632 Test Suite', () => {
       const correctSignerReceipt = await (
         await aliasAccountUtility.isAuthorizedRawPublic(
           walletB.address, // correct signer
-          messageHashEC,
+          messageHash,
           signature,
           Constants.GAS_LIMIT_1_000_000
         )
@@ -216,7 +217,7 @@ describe('@HAS IHRC-632 Test Suite', () => {
       const incorrectSignerReceipt = await (
         await aliasAccountUtility.isAuthorizedRawPublic(
           walletC.address, // incorrect signer
-          messageHashEC,
+          messageHash,
           signature,
           Constants.GAS_LIMIT_1_000_000
         )
@@ -235,7 +236,7 @@ describe('@HAS IHRC-632 Test Suite', () => {
       const correctSignerReceipt = await (
         await aliasAccountUtility.isAuthorizedRawPublic(
           EDItems[0].signerAlias, // correct alias
-          messageHashED,
+          messageHash,
           EDItems[0].signature, // correct signature
           Constants.GAS_LIMIT_10_000_000
         )
@@ -252,11 +253,11 @@ describe('@HAS IHRC-632 Test Suite', () => {
       expect(correctSignerReceiptResponse[2]).to.be.true;
     });
 
-    xit('Should verify message signature and return FALSE using isAuthorizedRawPublic for ED25519 account', async () => {
+    it('Should verify message signature and return FALSE using isAuthorizedRawPublic for ED25519 account', async () => {
       const incorrectSignerReceipt = await (
         await aliasAccountUtility.isAuthorizedRawPublic(
           EDItems[0].signerAlias, // incorrect signer
-          messageHashED,
+          messageHash,
           EDItems[1].signature, // different signature
           Constants.GAS_LIMIT_10_000_000
         )
