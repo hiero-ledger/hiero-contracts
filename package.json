@@ -35,9 +35,14 @@
     "prepare": "husky install"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@hashgraph/hedera-local": "^2.35.0",
     "@hashgraph/sdk": "^2.70.0",
     "@nomicfoundation/hardhat-toolbox-mocha-ethers": "^3.0.2",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "globals": "^17.2.0",
     "hardhat": "^3.1.5",
     "husky": "^9.1.7",
     "mocha-junit-reporter": "^2.2.0",

@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import Constants from '../../constants';
-import { Contract } from 'ethers';
 import { expect } from 'chai';
+import { Contract } from 'ethers';
 import hre from 'hardhat';
+
+import Constants from '../../constants';
 const { ethers } = await hre.network.connect();
-import utils from '../utils';
 import hapi from '../hapi';
+import utils from '../utils';
 
 describe('@HRC-719 Test Suite', function () {
   let tokenCreateContract;
@@ -18,7 +19,7 @@ describe('@HRC-719 Test Suite', function () {
 
   const parseCallResponseEventData = async (tx) => {
     return (await tx.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.CallResponseEvent
+      (e) => e.fragment.name === Constants.Events.CallResponseEvent,
     )[0].args;
   };
 
@@ -30,14 +31,12 @@ describe('@HRC-719 Test Suite', function () {
   before(async function () {
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
-    await hapi.updateAccountKeys([
-      await tokenCreateContract.getAddress(),
-    ]);
+    await hapi.updateAccountKeys([await tokenCreateContract.getAddress()]);
 
     hrc719Contract = await utils.deployHRC719Contract();
 
     IHRC719 = new ethers.Interface(
-      (await hre.artifacts.readArtifact('IHRC719')).abi
+      (await hre.artifacts.readArtifact('IHRC719')).abi,
     );
   });
 
@@ -45,7 +44,7 @@ describe('@HRC-719 Test Suite', function () {
     // create new tokenAddress for every unit test
     tokenAddress = await utils.createFungibleToken(
       tokenCreateContract,
-      signers[0].address
+      signers[0].address,
     );
     await hapi.updateTokenKeys(tokenAddress, [
       await tokenCreateContract.getAddress(),
@@ -63,7 +62,7 @@ describe('@HRC-719 Test Suite', function () {
     it('should be able to associate() to the token from a contract', async function () {
       const txAssociate = await hrc719Contract.associate(
         tokenAddress,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       const receiptAssociate = await txAssociate.wait();
       expect(receiptAssociate).to.exist;
@@ -73,7 +72,7 @@ describe('@HRC-719 Test Suite', function () {
     it('should be able to disssociate() to the token from a contract', async function () {
       const txDissociate = await hrc719Contract.dissociate(
         tokenAddress,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       const receiptDissociate = await txDissociate.wait();
       expect(receiptDissociate).to.exist;
@@ -86,7 +85,7 @@ describe('@HRC-719 Test Suite', function () {
         .isAssociated(tokenAddress, Constants.GAS_LIMIT_1_000_000);
       const receiptIsAssociate = await txIsAssociate.wait();
       const logIsAssociate = receiptIsAssociate.logs.find(
-        (log) => log.fragment.name === Constants.Events.IsAssociated
+        (log) => log.fragment.name === Constants.Events.IsAssociated,
       );
 
       expect(logIsAssociate).to.exist;
@@ -104,7 +103,7 @@ describe('@HRC-719 Test Suite', function () {
         .isAssociated(tokenAddress, Constants.GAS_LIMIT_1_000_000);
       const receiptIsAssociate = await txIsAssociate.wait();
       const logIsAssociate = receiptIsAssociate.logs.find(
-        (log) => log.fragment.name === Constants.Events.IsAssociated
+        (log) => log.fragment.name === Constants.Events.IsAssociated,
       );
 
       expect(logIsAssociate).to.exist;
@@ -122,7 +121,7 @@ describe('@HRC-719 Test Suite', function () {
         .isAssociated(tokenAddress, Constants.GAS_LIMIT_1_000_000);
       const receiptIsAssociate = await txIsAssociate.wait();
       const logIsAssociate = receiptIsAssociate.logs.find(
-        (log) => log.fragment.name === Constants.Events.IsAssociated
+        (log) => log.fragment.name === Constants.Events.IsAssociated,
       );
 
       expect(logIsAssociate).to.exist;
@@ -133,7 +132,7 @@ describe('@HRC-719 Test Suite', function () {
   describe('HRC719 Token', () => {
     it('should be able to associate() to the token from an EOA', async function () {
       const txAssociate = await hrcToken.associate(
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       const receiptAssociate = await txAssociate.wait();
       expect(receiptAssociate).to.exist;
@@ -142,7 +141,7 @@ describe('@HRC-719 Test Suite', function () {
 
     it('should be able to dissociate() to the token from an EOA', async function () {
       const txDissociate = await hrcToken.dissociate(
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       const receiptDissociate = await txDissociate.wait();
 
@@ -166,7 +165,7 @@ describe('@HRC-719 Test Suite', function () {
       const hrcTokenSigner1 = new Contract(tokenAddress, IHRC719, signers[1]);
 
       const txAssociate = await hrcTokenSigner1.associate(
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       await txAssociate.wait();
 
@@ -182,7 +181,7 @@ describe('@HRC-719 Test Suite', function () {
       const hrcTokenSigner1 = new Contract(tokenAddress, IHRC719, signers[1]);
 
       const txAssociate = await hrcTokenSigner1.dissociate(
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       await txAssociate.wait();
 
@@ -198,7 +197,7 @@ describe('@HRC-719 Test Suite', function () {
       const tx = await tokenCreateContract.redirectForToken(
         tokenAddress,
         encodedFunc,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       const [success, result] = await parseCallResponseEventData(tx);
       expect(success).to.eq(true);
@@ -211,7 +210,7 @@ describe('@HRC-719 Test Suite', function () {
       const associateTx = await tokenCreateContract.redirectForToken(
         tokenAddress,
         encodedFuncAssociate,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       await associateTx.wait();
 
@@ -219,7 +218,7 @@ describe('@HRC-719 Test Suite', function () {
       const dissociateTx = await tokenCreateContract.redirectForToken(
         tokenAddress,
         enCodedFuncDissociate,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
 
       const [success, result] = await parseCallResponseEventData(dissociateTx);
@@ -232,7 +231,7 @@ describe('@HRC-719 Test Suite', function () {
       const tx = await tokenCreateContract.redirectForToken(
         tokenAddress,
         encodedFunc,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       const [success, result] = await parseCallResponseEventData(tx);
       expect(success).to.eq(true);
@@ -244,7 +243,7 @@ describe('@HRC-719 Test Suite', function () {
         await tokenCreateContract.redirectForToken(
           tokenAddress,
           IHRC719.encodeFunctionData('associate()'),
-          Constants.GAS_LIMIT_1_000_000
+          Constants.GAS_LIMIT_1_000_000,
         )
       ).wait();
 
@@ -252,7 +251,7 @@ describe('@HRC-719 Test Suite', function () {
       const tx = await tokenCreateContract.redirectForToken(
         tokenAddress,
         encodedFunc,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       const [success, result] = await parseCallResponseEventData(tx);
       expect(success).to.eq(true);

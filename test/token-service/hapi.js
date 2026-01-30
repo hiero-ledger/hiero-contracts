@@ -1,17 +1,19 @@
-import hre from 'hardhat';
+// SPDX-License-Identifier: Apache-2.0
+
 import {
+  AccountBalanceQuery,
   AccountId,
-  Client,
+  AccountInfoQuery,
   AccountUpdateTransaction,
+  Client,
   ContractId,
   KeyList,
   PrivateKey,
-  TokenUpdateTransaction,
+  TokenAssociateTransaction,
   TokenId,
-  AccountInfoQuery,
-  AccountBalanceQuery,
-  TokenAssociateTransaction
+  TokenUpdateTransaction,
 } from '@hashgraph/sdk';
+import hre from 'hardhat';
 const connection = await hre.network.connect();
 import { config as globalConfig } from '../config.js';
 const { sdkClient: config } = globalConfig.networks[connection.networkName];
@@ -25,32 +27,30 @@ class Hapi {
     const hederaNetwork = {};
     hederaNetwork[config.networkNodeUrl] = AccountId.fromString(config.nodeId);
     this._client = Client.forNetwork(hederaNetwork)
-        .setMirrorNetwork(config.mirrorNode)
-        .setOperator(config.operatorId, config.operatorKey)
-    ;
+      .setMirrorNetwork(config.mirrorNode)
+      .setOperator(config.operatorId, config.operatorKey);
     return this._client;
   }
 
-  async updateAccountKeys(
-    contractAddresses,
-    ecdsaPrivateKeys = []
-  ) {
+  async updateAccountKeys(contractAddresses, ecdsaPrivateKeys = []) {
     if (!ecdsaPrivateKeys.length) {
       ecdsaPrivateKeys = await utils.getHardhatSignersPrivateKeys(false);
     }
     for (const privateKey of ecdsaPrivateKeys) {
       const pkSigner = PrivateKey.fromStringECDSA(privateKey.replace('0x', ''));
-      const accountId = await this.getAccountId(pkSigner.publicKey.toEvmAddress());
+      const accountId = await this.getAccountId(
+        pkSigner.publicKey.toEvmAddress(),
+      );
       this.client.setOperator(accountId, pkSigner);
 
       const keyList = new KeyList(
         [
           pkSigner.publicKey,
           ...contractAddresses.map((address) =>
-            ContractId.fromEvmAddress(0, 0, address)
+            ContractId.fromEvmAddress(0, 0, address),
           ),
         ],
-        1
+        1,
       );
       await (
         await new AccountUpdateTransaction()
@@ -72,11 +72,11 @@ class Hapi {
     setFreeze = true,
     setSupply = true,
     setWipe = true,
-    setFeeSchedule = true
+    setFeeSchedule = true,
   ) {
     const signers = await connection.ethers.getSigners();
     const pkSigners = (await utils.getHardhatSignersPrivateKeys()).map((pk) =>
-      PrivateKey.fromStringECDSA(pk)
+      PrivateKey.fromStringECDSA(pk),
     );
     const accountIdSigner0 = await this.getAccountId(signers[0].address);
 
@@ -86,14 +86,14 @@ class Hapi {
       [
         ...pkSigners.map((pk) => pk.publicKey),
         ...contractAddresses.map((address) =>
-          ContractId.fromEvmAddress(0, 0, address)
+          ContractId.fromEvmAddress(0, 0, address),
         ),
       ],
-      1
+      1,
     );
 
     const tx = new TokenUpdateTransaction().setTokenId(
-      TokenId.fromSolidityAddress(tokenAddress)
+      TokenId.fromSolidityAddress(tokenAddress),
     );
     if (setAdmin) tx.setAdminKey(keyList);
     if (setPause) tx.setPauseKey(keyList);
@@ -112,13 +112,13 @@ class Hapi {
   async getAccountBalance(address) {
     const accountId = await this.getAccountId(address);
     return await new AccountBalanceQuery()
-        .setAccountId(accountId)
-        .execute(this.client);
+      .setAccountId(accountId)
+      .execute(this.client);
   }
 
   async getAccountId(evmAddress) {
     const query = new AccountInfoQuery().setAccountId(
-        AccountId.fromEvmAddress(0, 0, evmAddress)
+      AccountId.fromEvmAddress(0, 0, evmAddress),
     );
 
     const accountInfo = await query.execute(this.client);
@@ -127,7 +127,7 @@ class Hapi {
 
   async getAccountInfo(evmAddress) {
     const query = new AccountInfoQuery().setAccountId(
-        AccountId.fromEvmAddress(0, 0, evmAddress)
+      AccountId.fromEvmAddress(0, 0, evmAddress),
     );
 
     return await query.execute(this.client);
@@ -135,20 +135,18 @@ class Hapi {
 
   async associateWithSigner(privateKey, tokenAddress) {
     const wallet = new connection.ethers.Wallet(privateKey);
-    const accountIdAsString = await this.getAccountId(
-        wallet.address
-    );
+    const accountIdAsString = await this.getAccountId(wallet.address);
     const signerPk = PrivateKey.fromStringECDSA(wallet.signingKey.privateKey);
 
     const signerClient = this.client.setOperator(
-        accountIdAsString,
-        signerPk.toString() // DER encoded
+      accountIdAsString,
+      signerPk.toString(), // DER encoded
     );
 
     const transaction = new TokenAssociateTransaction()
-        .setAccountId(AccountId.fromString(accountIdAsString))
-        .setTokenIds([TokenId.fromSolidityAddress(tokenAddress)])
-        .freezeWith(signerClient);
+      .setAccountId(AccountId.fromString(accountIdAsString))
+      .setTokenIds([TokenId.fromSolidityAddress(tokenAddress)])
+      .freezeWith(signerClient);
 
     const signTx = await transaction.sign(signerPk);
     const txResponse = await signTx.execute(signerClient);
@@ -164,15 +162,15 @@ class Hapi {
 
   async getTokenBalance(accountAddress, tokenAddress) {
     const accountBalanceJson = (
-        await this.getAccountBalance(accountAddress)
+      await this.getAccountBalance(accountAddress)
     ).toJSON();
     const tokenId = await AccountId.fromEvmAddress(
-        0,
-        0,
-        tokenAddress
+      0,
+      0,
+      tokenAddress,
     ).toString();
     const { balance } = accountBalanceJson.tokens.find(
-        (e) => e.tokenId === tokenId
+      (e) => e.tokenId === tokenId,
     );
 
     return parseInt(balance);

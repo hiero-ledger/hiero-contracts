@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+
 import axios from 'axios';
 
 const githubToken = process.env.GITHUB_TOKEN;
@@ -150,7 +152,7 @@ async function processIssueReferencesInText(text) {
                 }
             } else {
                 console.log(
-                    `Issue #${issueRef.issueNumber} is from a different repository (${issueRef.owner}/${issueRef.repo}), skipping...`
+                    `Issue #${issueRef.issueNumber} is from a different repository (${issueRef.owner}/${issueRef.repo}), skipping...`,
                 );
             }
         }
@@ -177,7 +179,7 @@ async function processPRReferencesInText(text, contributors) {
                 await processReferencedPR(prRef, contributors);
             } else {
                 console.log(
-                    `PR #${prRef.prNumber} is from a different repository (${prRef.owner}/${prRef.repo}), skipping...`
+                    `PR #${prRef.prNumber} is from a different repository (${prRef.owner}/${prRef.repo}), skipping...`,
                 );
                 // Skip processing issue references from external PRs
             }
@@ -199,7 +201,7 @@ async function processReferencedPR(prRef, contributors) {
 
     if (!isContributor) {
         console.log(
-            `PR author ${authorLogin} is not a contributor, skipping issue matching for PR #${prRef.prNumber}.`
+            `PR author ${authorLogin} is not a contributor, skipping issue matching for PR #${prRef.prNumber}.`,
         );
         return;
     }
@@ -219,30 +221,30 @@ async function processReferencedPR(prRef, contributors) {
                 const issue = await getIssueDetails(
                     issueRef.owner,
                     issueRef.repo,
-                    issueRef.issueNumber
+                    issueRef.issueNumber,
                 );
                 if (issue) {
                     const { labels: issueLabels, milestone: issueMilestone } = issue;
 
                     if (!issueLabels || issueLabels.length === 0) {
                         throw new Error(
-                            `Associated issue #${issueRef.issueNumber} has no labels.`
+                            `Associated issue #${issueRef.issueNumber} has no labels.`,
                         );
                     }
                     if (!issueMilestone) {
                         throw new Error(
-                            `Associated issue #${issueRef.issueNumber} has no milestone.`
+                            `Associated issue #${issueRef.issueNumber} has no milestone.`,
                         );
                     }
                 }
             } else {
                 console.log(
-                    `Issue #${issueRef.issueNumber} is from a different repository (${issueRef.owner}/${issueRef.repo}), skipping...`
+                    `Issue #${issueRef.issueNumber} is from a different repository (${issueRef.owner}/${issueRef.repo}), skipping...`,
                 );
             }
         }
         console.log(
-            `PR #${prRef.prNumber} and all associated issues have labels and milestones.`
+            `PR #${prRef.prNumber} and all associated issues have labels and milestones.`,
         );
     }
 }
