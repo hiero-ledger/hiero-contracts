@@ -47,7 +47,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "^5.4.0",
     "@openzeppelin/contracts-upgradeable": "^5.4.0",
-    "axios": "^1.13.2",
+    "axios": "^1.13.4",
     "bn.js": "^5.2.2",
     "dotenv": "^17.2.1",
     "elliptic": "^6.6.1",
