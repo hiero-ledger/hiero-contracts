@@ -1,19 +1,21 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import utils from '../utils';
 import { expect } from 'chai';
 import { network } from 'hardhat';
+
+import utils from '../utils';
 const { ethers } = await network.connect();
-import { expectValidHash } from '../assertions';
+import {
+  AccountId,
+  PublicKey,
+  TokenCreateTransaction,
+  TokenSupplyType,
+  TransactionId,
+} from '@hashgraph/sdk';
+
 import Constants from '../../constants';
 import { pollForNewERC20Balance } from '../../helpers';
-import {
-  TokenCreateTransaction,
-  TransactionId,
-  PublicKey,
-  TokenSupplyType,
-  AccountId,
-} from '@hashgraph/sdk';
+import { expectValidHash } from '../assertions';
 import hapi from '../hapi';
 
 describe('TokenCreateContract Test Suite', function () {
@@ -22,10 +24,8 @@ describe('TokenCreateContract Test Suite', function () {
   let tokenManagmentContract;
   let tokenQueryContract;
   let erc20Contract;
-  let erc721Contract;
   let tokenAddress;
   let nftTokenAddress;
-  let mintedTokenSerialNumber;
   let signers;
 
   before(async function () {
@@ -39,11 +39,11 @@ describe('TokenCreateContract Test Suite', function () {
       await tokenManagmentContract.getAddress(),
     ]);
     erc20Contract = await utils.deployERC20Contract();
-    erc721Contract = await utils.deployERC721Contract();
+    await utils.deployERC721Contract();
     tokenAddress = await utils.createFungibleTokenWithSECP256K1AdminKey(
       tokenCreateContract,
       signers[0].address,
-      utils.getSignerCompressedPublicKey()
+      utils.getSignerCompressedPublicKey(),
     );
     await hapi.updateTokenKeys(tokenAddress, [
       await tokenCreateContract.getAddress(),
@@ -53,7 +53,7 @@ describe('TokenCreateContract Test Suite', function () {
     nftTokenAddress = await utils.createNonFungibleTokenWithSECP256K1AdminKey(
       tokenCreateContract,
       signers[0].address,
-      utils.getSignerCompressedPublicKey()
+      utils.getSignerCompressedPublicKey(),
     );
     await hapi.updateTokenKeys(nftTokenAddress, [
       await tokenCreateContract.getAddress(),
@@ -64,22 +64,18 @@ describe('TokenCreateContract Test Suite', function () {
     await utils.associateToken(
       tokenCreateContract,
       tokenAddress,
-      Constants.Contract.TokenCreateContract
+      Constants.Contract.TokenCreateContract,
     );
     await utils.grantTokenKyc(tokenCreateContract, tokenAddress); ///!
-
 
     await utils.associateToken(
       tokenCreateContract,
       nftTokenAddress,
-      Constants.Contract.TokenCreateContract
+      Constants.Contract.TokenCreateContract,
     );
 
     await utils.grantTokenKyc(tokenCreateContract, nftTokenAddress);
-    mintedTokenSerialNumber = await utils.mintNFT(
-      tokenCreateContract,
-      nftTokenAddress
-    );
+    await utils.mintNFT(tokenCreateContract, nftTokenAddress);
   });
 
   after(function () {
@@ -91,7 +87,7 @@ describe('TokenCreateContract Test Suite', function () {
     const totalSupplyBefore = await erc20Contract.totalSupply(tokenAddress);
     const balanceBefore = await erc20Contract.balanceOf(
       tokenAddress,
-      signers[0].address
+      signers[0].address,
     );
     await tokenManagmentContract.burnTokenPublic(tokenAddress, amount, []);
 
@@ -99,7 +95,7 @@ describe('TokenCreateContract Test Suite', function () {
       erc20Contract,
       tokenAddress,
       signers[0].address,
-      balanceBefore
+      balanceBefore,
     );
 
     const totalSupplyAfter = await erc20Contract.totalSupply(tokenAddress);
@@ -111,64 +107,64 @@ describe('TokenCreateContract Test Suite', function () {
   it('should be able to execute dissociateTokens and associateTokens', async function () {
     const tokenCreateContractWallet2 = tokenCreateContract.connect(signers[1]);
     const tokenManagmentContractWallet2 = tokenManagmentContract.connect(
-      signers[1]
+      signers[1],
     );
 
     const txDisassociate =
       await tokenManagmentContractWallet2.dissociateTokensPublic(
         signers[1].address,
         [tokenAddress],
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
     const receiptDisassociate = await txDisassociate.wait();
     expect(
       receiptDisassociate.logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
-      )[0].args.responseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
+      )[0].args.responseCode,
     ).to.equal(22);
 
     const txAssociate = await tokenCreateContractWallet2.associateTokensPublic(
       signers[1].address,
       [tokenAddress],
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     const receiptAssociate = await txAssociate.wait();
     expect(
       receiptAssociate.logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
-      )[0].args.responseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
+      )[0].args.responseCode,
     ).to.equal(22);
   });
 
   it('should be able to execute dissociateToken and associateToken', async function () {
     const tokenCreateContractWallet2 = tokenCreateContract.connect(signers[1]);
     const tokenManagmentContractWallet2 = tokenManagmentContract.connect(
-      signers[1]
+      signers[1],
     );
 
     const txDisassociate =
       await tokenManagmentContractWallet2.dissociateTokenPublic(
         signers[1].address,
         tokenAddress,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
     const receiptDisassociate = await txDisassociate.wait();
     expect(
       receiptDisassociate.logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
-      )[0].args.responseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
+      )[0].args.responseCode,
     ).to.equal(22);
 
     const txAssociate = await tokenCreateContractWallet2.associateTokenPublic(
       signers[1].address,
       tokenAddress,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     const receiptAssociate = await txAssociate.wait();
     expect(
       receiptAssociate.logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
-      )[0].args.responseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
+      )[0].args.responseCode,
     ).to.equal(22);
   });
 
@@ -178,11 +174,11 @@ describe('TokenCreateContract Test Suite', function () {
       {
         value: BigInt('30000000000000000000'),
         gasLimit: 1_000_000,
-      }
+      },
     );
     const tokenAddressReceipt = await tokenAddressTx.wait();
     const result = tokenAddressReceipt.logs.filter(
-      (e) => e.fragment.name === Constants.Events.CreatedToken
+      (e) => e.fragment.name === Constants.Events.CreatedToken,
     )[0].args[0];
     expect(result).to.exist;
     expectValidHash(result, 40);
@@ -195,12 +191,12 @@ describe('TokenCreateContract Test Suite', function () {
         {
           value: BigInt('10000000000000000000'),
           gasLimit: 1_000_000,
-        }
+        },
       );
 
     const tokenAddressReceipt = await tokenAddressTx.wait();
     const result = tokenAddressReceipt.logs.filter(
-      (e) => e.fragment.name === Constants.Events.CreatedToken
+      (e) => e.fragment.name === Constants.Events.CreatedToken,
     )[0].args[0];
     expect(result).to.exist;
     expectValidHash(result, 40);
@@ -214,12 +210,12 @@ describe('TokenCreateContract Test Suite', function () {
         {
           value: BigInt('20000000000000000000'),
           gasLimit: 1_000_000,
-        }
+        },
       );
 
     const txReceipt = await tx.wait();
     const result = txReceipt.logs.filter(
-      (e) => e.fragment.name === Constants.Events.CreatedToken
+      (e) => e.fragment.name === Constants.Events.CreatedToken,
     )[0].args[0];
     expect(result).to.exist;
     expectValidHash(result, 40);
@@ -233,12 +229,12 @@ describe('TokenCreateContract Test Suite', function () {
         {
           value: BigInt('20000000000000000000'),
           gasLimit: 1_000_000,
-        }
+        },
       );
 
     const txReceipt = await tx.wait();
     const result = txReceipt.logs.filter(
-      (e) => e.fragment.name === Constants.Events.CreatedToken
+      (e) => e.fragment.name === Constants.Events.CreatedToken,
     )[0].args[0];
     expect(result).to.exist;
     expectValidHash(result, 40);
@@ -247,7 +243,7 @@ describe('TokenCreateContract Test Suite', function () {
   it('should be able to execute mintToken', async function () {
     const nftAddress = await utils.createNonFungibleToken(
       tokenCreateContract,
-      signers[0].address
+      signers[0].address,
     );
     expect(nftAddress).to.exist;
     expectValidHash(nftAddress, 40);
@@ -256,16 +252,16 @@ describe('TokenCreateContract Test Suite', function () {
       nftAddress,
       0,
       ['0x02'],
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
 
     const receipt = await tx.wait();
     const { responseCode } = receipt.logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode
+      (e) => e.fragment.name === Constants.Events.ResponseCode,
     )[0].args;
     expect(responseCode).to.equal(22);
     const { serialNumbers } = receipt.logs.filter(
-      (e) => e.fragment.name === Constants.Events.MintedToken
+      (e) => e.fragment.name === Constants.Events.MintedToken,
     )[0].args;
     expect(serialNumbers[0]).to.be.greaterThan(0);
   });
@@ -274,12 +270,12 @@ describe('TokenCreateContract Test Suite', function () {
     const grantKycTx = await tokenCreateContract.grantTokenKycPublic(
       tokenAddress,
       signers[1].address,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     expect(
       (await grantKycTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
-      )[0].args.responseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
+      )[0].args.responseCode,
     ).to.equal(22);
   });
 
@@ -344,11 +340,11 @@ describe('TokenCreateContract Test Suite', function () {
           {
             value: '30000000000000000000',
             gasLimit: 1_000_000,
-          }
+          },
         );
       const tokenAddressReceipt = await tokenAddressTx.wait();
       const { tokenAddress } = tokenAddressReceipt.logs.filter(
-        (e) => e.fragment.name === Constants.Events.CreatedToken
+        (e) => e.fragment.name === Constants.Events.CreatedToken,
       )[0].args;
 
       return tokenAddress;
@@ -364,29 +360,29 @@ describe('TokenCreateContract Test Suite', function () {
         await tokenQueryContract.getFungibleTokenInfoPublic(hapiTokenAddress);
 
       const hapiTokenInfo = (await hapiTokenInfoTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.FungibleTokenInfo
+        (e) => e.fragment.name === Constants.Events.FungibleTokenInfo,
       )[0].args.tokenInfo[0][0];
 
       const precompileTokenInfoTx =
         await tokenQueryContract.getFungibleTokenInfoPublic(
-          precompileTokenAddress
+          precompileTokenAddress,
         );
 
       const precompileTokenInfo = (
         await precompileTokenInfoTx.wait()
       ).logs.filter(
-        (e) => e.fragment.name === Constants.Events.FungibleTokenInfo
+        (e) => e.fragment.name === Constants.Events.FungibleTokenInfo,
       )[0].args.tokenInfo[0][0];
 
       expect(
         (await hapiTokenInfoTx.wait()).logs.filter(
-          (e) => e.fragment.name === Constants.Events.ResponseCode
-        )[0].args.responseCode
+          (e) => e.fragment.name === Constants.Events.ResponseCode,
+        )[0].args.responseCode,
       ).to.equal(22);
       expect(
         (await precompileTokenInfoTx.wait()).logs.filter(
-          (e) => e.fragment.name === Constants.Events.ResponseCode
-        )[0].args.responseCode
+          (e) => e.fragment.name === Constants.Events.ResponseCode,
+        )[0].args.responseCode,
       ).to.equal(22);
       expect(hapiTokenInfo).not.null;
       expect(precompileTokenInfo).not.null;
@@ -397,19 +393,19 @@ describe('TokenCreateContract Test Suite', function () {
       expect(hapiTokenInfo.maxSupply).to.eq(precompileTokenInfo.maxSupply);
 
       expect(hapiTokenInfo.tokenKeys[1].key.ECDSA_secp256k1).to.eq(
-        precompileTokenInfo.tokenKeys[1].key.ECDSA_secp256k1
+        precompileTokenInfo.tokenKeys[1].key.ECDSA_secp256k1,
       ); // KYC KEY
       expect(hapiTokenInfo.tokenKeys[2].key.ECDSA_secp256k1).to.eq(
-        precompileTokenInfo.tokenKeys[2].key.ECDSA_secp256k1
+        precompileTokenInfo.tokenKeys[2].key.ECDSA_secp256k1,
       ); // FREEZE KEY
       expect(hapiTokenInfo.tokenKeys[3].key.ECDSA_secp256k1).to.eq(
-        precompileTokenInfo.tokenKeys[3].key.ECDSA_secp256k1
+        precompileTokenInfo.tokenKeys[3].key.ECDSA_secp256k1,
       ); // WIPE KEY
       expect(hapiTokenInfo.tokenKeys[4].key.ECDSA_secp256k1).to.eq(
-        precompileTokenInfo.tokenKeys[4].key.ECDSA_secp256k1
+        precompileTokenInfo.tokenKeys[4].key.ECDSA_secp256k1,
       ); // SUPPLY KEY
       expect(hapiTokenInfo.tokenKeys[6].key.ECDSA_secp256k1).to.eq(
-        precompileTokenInfo.tokenKeys[6].key.ECDSA_secp256k1
+        precompileTokenInfo.tokenKeys[6].key.ECDSA_secp256k1,
       ); // PAUSE KEY
     });
   });

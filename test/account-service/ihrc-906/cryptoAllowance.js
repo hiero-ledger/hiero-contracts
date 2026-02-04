@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import Utils from '../../token-service/utils';
 import { expect } from 'chai';
 import hre from 'hardhat';
+
+import Utils from '../../token-service/utils';
 const { ethers } = await hre.network.connect();
 import Constants from '../../constants';
-import {
-  pollForNewSignerBalanceUsingProvider,
-} from '../../helpers';
+import { pollForNewSignerBalanceUsingProvider } from '../../helpers';
 import hapi from '../../token-service/hapi';
 
 describe('@HAS IHRC-906 Test Suite', () => {
@@ -17,16 +16,15 @@ describe('@HAS IHRC-906 Test Suite', () => {
     cryptoAllowanceContract,
     cryptoOwnerContract,
     cryptoAllowanceAddress,
-    cryptoOwnerAddress,
-    receiver;
+    cryptoOwnerAddress;
   const amount = 3000;
 
   before(async () => {
-    [walletA, walletB, walletC, receiver] = await ethers.getSigners();
+    [walletA, walletB, walletC] = await ethers.getSigners();
 
     // deploy cyprtoAllowanceContract
     const CryptoAllowanceFactory = await ethers.getContractFactory(
-      Constants.Contract.CryptoAllowance
+      Constants.Contract.CryptoAllowance,
     );
     cryptoAllowanceContract = await CryptoAllowanceFactory.deploy();
     await cryptoAllowanceContract.waitForDeployment();
@@ -34,7 +32,7 @@ describe('@HAS IHRC-906 Test Suite', () => {
 
     // deploy cryptoOwnerContract
     const CryptoOwnerFactory = await ethers.getContractFactory(
-      Constants.Contract.CryptoOwner
+      Constants.Contract.CryptoOwner,
     );
     cryptoOwnerContract = await CryptoOwnerFactory.deploy();
     await cryptoOwnerContract.waitForDeployment();
@@ -59,11 +57,11 @@ describe('@HAS IHRC-906 Test Suite', () => {
       cryptoAllowanceAddress,
       walletA.address,
       amount,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     const receipt = await tx.wait();
     const responseCode = receipt.logs.find(
-      (l) => l.fragment.name === 'ResponseCode'
+      (l) => l.fragment.name === 'ResponseCode',
     );
     expect(responseCode.args).to.deep.eq([22n]);
   });
@@ -73,19 +71,19 @@ describe('@HAS IHRC-906 Test Suite', () => {
       cryptoAllowanceAddress,
       walletB.address,
       amount,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     await approveTx.wait();
 
     const allowanceTx = await cryptoAllowanceContract.hbarAllowancePublic(
       cryptoAllowanceAddress,
       walletB.address,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
 
     const receipt = await allowanceTx.wait();
     const responseCode = receipt.logs.find(
-      (l) => l.fragment.name === 'ResponseCode'
+      (l) => l.fragment.name === 'ResponseCode',
     );
     const logs = receipt.logs.find((l) => l.fragment.name === 'HbarAllowance');
 
@@ -100,26 +98,26 @@ describe('@HAS IHRC-906 Test Suite', () => {
     const ecdsaPrivateKeys = await Utils.getHardhatSignersPrivateKeys(false);
     await hapi.updateAccountKeys(
       [cryptoAllowanceAddress],
-      [ecdsaPrivateKeys[0]] // walletA's key
+      [ecdsaPrivateKeys[0]], // walletA's key
     );
 
     const approveTx = await cryptoAllowanceContract.hbarApprovePublic(
       walletA.address,
       walletB.address,
       amount,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     await approveTx.wait();
 
     const allowanceTx = await cryptoAllowanceContract.hbarAllowancePublic(
       walletA.address,
       walletB.address,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
 
     const receipt = await allowanceTx.wait();
     const responseCode = receipt.logs.find(
-      (l) => l.fragment.name === 'ResponseCode'
+      (l) => l.fragment.name === 'ResponseCode',
     );
     const logs = receipt.logs.find((l) => l.fragment.name === 'HbarAllowance');
 
@@ -135,7 +133,7 @@ describe('@HAS IHRC-906 Test Suite', () => {
         walletB.address, // random EOA hbar owner
         walletC.address,
         amount,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       await tx.wait();
       expect(false).to.be.true;
@@ -148,20 +146,20 @@ describe('@HAS IHRC-906 Test Suite', () => {
   it('Should allow owner to grant an allowance to spender using IHRC906AccountFacade and spender to transfer allowance to receiver on behalf of owner', async () => {
     // set up IHRC906AccountFacade
     const IHRC906AccountFacade = new ethers.Interface(
-      (await hre.artifacts.readArtifact('IHRC906AccountFacade')).abi
+      (await hre.artifacts.readArtifact('IHRC906AccountFacade')).abi,
     );
 
     const walletAIHRC906AccountFacade = new ethers.Contract(
       walletA.address,
       IHRC906AccountFacade,
-      walletA
+      walletA,
     );
 
     // grant an allowance to cryptoAllowanceContract
     const approveTx = await walletAIHRC906AccountFacade.hbarApprove(
       cryptoAllowanceAddress,
       amount,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     await approveTx.wait();
 
@@ -188,25 +186,25 @@ describe('@HAS IHRC-906 Test Suite', () => {
     const cryptoTransferTx = await cryptoAllowanceContract.cryptoTransferPublic(
       cryptoTransfers,
       tokenTransferList,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
 
     const cryptoTransferReceipt = await cryptoTransferTx.wait();
 
     const responseCode = cryptoTransferReceipt.logs.find(
-      (l) => l.fragment.name === 'ResponseCode'
+      (l) => l.fragment.name === 'ResponseCode',
     ).args[0];
 
     const walletAAfter = await pollForNewSignerBalanceUsingProvider(
       walletA.provider,
       walletA.address,
-      walletABefore
+      walletABefore,
     );
 
     const walletCAfter = await pollForNewSignerBalanceUsingProvider(
       walletC.provider,
       walletC.address,
-      walletCBefore
+      walletCBefore,
     );
 
     expect(responseCode).to.equal(22n);
@@ -226,13 +224,13 @@ describe('@HAS IHRC-906 Test Suite', () => {
       cryptoAllowanceAddress,
       amount,
       walletC.address,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
 
     // resolve logs
     const receipt = await tx.wait();
     const responseCode = receipt.logs.find(
-      (l) => l.fragment.name === 'ResponseCode'
+      (l) => l.fragment.name === 'ResponseCode',
     ).args[0];
 
     // crypto owner contract account's balance after the transfer
@@ -240,21 +238,21 @@ describe('@HAS IHRC-906 Test Suite', () => {
       await pollForNewSignerBalanceUsingProvider(
         ethers.provider,
         cryptoOwnerAddress,
-        cryptoOwnerContractBalanceBefore
+        cryptoOwnerContractBalanceBefore,
       );
 
     // receiver's balance after the transfer
     const walletCAfter = await pollForNewSignerBalanceUsingProvider(
       walletC.provider,
       walletC.address,
-      walletCBefore
+      walletCBefore,
     );
 
     // assertion
     expect(responseCode).to.equal(22n);
     expect(walletCBefore < walletCAfter).to.equal(true);
     expect(
-      cryptoOwnerContractBalanceBefore > cryptoOwnerContractBalanceAfter
+      cryptoOwnerContractBalanceBefore > cryptoOwnerContractBalanceAfter,
     ).to.equal(true);
   });
 
@@ -281,7 +279,7 @@ describe('@HAS IHRC-906 Test Suite', () => {
         .cryptoTransferPublic(
           cryptoTransfers,
           tokenTransferList,
-          Constants.GAS_LIMIT_1_000_000
+          Constants.GAS_LIMIT_1_000_000,
         );
       await cryptoTransferTx.wait();
       expect(true).to.eq(false);

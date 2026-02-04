@@ -3,10 +3,10 @@
 import { expect } from 'chai';
 import { network } from 'hardhat';
 const { ethers } = await network.connect();
-import utils from '../utils';
 import Constants from '../../constants';
 import { pollForNewERC20Balance } from '../../helpers';
 import hapi from '../hapi';
+import utils from '../utils';
 
 describe('TokenManagmentContract Test Suite', function () {
   const TX_SUCCESS_CODE = 22;
@@ -62,7 +62,7 @@ describe('TokenManagmentContract Test Suite', function () {
     tokenAddress = await utils.createFungibleTokenWithSECP256K1AdminKey(
       tokenCreateContract,
       signers[0].address,
-      utils.getSignerCompressedPublicKey()
+      utils.getSignerCompressedPublicKey(),
     );
     await hapi.updateTokenKeys(tokenAddress, [
       await tokenCreateContract.getAddress(),
@@ -73,7 +73,7 @@ describe('TokenManagmentContract Test Suite', function () {
     nftTokenAddress = await utils.createNonFungibleTokenWithSECP256K1AdminKey(
       tokenCreateContract,
       signers[0].address,
-      utils.getSignerCompressedPublicKey()
+      utils.getSignerCompressedPublicKey(),
     );
     await hapi.updateTokenKeys(nftTokenAddress, [
       await tokenCreateContract.getAddress(),
@@ -84,18 +84,18 @@ describe('TokenManagmentContract Test Suite', function () {
     await utils.associateToken(
       tokenCreateContract,
       tokenAddress,
-      Constants.Contract.TokenCreateContract
+      Constants.Contract.TokenCreateContract,
     );
     await utils.grantTokenKyc(tokenCreateContract, tokenAddress);
     await utils.associateToken(
       tokenCreateContract,
       nftTokenAddress,
-      Constants.Contract.TokenCreateContract
+      Constants.Contract.TokenCreateContract,
     );
     await utils.grantTokenKyc(tokenCreateContract, nftTokenAddress);
     mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
-      nftTokenAddress
+      nftTokenAddress,
     );
   });
 
@@ -108,7 +108,7 @@ describe('TokenManagmentContract Test Suite', function () {
       await utils.createFungibleTokenWithSECP256K1AdminKey(
         tokenCreateContract,
         signers[0].address,
-        utils.getSignerCompressedPublicKey()
+        utils.getSignerCompressedPublicKey(),
       );
     await hapi.updateTokenKeys(newTokenAddress, [
       await tokenCreateContract.getAddress(),
@@ -118,7 +118,7 @@ describe('TokenManagmentContract Test Suite', function () {
     const txBefore =
       await tokenQueryContract.getTokenInfoPublic(newTokenAddress);
     const tokenInfoBefore = (await txBefore.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.TokenInfo
+      (e) => e.fragment.name === Constants.Events.TokenInfo,
     )[0].args.tokenInfo;
 
     const tx = await tokenManagmentContract.deleteTokenPublic(newTokenAddress);
@@ -126,10 +126,10 @@ describe('TokenManagmentContract Test Suite', function () {
 
     const txAfter = await tokenQueryContract.getTokenInfoPublic(
       newTokenAddress,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     const tokenInfoAfter = (await txAfter.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.TokenInfo
+      (e) => e.fragment.name === Constants.Events.TokenInfo,
     )[0].args.tokenInfo;
 
     expect(tokenInfoBefore.deleted).to.equal(false);
@@ -139,21 +139,21 @@ describe('TokenManagmentContract Test Suite', function () {
   it('should be able to freeze and unfreeze token', async function () {
     const freezeTx = await tokenManagmentContract.freezeTokenPublic(
       tokenAddress,
-      await tokenCreateContract.getAddress()
+      await tokenCreateContract.getAddress(),
     );
     const isFrozenTx = await tokenQueryContract.isFrozenPublic(
       tokenAddress,
       await tokenCreateContract.getAddress(),
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     const responseCodeFreeze = (await freezeTx.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode
+      (e) => e.fragment.name === Constants.Events.ResponseCode,
     )[0].args.responseCode;
     const responseCodeisFrozen = (await isFrozenTx.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode
+      (e) => e.fragment.name === Constants.Events.ResponseCode,
     )[0].args.responseCode;
     const isFrozen = (await isFrozenTx.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.Frozen
+      (e) => e.fragment.name === Constants.Events.Frozen,
     )[0].args.frozen;
 
     expect(responseCodeFreeze).to.equal(TX_SUCCESS_CODE);
@@ -162,22 +162,22 @@ describe('TokenManagmentContract Test Suite', function () {
 
     const unfreezeTx = await tokenManagmentContract.unfreezeTokenPublic(
       tokenAddress,
-      await tokenCreateContract.getAddress()
+      await tokenCreateContract.getAddress(),
     );
     const isStillFrozenTx = await tokenQueryContract.isFrozenPublic(
       tokenAddress,
       await tokenCreateContract.getAddress(),
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     const responseCodeUnfreeze = (await unfreezeTx.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode
+      (e) => e.fragment.name === Constants.Events.ResponseCode,
     )[0].args.responseCode;
     const responseCodeisStillFrozen = (
       await isStillFrozenTx.wait()
     ).logs.filter((e) => e.fragment.name === Constants.Events.ResponseCode)[0]
       .args.responseCode;
     const isStillFrozen = (await isStillFrozenTx.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.Frozen
+      (e) => e.fragment.name === Constants.Events.Frozen,
     )[0].args.frozen;
 
     expect(responseCodeUnfreeze).to.equal(TX_SUCCESS_CODE);
@@ -191,57 +191,57 @@ describe('TokenManagmentContract Test Suite', function () {
     await tokenTransferContract.transferTokensPublic(
       tokenAddress,
       [signers[0].address, signers[1].address],
-      [-wipeAmount, wipeAmount]
+      [-wipeAmount, wipeAmount],
     );
 
     const balanceBefore = await pollForNewERC20Balance(
       erc20Contract,
       tokenAddress,
       signers[1].address,
-      0n
+      0n,
     );
 
     const tx = await tokenManagmentContract.wipeTokenAccountPublic(
       tokenAddress,
       signers[1].address,
-      wipeAmount
+      wipeAmount,
     );
 
     const responseCode = (await tx.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode
+      (e) => e.fragment.name === Constants.Events.ResponseCode,
     )[0].args.responseCode;
 
     const balanceAfter = await pollForNewERC20Balance(
       erc20Contract,
       tokenAddress,
       signers[1].address,
-      balanceBefore
+      balanceBefore,
     );
 
     expect(responseCode).to.equal(TX_SUCCESS_CODE);
     expect(Number(balanceAfter.toString())).to.equal(
-      Number(balanceBefore.toString()) - wipeAmount
+      Number(balanceBefore.toString()) - wipeAmount,
     );
   });
 
   it('should be able to remove token kyc', async function () {
     const revokeKycTx = await tokenManagmentContract.revokeTokenKycPublic(
       tokenAddress,
-      await tokenCreateContract.getAddress()
+      await tokenCreateContract.getAddress(),
     );
     const isKycTx = await tokenQueryContract.isKycPublic(
       tokenAddress,
       await tokenCreateContract.getAddress(),
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     const revokeKycResponseCode = (await revokeKycTx.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode
+      (e) => e.fragment.name === Constants.Events.ResponseCode,
     )[0].args.responseCode;
     const isKycResponseCode = (await isKycTx.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode
+      (e) => e.fragment.name === Constants.Events.ResponseCode,
     )[0].args.responseCode;
     const isKyc = (await isKycTx.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.KycGranted
+      (e) => e.fragment.name === Constants.Events.KycGranted,
     )[0].args.kycGranted;
 
     expect(revokeKycResponseCode).to.equal(TX_SUCCESS_CODE);
@@ -255,7 +255,7 @@ describe('TokenManagmentContract Test Suite', function () {
     const pauseTokenTx =
       await tokenManagmentContract.pauseTokenPublic(tokenAddress);
     const pauseTokenResponseCode = (await pauseTokenTx.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode
+      (e) => e.fragment.name === Constants.Events.ResponseCode,
     )[0].args.responseCode;
 
     expect(pauseTokenResponseCode).to.equal(TX_SUCCESS_CODE);
@@ -263,7 +263,7 @@ describe('TokenManagmentContract Test Suite', function () {
     const unpauseTokenTx =
       await tokenManagmentContract.unpauseTokenPublic(tokenAddress);
     const uppauseTokenResponseCode = (await unpauseTokenTx.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode
+      (e) => e.fragment.name === Constants.Events.ResponseCode,
     )[0].args.responseCode;
 
     expect(uppauseTokenResponseCode).to.equal(TX_SUCCESS_CODE);
@@ -274,15 +274,15 @@ describe('TokenManagmentContract Test Suite', function () {
       nftTokenAddress,
       signers[0].address,
       signers[1].address,
-      mintedTokenSerialNumber
+      mintedTokenSerialNumber,
     );
     const tx = await tokenManagmentContract.wipeTokenAccountNFTPublic(
       nftTokenAddress,
       signers[1].address,
-      [mintedTokenSerialNumber]
+      [mintedTokenSerialNumber],
     );
     const responseCode = (await tx.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode
+      (e) => e.fragment.name === Constants.Events.ResponseCode,
     )[0].args.responseCode;
 
     expect(responseCode).to.equal(TX_SUCCESS_CODE);
@@ -296,10 +296,10 @@ describe('TokenManagmentContract Test Suite', function () {
     const txBeforeInfo =
       await tokenQueryContract.getTokenInfoPublic(tokenAddress);
     const tokenInfoBefore = (await txBeforeInfo.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.TokenInfo
+      (e) => e.fragment.name === Constants.Events.TokenInfo,
     )[0].args.tokenInfo[0];
     const responseCodeTokenInfoBefore = (await txBeforeInfo.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode
+      (e) => e.fragment.name === Constants.Events.ResponseCode,
     )[0].args.responseCode;
 
     const token = {
@@ -321,23 +321,23 @@ describe('TokenManagmentContract Test Suite', function () {
     const txUpdate = await tokenManagmentContract.updateTokenInfoPublic(
       tokenAddress,
       token,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
 
     expect(
       (await txUpdate.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
-      )[0].args.responseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
+      )[0].args.responseCode,
     ).to.be.equal(TX_SUCCESS_CODE);
 
     const txAfterInfo =
       await tokenQueryContract.getTokenInfoPublic(tokenAddress);
 
     const tokenInfoAfter = (await txAfterInfo.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.TokenInfo
+      (e) => e.fragment.name === Constants.Events.TokenInfo,
     )[0].args.tokenInfo[0];
     const responseCodeTokenInfoAfter = (await txAfterInfo.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode
+      (e) => e.fragment.name === Constants.Events.ResponseCode,
     )[0].args.responseCode;
 
     expect(responseCodeTokenInfoBefore).to.equal(TX_SUCCESS_CODE);
@@ -352,21 +352,21 @@ describe('TokenManagmentContract Test Suite', function () {
     const NEW_AUTO_RENEW_PERIOD = 7999900;
     const AUTO_RENEW_SECOND = 0;
     const epoch = parseInt(
-      (Date.now() / 1000 + NEW_AUTO_RENEW_PERIOD).toFixed(0)
+      (Date.now() / 1000 + NEW_AUTO_RENEW_PERIOD).toFixed(0),
     );
 
     const getTokenExpiryInfoTxBefore =
       await tokenQueryContract.getTokenExpiryInfoPublic(
         tokenAddress,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
     const responseCode = (await getTokenExpiryInfoTxBefore.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode
+      (e) => e.fragment.name === Constants.Events.ResponseCode,
     )[0].args.responseCode;
     const tokenExpiryInfoBefore = (
       await getTokenExpiryInfoTxBefore.wait()
     ).logs.filter(
-      (e) => e.fragment.name === Constants.Events.TokenExpiryInfo
+      (e) => e.fragment.name === Constants.Events.TokenExpiryInfo,
     )[0].args.expiryInfo;
 
     expect(responseCode).to.equal(TX_SUCCESS_CODE);
@@ -382,7 +382,7 @@ describe('TokenManagmentContract Test Suite', function () {
       await tokenManagmentContract.updateTokenExpiryInfoPublic(
         tokenAddress,
         expiryInfo,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
     const updateExpiryInfoResponseCode = (
       await updateTokenExpiryInfoTx.wait()
@@ -393,7 +393,7 @@ describe('TokenManagmentContract Test Suite', function () {
     const getTokenExpiryInfoTxAfter =
       await tokenQueryContract.getTokenExpiryInfoPublic(
         tokenAddress,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
     const getExpiryInfoResponseCode = (
       await getTokenExpiryInfoTxAfter.wait()
@@ -402,13 +402,13 @@ describe('TokenManagmentContract Test Suite', function () {
     const tokenExpiryInfoAfter = (
       await getTokenExpiryInfoTxAfter.wait()
     ).logs.filter(
-      (e) => e.fragment.name === Constants.Events.TokenExpiryInfo
+      (e) => e.fragment.name === Constants.Events.TokenExpiryInfo,
     )[0].args.expiryInfo;
 
     expect(updateExpiryInfoResponseCode).to.equal(TX_SUCCESS_CODE);
     expect(getExpiryInfoResponseCode).to.equal(TX_SUCCESS_CODE);
     expect(tokenExpiryInfoAfter.autoRenewPeriod).to.equal(
-      expiryInfo.autoRenewPeriod
+      expiryInfo.autoRenewPeriod,
     );
     expect(tokenExpiryInfoAfter.second).to.be.closeTo(epoch, 300);
   });
@@ -417,10 +417,10 @@ describe('TokenManagmentContract Test Suite', function () {
     const getKeyTx = await tokenQueryContract.getTokenKeyPublic(
       tokenAddress,
       2,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     const originalKey = (await getKeyTx.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.TokenKey
+      (e) => e.fragment.name === Constants.Events.TokenKey,
     )[0].args.key;
     const updateKey = [
       false,
@@ -432,24 +432,24 @@ describe('TokenManagmentContract Test Suite', function () {
 
     const updateTx = await tokenManagmentContract.updateTokenKeysPublic(
       tokenAddress,
-      [[2, updateKey]]
+      [[2, updateKey]],
     );
     const updateResponseCode = (await updateTx.wait()).logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode
+      (e) => e.fragment.name === Constants.Events.ResponseCode,
     )[0].args.responseCode;
 
     // Assert updated key
     const tx = await tokenQueryContract.getTokenKeyPublic(
       tokenAddress,
       2,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     const result = await tx.wait();
     const { responseCode } = result.logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode
+      (e) => e.fragment.name === Constants.Events.ResponseCode,
     )[0].args;
     const updatedKey = result.logs.filter(
-      (e) => e.fragment.name === Constants.Events.TokenKey
+      (e) => e.fragment.name === Constants.Events.TokenKey,
     )[0].args.key;
 
     expect(responseCode).to.equal(TX_SUCCESS_CODE);
@@ -469,7 +469,7 @@ describe('TokenManagmentContract Test Suite', function () {
     const totalSupplyBefore = await erc20Contract.totalSupply(tokenAddress);
     const balanceBefore = await erc20Contract.balanceOf(
       tokenAddress,
-      signers[0].address
+      signers[0].address,
     );
     await tokenManagmentContract.burnTokenPublic(tokenAddress, amount, []);
 
@@ -477,7 +477,7 @@ describe('TokenManagmentContract Test Suite', function () {
       erc20Contract,
       tokenAddress,
       signers[0].address,
-      balanceBefore
+      balanceBefore,
     );
     const totalSupplyAfter = await erc20Contract.totalSupply(tokenAddress);
 
@@ -489,32 +489,32 @@ describe('TokenManagmentContract Test Suite', function () {
     const signers = await ethers.getSigners();
     const tokenCreateContractWallet2 = tokenCreateContract.connect(signers[1]);
     const tokenManagmentContractWallet2 = tokenManagmentContract.connect(
-      signers[1]
+      signers[1],
     );
 
     const txDisassociate =
       await tokenManagmentContractWallet2.dissociateTokensPublic(
         signers[1].address,
         [tokenAddress],
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
     const receiptDisassociate = await txDisassociate.wait();
     expect(
       receiptDisassociate.logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
-      )[0].args.responseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
+      )[0].args.responseCode,
     ).to.equal(22);
 
     const txAssociate = await tokenCreateContractWallet2.associateTokensPublic(
       signers[1].address,
       [tokenAddress],
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     const receiptAssociate = await txAssociate.wait();
     expect(
       receiptAssociate.logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
-      )[0].args.responseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
+      )[0].args.responseCode,
     ).to.equal(22);
   });
 
@@ -522,32 +522,32 @@ describe('TokenManagmentContract Test Suite', function () {
     const signers = await ethers.getSigners();
     const tokenCreateContractWallet2 = tokenCreateContract.connect(signers[1]);
     const tokenManagmentContractWallet2 = tokenManagmentContract.connect(
-      signers[1]
+      signers[1],
     );
 
     const txDisassociate =
       await tokenManagmentContractWallet2.dissociateTokenPublic(
         signers[1].address,
         tokenAddress,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
     const receiptDisassociate = await txDisassociate.wait();
     expect(
       receiptDisassociate.logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
-      )[0].args.responseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
+      )[0].args.responseCode,
     ).to.equal(22);
 
     const txAssociate = await tokenCreateContractWallet2.associateTokenPublic(
       signers[1].address,
       tokenAddress,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     const receiptAssociate = await txAssociate.wait();
     expect(
       receiptAssociate.logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
-      )[0].args.responseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
+      )[0].args.responseCode,
     ).to.equal(22);
   });
 
@@ -555,12 +555,12 @@ describe('TokenManagmentContract Test Suite', function () {
     async function getTokenInfo(contract, token) {
       const txBeforeInfo = await contract.getTokenInfoPublic(token);
       const tokenInfo = (await txBeforeInfo.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.TokenInfo
+        (e) => e.fragment.name === Constants.Events.TokenInfo,
       )[0].args.tokenInfo[0];
       expect(
         (await txBeforeInfo.wait()).logs.filter(
-          (e) => e.fragment.name === Constants.Events.ResponseCode
-        )[0].args.responseCode
+          (e) => e.fragment.name === Constants.Events.ResponseCode,
+        )[0].args.responseCode,
       ).to.eq(TX_SUCCESS_CODE);
       return tokenInfo;
     }
@@ -569,12 +569,12 @@ describe('TokenManagmentContract Test Suite', function () {
       const txUpdate = await contract.updateTokenInfoPublic(
         token,
         updateInfo,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       expect(
         (await txUpdate.wait()).logs.filter(
-          (e) => e.fragment.name === Constants.Events.ResponseCode
-        )[0].args.responseCode
+          (e) => e.fragment.name === Constants.Events.ResponseCode,
+        )[0].args.responseCode,
       ).to.be.equal(TX_SUCCESS_CODE);
     }
 
@@ -609,7 +609,7 @@ describe('TokenManagmentContract Test Suite', function () {
         tokenAddress = await utils.createFungibleTokenWithSECP256K1AdminKey(
           tokenCreateContract,
           signers[0].address,
-          utils.getSignerCompressedPublicKey()
+          utils.getSignerCompressedPublicKey(),
         );
         await hapi.updateTokenKeys(tokenAddress, [
           await tokenCreateContract.getAddress(),
@@ -622,7 +622,7 @@ describe('TokenManagmentContract Test Suite', function () {
         await utils.associateToken(
           tokenCreateContract,
           tokenAddress,
-          Constants.Contract.TokenCreateContract
+          Constants.Contract.TokenCreateContract,
         );
         await utils.grantTokenKyc(tokenCreateContract, tokenAddress);
       });
@@ -633,7 +633,7 @@ describe('TokenManagmentContract Test Suite', function () {
           const contractId = await tokenManagmentContract.getAddress();
           const updatedKey = updateTokenInfoValues(
             utils.KeyValueType.CONTRACT_ID,
-            contractId
+            contractId,
           );
 
           const token = {
@@ -671,23 +671,23 @@ describe('TokenManagmentContract Test Suite', function () {
 
           expect(
             (await pauseTokenTx.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.PausedToken
-            )[0].args.paused
+              (e) => e.fragment.name === Constants.Events.PausedToken,
+            )[0].args.paused,
           ).to.eq(true);
           expect(
             (await unpauseTokenTx.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.UnpausedToken
-            )[0].args.unpaused
+              (e) => e.fragment.name === Constants.Events.UnpausedToken,
+            )[0].args.unpaused,
           ).to.eq(true);
           expect(
             (await pauseTokenTx.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.ResponseCode
-            )[0].args.responseCode
+              (e) => e.fragment.name === Constants.Events.ResponseCode,
+            )[0].args.responseCode,
           ).to.eq(TX_SUCCESS_CODE);
           expect(
             (await unpauseTokenTx.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.ResponseCode
-            )[0].args.responseCode
+              (e) => e.fragment.name === Constants.Events.ResponseCode,
+            )[0].args.responseCode,
           ).to.eq(TX_SUCCESS_CODE);
         }
 
@@ -695,7 +695,7 @@ describe('TokenManagmentContract Test Suite', function () {
         {
           const updatedKeyAfter = updateTokenInfoValues(
             utils.KeyValueType.SECP256K1,
-            utils.getSignerCompressedPublicKey()
+            utils.getSignerCompressedPublicKey(),
           );
 
           const tokenAfter = {
@@ -718,7 +718,7 @@ describe('TokenManagmentContract Test Suite', function () {
           await updateTokenInfo(
             tokenManagmentContract,
             tokenAddress,
-            tokenAfter
+            tokenAfter,
           );
         }
       });
@@ -741,7 +741,7 @@ describe('TokenManagmentContract Test Suite', function () {
           const contractId = await tokenManagmentContract.getAddress();
           const updatedKey = updateTokenInfoValues(
             utils.KeyValueType.CONTRACT_ID,
-            contractId
+            contractId,
           );
 
           const token = {
@@ -769,14 +769,14 @@ describe('TokenManagmentContract Test Suite', function () {
           await tokenTransferContract.transferTokensPublic(
             tokenAddress,
             [signers[0].address, signers[1].address],
-            [-wipeAmount, wipeAmount]
+            [-wipeAmount, wipeAmount],
           );
 
           const balanceBefore = await pollForNewERC20Balance(
             erc20Contract,
             tokenAddress,
             signers[1].address,
-            0n
+            0n,
           );
 
           const tx = await tokenManagmentContract
@@ -784,21 +784,21 @@ describe('TokenManagmentContract Test Suite', function () {
             .wipeTokenAccountPublic(
               tokenAddress,
               signers[1].address,
-              wipeAmount
+              wipeAmount,
             );
 
           const balanceAfter = await pollForNewERC20Balance(
             erc20Contract,
             tokenAddress,
             signers[1].address,
-            balanceBefore
+            balanceBefore,
           );
 
           expect(balanceAfter).to.eq(balanceBefore - wipeAmount);
           expect(
             (await tx.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.ResponseCode
-            )[0].args.responseCode
+              (e) => e.fragment.name === Constants.Events.ResponseCode,
+            )[0].args.responseCode,
           ).to.eq(TX_SUCCESS_CODE);
         }
 
@@ -806,7 +806,7 @@ describe('TokenManagmentContract Test Suite', function () {
         {
           const updatedKeyAfter = updateTokenInfoValues(
             utils.KeyValueType.SECP256K1,
-            utils.getSignerCompressedPublicKey()
+            utils.getSignerCompressedPublicKey(),
           );
 
           const tokenAfter = {
@@ -829,7 +829,7 @@ describe('TokenManagmentContract Test Suite', function () {
           await updateTokenInfo(
             tokenManagmentContract,
             tokenAddress,
-            tokenAfter
+            tokenAfter,
           );
         }
       });
@@ -839,7 +839,7 @@ describe('TokenManagmentContract Test Suite', function () {
         await tokenTransferContract.transferTokensPublic(
           tokenAddress,
           [signers[0].address, signers[1].address],
-          [-wipeAmount, wipeAmount]
+          [-wipeAmount, wipeAmount],
         );
 
         // await until the new balance is settled for signers[1]
@@ -847,7 +847,7 @@ describe('TokenManagmentContract Test Suite', function () {
           erc20Contract,
           tokenAddress,
           signers[1].address,
-          0n
+          0n,
         );
 
         const wipeTokenTx = await tokenManagmentContract
@@ -862,7 +862,7 @@ describe('TokenManagmentContract Test Suite', function () {
           const contractId = await tokenManagmentContract.getAddress();
           const updatedKey = updateTokenInfoValues(
             utils.KeyValueType.CONTRACT_ID,
-            contractId
+            contractId,
           );
 
           const token = {
@@ -892,46 +892,46 @@ describe('TokenManagmentContract Test Suite', function () {
             .connect(signers[1])
             .freezeTokenPublic(
               tokenAddress,
-              await tokenCreateContract.getAddress()
+              await tokenCreateContract.getAddress(),
             );
           const isFrozenTxBefore = await tokenQueryContract.isFrozenPublic(
             tokenAddress,
             await tokenCreateContract.getAddress(),
-            Constants.GAS_LIMIT_1_000_000
+            Constants.GAS_LIMIT_1_000_000,
           );
 
           const unfreezeTx = await tokenManagmentContract
             .connect(signers[1])
             .unfreezeTokenPublic(
               tokenAddress,
-              await tokenCreateContract.getAddress()
+              await tokenCreateContract.getAddress(),
             );
           const isFrozenTxAfter = await tokenQueryContract.isFrozenPublic(
             tokenAddress,
             await tokenCreateContract.getAddress(),
-            Constants.GAS_LIMIT_1_000_000
+            Constants.GAS_LIMIT_1_000_000,
           );
 
           expect(
             (await isFrozenTxBefore.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.Frozen
-            )[0].args.frozen
+              (e) => e.fragment.name === Constants.Events.Frozen,
+            )[0].args.frozen,
           ).to.eq(true);
           expect(
             (await isFrozenTxAfter.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.Frozen
-            )[0].args.frozen
+              (e) => e.fragment.name === Constants.Events.Frozen,
+            )[0].args.frozen,
           ).to.eq(false);
 
           expect(
             (await freezeTx.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.ResponseCode
-            )[0].args.responseCode
+              (e) => e.fragment.name === Constants.Events.ResponseCode,
+            )[0].args.responseCode,
           ).to.eq(TX_SUCCESS_CODE);
           expect(
             (await unfreezeTx.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.ResponseCode
-            )[0].args.responseCode
+              (e) => e.fragment.name === Constants.Events.ResponseCode,
+            )[0].args.responseCode,
           ).to.eq(TX_SUCCESS_CODE);
         }
 
@@ -939,7 +939,7 @@ describe('TokenManagmentContract Test Suite', function () {
         {
           const updatedKeyAfter = updateTokenInfoValues(
             utils.KeyValueType.SECP256K1,
-            utils.getSignerCompressedPublicKey()
+            utils.getSignerCompressedPublicKey(),
           );
 
           const tokenAfter = {
@@ -962,7 +962,7 @@ describe('TokenManagmentContract Test Suite', function () {
           await updateTokenInfo(
             tokenManagmentContract,
             tokenAddress,
-            tokenAfter
+            tokenAfter,
           );
         }
       });
@@ -972,14 +972,14 @@ describe('TokenManagmentContract Test Suite', function () {
           .connect(signers[1])
           .freezeTokenPublic(
             tokenAddress,
-            await tokenCreateContract.getAddress()
+            await tokenCreateContract.getAddress(),
           );
         const unfreezeTokenTx = await tokenManagmentContract
           .connect(signers[1])
           .unfreezeTokenPublic(
             tokenAddress,
             await tokenCreateContract.getAddress(),
-            Constants.GAS_LIMIT_1_000_000
+            Constants.GAS_LIMIT_1_000_000,
           );
 
         await utils.expectToFail(freezeTokenTx, Constants.CALL_EXCEPTION);
@@ -993,7 +993,7 @@ describe('TokenManagmentContract Test Suite', function () {
 
           const updatedKey = updateTokenInfoValues(
             utils.KeyValueType.CONTRACT_ID,
-            contractId
+            contractId,
           );
 
           const token = {
@@ -1021,16 +1021,16 @@ describe('TokenManagmentContract Test Suite', function () {
         {
           const updatedKey = updateTokenInfoValues(
             utils.KeyValueType.CONTRACT_ID,
-            await tokenTransferContract.getAddress()
+            await tokenTransferContract.getAddress(),
           );
 
           const keyTxBefore = await tokenQueryContract.getTokenKeyPublic(
             tokenAddress,
             utils.KeyType.SUPPLY,
-            Constants.GAS_LIMIT_1_000_000
+            Constants.GAS_LIMIT_1_000_000,
           );
           const keyBefore = (await keyTxBefore.wait()).logs.filter(
-            (e) => e.fragment.name === Constants.Events.TokenKey
+            (e) => e.fragment.name === Constants.Events.TokenKey,
           )[0].args.key;
 
           const updateTokenKeyTx = await tokenManagmentContract
@@ -1042,17 +1042,17 @@ describe('TokenManagmentContract Test Suite', function () {
           const keyTxAfter = await tokenQueryContract.getTokenKeyPublic(
             tokenAddress,
             utils.KeyType.SUPPLY,
-            Constants.GAS_LIMIT_1_000_000
+            Constants.GAS_LIMIT_1_000_000,
           );
           const keyAfter = (await keyTxAfter.wait()).logs.filter(
-            (e) => e.fragment.name === Constants.Events.TokenKey
+            (e) => e.fragment.name === Constants.Events.TokenKey,
           )[0].args.key;
 
           expect(keyBefore[1]).to.not.eq(keyAfter[1]);
           expect(
             (await updateTokenKeyTx.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.ResponseCode
-            )[0].args.responseCode
+              (e) => e.fragment.name === Constants.Events.ResponseCode,
+            )[0].args.responseCode,
           ).to.eq(TX_SUCCESS_CODE);
         }
       });
@@ -1060,7 +1060,7 @@ describe('TokenManagmentContract Test Suite', function () {
       it('should be able to perform admin action with TokenManagementContract as ADMIN key', async function () {
         const updatedKey = updateTokenInfoValues(
           utils.KeyValueType.CONTRACT_ID,
-          await tokenTransferContract.getAddress()
+          await tokenTransferContract.getAddress(),
         );
         const updateTokenKeyTx = await tokenManagmentContract
           .connect(signers[1])
@@ -1070,8 +1070,8 @@ describe('TokenManagmentContract Test Suite', function () {
 
         expect(
           (await updateTokenKeyTx.wait()).logs.filter(
-            (e) => e.fragment.name === Constants.Events.ResponseCode
-          )[0].args.responseCode
+            (e) => e.fragment.name === Constants.Events.ResponseCode,
+          )[0].args.responseCode,
         ).to.eq(TX_SUCCESS_CODE);
       });
     });
@@ -1081,7 +1081,7 @@ describe('TokenManagmentContract Test Suite', function () {
         tokenAddress = await utils.createFungibleTokenWithSECP256K1AdminKey(
           tokenCreateContract,
           signers[0].address,
-          utils.getSignerCompressedPublicKey()
+          utils.getSignerCompressedPublicKey(),
         );
 
         await hapi.updateTokenKeys(tokenAddress, [
@@ -1096,7 +1096,7 @@ describe('TokenManagmentContract Test Suite', function () {
         await utils.associateToken(
           tokenCreateContract,
           tokenAddress,
-          Constants.Contract.TokenCreateContract
+          Constants.Contract.TokenCreateContract,
         );
 
         await utils.grantTokenKyc(tokenCreateContract, tokenAddress);
@@ -1111,7 +1111,7 @@ describe('TokenManagmentContract Test Suite', function () {
             false,
             false,
             false,
-            false
+            false,
           );
 
           const pauseTokenTx = await tokenManagmentContract
@@ -1123,23 +1123,23 @@ describe('TokenManagmentContract Test Suite', function () {
 
           expect(
             (await pauseTokenTx.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.PausedToken
-            )[0].args.paused
+              (e) => e.fragment.name === Constants.Events.PausedToken,
+            )[0].args.paused,
           ).to.eq(true);
           expect(
             (await unpauseTokenTx.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.UnpausedToken
-            )[0].args.unpaused
+              (e) => e.fragment.name === Constants.Events.UnpausedToken,
+            )[0].args.unpaused,
           ).to.eq(true);
           expect(
             (await pauseTokenTx.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.ResponseCode
-            )[0].args.responseCode
+              (e) => e.fragment.name === Constants.Events.ResponseCode,
+            )[0].args.responseCode,
           ).to.eq(TX_SUCCESS_CODE);
           expect(
             (await unpauseTokenTx.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.ResponseCode
-            )[0].args.responseCode
+              (e) => e.fragment.name === Constants.Events.ResponseCode,
+            )[0].args.responseCode,
           ).to.eq(TX_SUCCESS_CODE);
         });
 
@@ -1152,21 +1152,21 @@ describe('TokenManagmentContract Test Suite', function () {
             false,
             false,
             false,
-            true
+            true,
           );
           const wipeAmount = 3;
           await tokenTransferContract.transferTokensPublic(
             tokenAddress,
             [signers[0].address, signers[1].address],
             [-wipeAmount, wipeAmount],
-            Constants.GAS_LIMIT_1_000_000
+            Constants.GAS_LIMIT_1_000_000,
           );
 
           const balanceBefore = await pollForNewERC20Balance(
             erc20Contract,
             tokenAddress,
             signers[1].address,
-            0n
+            0n,
           );
 
           const tx = await tokenManagmentContract
@@ -1174,21 +1174,21 @@ describe('TokenManagmentContract Test Suite', function () {
             .wipeTokenAccountPublic(
               tokenAddress,
               signers[1].address,
-              wipeAmount
+              wipeAmount,
             );
 
           const balanceAfter = await pollForNewERC20Balance(
             erc20Contract,
             tokenAddress,
             signers[1].address,
-            balanceBefore
+            balanceBefore,
           );
 
           expect(balanceAfter).to.eq(balanceBefore - BigInt(wipeAmount));
           expect(
             (await tx.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.ResponseCode
-            )[0].args.responseCode
+              (e) => e.fragment.name === Constants.Events.ResponseCode,
+            )[0].args.responseCode,
           ).to.eq(TX_SUCCESS_CODE);
         });
 
@@ -1201,19 +1201,19 @@ describe('TokenManagmentContract Test Suite', function () {
             false,
             true,
             false,
-            false
+            false,
           );
           const freezeTx = await tokenManagmentContract
             .connect(signers[1])
             .freezeTokenPublic(
               tokenAddress,
               await tokenCreateContract.getAddress(),
-              Constants.GAS_LIMIT_1_000_000
+              Constants.GAS_LIMIT_1_000_000,
             );
           const isFrozenTxBefore = await tokenQueryContract.isFrozenPublic(
             tokenAddress,
             await tokenCreateContract.getAddress(),
-            Constants.GAS_LIMIT_1_000_000
+            Constants.GAS_LIMIT_1_000_000,
           );
 
           const unfreezeTx = await tokenManagmentContract
@@ -1221,34 +1221,34 @@ describe('TokenManagmentContract Test Suite', function () {
             .unfreezeTokenPublic(
               tokenAddress,
               await tokenCreateContract.getAddress(),
-              Constants.GAS_LIMIT_1_000_000
+              Constants.GAS_LIMIT_1_000_000,
             );
           const isFrozenTxAfter = await tokenQueryContract.isFrozenPublic(
             tokenAddress,
             await tokenCreateContract.getAddress(),
-            Constants.GAS_LIMIT_1_000_000
+            Constants.GAS_LIMIT_1_000_000,
           );
 
           expect(
             (await isFrozenTxBefore.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.Frozen
-            )[0].args.frozen
+              (e) => e.fragment.name === Constants.Events.Frozen,
+            )[0].args.frozen,
           ).to.eq(true);
           expect(
             (await isFrozenTxAfter.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.Frozen
-            )[0].args.frozen
+              (e) => e.fragment.name === Constants.Events.Frozen,
+            )[0].args.frozen,
           ).to.eq(false);
 
           expect(
             (await freezeTx.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.ResponseCode
-            )[0].args.responseCode
+              (e) => e.fragment.name === Constants.Events.ResponseCode,
+            )[0].args.responseCode,
           ).to.eq(TX_SUCCESS_CODE);
           expect(
             (await unfreezeTx.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.ResponseCode
-            )[0].args.responseCode
+              (e) => e.fragment.name === Constants.Events.ResponseCode,
+            )[0].args.responseCode,
           ).to.eq(TX_SUCCESS_CODE);
         });
 
@@ -1261,19 +1261,19 @@ describe('TokenManagmentContract Test Suite', function () {
             false,
             false,
             false,
-            false
+            false,
           );
           const keyTxBefore = await tokenQueryContract.getTokenKeyPublic(
             tokenAddress,
             utils.KeyType.SUPPLY,
-            Constants.GAS_LIMIT_1_000_000
+            Constants.GAS_LIMIT_1_000_000,
           );
           const keyBefore = (await keyTxBefore.wait()).logs.filter(
-            (e) => e.fragment.name === Constants.Events.TokenKey
+            (e) => e.fragment.name === Constants.Events.TokenKey,
           )[0].args.key;
           const updatedKey = updateTokenInfoValues(
             utils.KeyValueType.CONTRACT_ID,
-            await tokenTransferContract.getAddress()
+            await tokenTransferContract.getAddress(),
           );
           const updateTokenKeyTx = await tokenManagmentContract
             .connect(signers[0])
@@ -1283,17 +1283,17 @@ describe('TokenManagmentContract Test Suite', function () {
           const keyTxAfter = await tokenQueryContract.getTokenKeyPublic(
             tokenAddress,
             utils.KeyType.SUPPLY,
-            Constants.GAS_LIMIT_1_000_000
+            Constants.GAS_LIMIT_1_000_000,
           );
           const keyAfter = (await keyTxAfter.wait()).logs.filter(
-            (e) => e.fragment.name === Constants.Events.TokenKey
+            (e) => e.fragment.name === Constants.Events.TokenKey,
           )[0].args.key;
 
           expect(keyBefore[1]).to.not.eq(keyAfter[1]);
           expect(
             (await updateTokenKeyTx.wait()).logs.filter(
-              (e) => e.fragment.name === Constants.Events.ResponseCode
-            )[0].args.responseCode
+              (e) => e.fragment.name === Constants.Events.ResponseCode,
+            )[0].args.responseCode,
           ).to.eq(TX_SUCCESS_CODE);
         });
       });
@@ -1302,7 +1302,7 @@ describe('TokenManagmentContract Test Suite', function () {
           tokenAddress = await utils.createFungibleTokenWithSECP256K1AdminKey(
             tokenCreateContract,
             signers[0].address,
-            utils.getSignerCompressedPublicKey()
+            utils.getSignerCompressedPublicKey(),
           );
         });
         it('should not be able to pause the token with different PAUSE key', async function () {
@@ -1327,7 +1327,7 @@ describe('TokenManagmentContract Test Suite', function () {
           await utils.associateToken(
             tokenCreateContract,
             tokenAddress,
-            Constants.Contract.TokenCreateContract
+            Constants.Contract.TokenCreateContract,
           );
           await utils.grantTokenKyc(tokenCreateContract, tokenAddress);
 
@@ -1335,7 +1335,7 @@ describe('TokenManagmentContract Test Suite', function () {
             tokenAddress,
             [signers[0].address, signers[1].address],
             [-wipeAmount, wipeAmount],
-            Constants.GAS_LIMIT_1_000_000
+            Constants.GAS_LIMIT_1_000_000,
           );
 
           // await until the new balance is settled for signers[1]
@@ -1343,7 +1343,7 @@ describe('TokenManagmentContract Test Suite', function () {
             erc20Contract,
             tokenAddress,
             signers[1].address,
-            0n
+            0n,
           );
 
           const wipeTokenTx = await tokenManagmentContract
@@ -1351,7 +1351,7 @@ describe('TokenManagmentContract Test Suite', function () {
             .wipeTokenAccountPublic(
               tokenAddress,
               signers[1].address,
-              wipeAmount
+              wipeAmount,
             );
           await utils.expectToFail(wipeTokenTx, Constants.CALL_EXCEPTION);
         });
@@ -1361,13 +1361,13 @@ describe('TokenManagmentContract Test Suite', function () {
             .connect(signers[1])
             .freezeTokenPublic(
               tokenAddress,
-              await tokenCreateContract.getAddress()
+              await tokenCreateContract.getAddress(),
             );
           const unfreezeTokenTx = await tokenManagmentContract
             .connect(signers[1])
             .unfreezeTokenPublic(
               tokenAddress,
-              await tokenCreateContract.getAddress()
+              await tokenCreateContract.getAddress(),
             );
 
           await utils.expectToFail(freezeTokenTx, Constants.CALL_EXCEPTION);
@@ -1377,7 +1377,7 @@ describe('TokenManagmentContract Test Suite', function () {
         it('should not be able to perform admin action with different ADMIN key', async function () {
           const updatedKey = updateTokenInfoValues(
             utils.KeyValueType.CONTRACT_ID,
-            await tokenTransferContract.getAddress()
+            await tokenTransferContract.getAddress(),
           );
           const updateTokenKeyTx = await tokenManagmentContract
             .connect(signers[1])
@@ -1399,44 +1399,43 @@ describe('TokenManagmentContract Test Suite', function () {
     let initialSupply;
     let maxSupply;
     let decimals;
-    let setFeeScheduleKey;
 
     before(async function () {
       // The owner of the fee token is the tokenCreateContract
       const adminKey = utils.constructIHederaTokenKey(
         'ADMIN',
         'SECP256K1',
-        utils.getSignerCompressedPublicKey(0)
+        utils.getSignerCompressedPublicKey(0),
       );
       const kycKey = utils.constructIHederaTokenKey(
         'KYC',
         'CONTRACT_ID',
-        await tokenCreateCustomContract.getAddress()
+        await tokenCreateCustomContract.getAddress(),
       );
       const freezeKey = utils.constructIHederaTokenKey(
         'FREEZE',
         'CONTRACT_ID',
-        await tokenCreateCustomContract.getAddress()
+        await tokenCreateCustomContract.getAddress(),
       );
       const wipeKey = utils.constructIHederaTokenKey(
         'WIPE',
         'CONTRACT_ID',
-        await tokenCreateCustomContract.getAddress()
+        await tokenCreateCustomContract.getAddress(),
       );
       const supplyKey = utils.constructIHederaTokenKey(
         'SUPPLY',
         'CONTRACT_ID',
-        await tokenCreateCustomContract.getAddress()
+        await tokenCreateCustomContract.getAddress(),
       );
       const feeKey = utils.constructIHederaTokenKey(
         'FEE',
         'CONTRACT_ID',
-        await tokenCreateCustomContract.getAddress()
+        await tokenCreateCustomContract.getAddress(),
       );
       const pauseKey = utils.constructIHederaTokenKey(
         'PAUSE',
         'CONTRACT_ID',
-        await tokenCreateCustomContract.getAddress()
+        await tokenCreateCustomContract.getAddress(),
       );
 
       keys = [
@@ -1466,7 +1465,7 @@ describe('TokenManagmentContract Test Suite', function () {
         2000000000,
         0,
         false,
-        tokenCreateCustomContractAddress
+        tokenCreateCustomContractAddress,
       );
     });
 
@@ -1490,7 +1489,7 @@ describe('TokenManagmentContract Test Suite', function () {
         signers[0].address,
         fixedFee,
         [],
-        keys
+        keys,
       );
       await hapi.updateTokenKeys(tokenWithFees, [
         tokenManagementContractAddress,
@@ -1511,14 +1510,14 @@ describe('TokenManagmentContract Test Suite', function () {
 
       const grantKycTx = await tokenCreateCustomContract.grantTokenKycPublic(
         feeToken,
-        tokenCreateCustomContractAddress
+        tokenCreateCustomContractAddress,
       );
       await grantKycTx.wait();
 
       const transferTx = await tokenTransferContract.transferTokensPublic(
         tokenWithFees,
         [signers[0].address, signers[1].address],
-        [-500, 500]
+        [-500, 500],
       );
       await transferTx.wait();
 
@@ -1526,7 +1525,7 @@ describe('TokenManagmentContract Test Suite', function () {
         feeToken,
         tokenTransferContract,
         1000,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       await approveTx.wait();
 
@@ -1535,7 +1534,7 @@ describe('TokenManagmentContract Test Suite', function () {
           feeToken,
           [tokenCreateCustomContractAddress, signers[1].address],
           [-150, 150],
-          Constants.GAS_LIMIT_1_000_000
+          Constants.GAS_LIMIT_1_000_000,
         );
       await transferFeeTokenToSigner1.wait();
 
@@ -1553,23 +1552,23 @@ describe('TokenManagmentContract Test Suite', function () {
         await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
           tokenWithFees,
           updatedFixedFee,
-          []
+          [],
         );
       const updateFeeResponseCode = (await updateFeeTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
       )[0].args.responseCode;
 
       const balanceBeforeTransferTokenWithFees1 = await hapi.getTokenBalance(
         signers[1].address,
-        tokenWithFees
+        tokenWithFees,
       );
       const balanceBeforeTransferTokenWithFees2 = await hapi.getTokenBalance(
         signers[2].address,
-        tokenWithFees
+        tokenWithFees,
       );
       const balanceBeforeTransferFeeToken1 = await hapi.getTokenBalance(
         signers[1].address,
-        feeToken
+        feeToken,
       );
 
       const transferBeforeFeeUpdate =
@@ -1577,37 +1576,37 @@ describe('TokenManagmentContract Test Suite', function () {
           tokenWithFees,
           [signers[1].address, signers[2].address],
           [-50, 50],
-          Constants.GAS_LIMIT_1_000_000
+          Constants.GAS_LIMIT_1_000_000,
         );
       await transferBeforeFeeUpdate.wait();
 
       const balanceAfterTransferTokenWithFees1 = await hapi.getTokenBalance(
         signers[1].address,
-        tokenWithFees
+        tokenWithFees,
       );
       const balanceAfterTransferTokenWithFees2 = await hapi.getTokenBalance(
         signers[2].address,
-        tokenWithFees
+        tokenWithFees,
       );
       const balanceAfterTransferFeeToken1 = await hapi.getTokenBalance(
         signers[1].address,
-        feeToken
+        feeToken,
       );
 
       expect(balanceAfterTransferTokenWithFees1).to.be.equal(
-        balanceBeforeTransferTokenWithFees1 - 50
+        balanceBeforeTransferTokenWithFees1 - 50,
       );
       expect(balanceAfterTransferTokenWithFees2).to.be.equal(
-        balanceBeforeTransferTokenWithFees2 + 50
+        balanceBeforeTransferTokenWithFees2 + 50,
       );
       expect(balanceAfterTransferFeeToken1).to.be.equal(
-        balanceBeforeTransferFeeToken1 - updatedTokenFeeAmount
+        balanceBeforeTransferFeeToken1 - updatedTokenFeeAmount,
       );
 
       const tokenInfoTx =
         await tokenQueryContract.getTokenInfoPublic(tokenWithFees);
       const tokenInfoResponse = (await tokenInfoTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.TokenInfo
+        (e) => e.fragment.name === Constants.Events.TokenInfo,
       )[0].args.tokenInfo;
 
       expect(tokenInfoResponse[5].length).to.be.greaterThan(0);
@@ -1631,7 +1630,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[0].address,
           fixedFee,
           [],
-          keys
+          keys,
         );
       await hapi.updateTokenKeys(tokenWithFixedHbarFee, [
         tokenManagementContractAddress,
@@ -1641,43 +1640,39 @@ describe('TokenManagmentContract Test Suite', function () {
       await utils.associateAndGrantKyc(
         tokenCreateContract,
         tokenWithFixedHbarFee,
-        [signers[1].address, signers[2].address]
+        [signers[1].address, signers[2].address],
       );
 
       const transferFromContract =
         await tokenTransferContract.transferTokensPublic(
           tokenWithFixedHbarFee,
           [signers[0].address, signers[1].address],
-          [-500, 500]
+          [-500, 500],
         );
-      const transferFromContractReceipt = await transferFromContract.wait();
+      await transferFromContract.wait();
 
       const balanceBeforeTransfer0 = await hapi.getHbarBalance(
-        signers[1].address
+        signers[1].address,
       );
-      const balanceBeforeTransferContract0 = await hapi.getHbarBalance(
-        signers[2].address
-      );
+      await hapi.getHbarBalance(signers[2].address);
 
       const transferBeforeFeeUpdate =
         await tokenTransferContract.transferTokensPublic(
           tokenWithFixedHbarFee,
           [signers[1].address, signers[2].address],
           [-50, 50],
-          Constants.GAS_LIMIT_1_000_000
+          Constants.GAS_LIMIT_1_000_000,
         );
       await transferBeforeFeeUpdate.wait();
 
       const balanceAfterTransfer = await hapi.getHbarBalance(
-        signers[1].address
+        signers[1].address,
       );
-      const balanceAfterTransferContract = await hapi.getHbarBalance(
-        signers[2].address
-      );
+      await hapi.getHbarBalance(signers[2].address);
 
       expect(parseFloat(balanceAfterTransfer)).to.be.equal(
         parseFloat(balanceBeforeTransfer0) -
-        parseFloat(tenHbars / utils.tinybarToHbarCoef)
+          parseFloat(tenHbars / utils.tinybarToHbarCoef),
       );
       const updatedFixedFee = [
         {
@@ -1693,10 +1688,10 @@ describe('TokenManagmentContract Test Suite', function () {
         await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
           tokenWithFixedHbarFee,
           updatedFixedFee,
-          []
+          [],
         );
       const updateFeeResponseCode = (await updateFeeTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
       )[0].args.responseCode;
 
       const transferAfterFeeUpdate =
@@ -1704,24 +1699,22 @@ describe('TokenManagmentContract Test Suite', function () {
           tokenWithFixedHbarFee,
           [signers[1].address, signers[2].address],
           [-50, 50],
-          Constants.GAS_LIMIT_1_000_000
+          Constants.GAS_LIMIT_1_000_000,
         );
       await transferAfterFeeUpdate.wait();
       const balanceAfterUpdate = await hapi.getHbarBalance(signers[1].address);
-      const balanceAfterUpdateContract = await hapi.getHbarBalance(
-        signers[2].address
-      );
+      await hapi.getHbarBalance(signers[2].address);
 
       expect(parseFloat(balanceAfterUpdate)).to.be.equal(
         parseFloat(balanceAfterTransfer) -
-        parseFloat(twentyHbars / utils.tinybarToHbarCoef)
+          parseFloat(twentyHbars / utils.tinybarToHbarCoef),
       );
       const tokenInfoTx = await tokenQueryContract.getTokenInfoPublic(
-        tokenWithFixedHbarFee
+        tokenWithFixedHbarFee,
       );
 
       const tokenInfoResponse = (await tokenInfoTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.TokenInfo
+        (e) => e.fragment.name === Constants.Events.TokenInfo,
       )[0].args.tokenInfo;
 
       expect(tokenInfoResponse[5].length).to.be.greaterThan(0);
@@ -1745,7 +1738,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[0].address,
           fixedFeeSameToken,
           [],
-          keys
+          keys,
         );
 
       await hapi.updateTokenKeys(tokenWithFixedFeeInSameToken, [
@@ -1757,7 +1750,7 @@ describe('TokenManagmentContract Test Suite', function () {
       await utils.associateAndGrantKyc(
         tokenCreateContract,
         tokenWithFixedFeeInSameToken,
-        [signers[1].address]
+        [signers[1].address],
       );
 
       const transferTokenFromTreasury =
@@ -1765,7 +1758,7 @@ describe('TokenManagmentContract Test Suite', function () {
           tokenWithFixedFeeInSameToken,
           [signers[0].address, signers[1].address],
           [-500, 500],
-          Constants.GAS_LIMIT_1_000_000
+          Constants.GAS_LIMIT_1_000_000,
         );
       await transferTokenFromTreasury.wait();
 
@@ -1783,19 +1776,19 @@ describe('TokenManagmentContract Test Suite', function () {
         await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
           tokenWithFixedFeeInSameToken,
           fixedFeeSameTokenUpdated,
-          []
+          [],
         );
       await updateFeeTx.wait();
 
       const updateFeeResponseCode = (await updateFeeTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
       )[0].args.responseCode;
       const tokenInfoTx = await tokenQueryContract.getTokenInfoPublic(
-        tokenWithFixedFeeInSameToken
+        tokenWithFixedFeeInSameToken,
       );
 
       const tokenInfoResponse = (await tokenInfoTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.TokenInfo
+        (e) => e.fragment.name === Constants.Events.TokenInfo,
       )[0].args.tokenInfo;
 
       expect(tokenInfoResponse[5].length).to.be.greaterThan(0);
@@ -1812,20 +1805,20 @@ describe('TokenManagmentContract Test Suite', function () {
         maxSupply,
         decimals,
         false,
-        signers[3].address
+        signers[3].address,
       );
       //need to associate the fee collector account of the token that will have fees
       // with the fee token, since otherwise the collector won't be able to receive this token
       const associateTx = await tokenCreateCustomContract.associateTokenPublic(
         signers[0].address,
         feeToken2,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       await associateTx.wait();
       const associateTx2 = await tokenCreateCustomContract.associateTokenPublic(
         signers[0].address,
         feeToken,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       await associateTx2.wait();
 
@@ -1850,10 +1843,10 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[0].address,
           [fixedFee, fixedFee2],
           [],
-          keys
+          keys,
         );
       expect(
-        await hapi.getTokenBalance(signers[0].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[0].address, tokenWithFees),
       ).to.be.equal(utils.initialSupply);
       await hapi.updateTokenKeys(tokenWithFees, [
         tokenManagementContractAddress,
@@ -1865,7 +1858,7 @@ describe('TokenManagmentContract Test Suite', function () {
       const associateTx3 = await tokenCreateCustomContract.associateTokenPublic(
         signers[2].address,
         feeToken2,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       await associateTx3.wait();
 
@@ -1888,15 +1881,15 @@ describe('TokenManagmentContract Test Suite', function () {
         await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
           tokenWithFees,
           [updatedFixedFee, updatedFixedFee2],
-          []
+          [],
         );
       const updateFeeResponseCode = (await updateFeeTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
       )[0].args.responseCode;
       const tokenInfoTx =
         await tokenQueryContract.getTokenInfoPublic(tokenWithFees);
       const tokenInfoResponse = (await tokenInfoTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.TokenInfo
+        (e) => e.fragment.name === Constants.Events.TokenInfo,
       )[0].args.tokenInfo;
 
       expect(tokenInfoResponse[5].length).to.be.greaterThan(0);
@@ -1933,7 +1926,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[0].address,
           [fixedFee, fixedFee2],
           [],
-          keys
+          keys,
         );
       await hapi.updateTokenKeys(tokenWithFixedHbarFee, [
         tokenManagementContractAddress,
@@ -1943,19 +1936,19 @@ describe('TokenManagmentContract Test Suite', function () {
       await utils.associateAndGrantKyc(
         tokenCreateContract,
         tokenWithFixedHbarFee,
-        [signers[1].address, signers[2].address]
+        [signers[1].address, signers[2].address],
       );
 
       const transferFromContract =
         await tokenTransferContract.transferTokensPublic(
           tokenWithFixedHbarFee,
           [signers[0].address, signers[1].address],
-          [-500, 500]
+          [-500, 500],
         );
       await transferFromContract.wait();
 
       const balanceBeforeTransfer0 = await hapi.getHbarBalance(
-        signers[1].address
+        signers[1].address,
       );
 
       const transferBeforeFeeUpdate =
@@ -1963,17 +1956,17 @@ describe('TokenManagmentContract Test Suite', function () {
           tokenWithFixedHbarFee,
           [signers[1].address, signers[2].address],
           [-50, 50],
-          Constants.GAS_LIMIT_1_000_000
+          Constants.GAS_LIMIT_1_000_000,
         );
       await transferBeforeFeeUpdate.wait();
 
       const balanceAfterTransfer = await hapi.getHbarBalance(
-        signers[1].address
+        signers[1].address,
       );
 
       expect(parseFloat(balanceAfterTransfer)).to.be.equal(
         parseFloat(balanceBeforeTransfer0) -
-        parseFloat((tenHbars + thirtyHbars) / utils.tinybarToHbarCoef)
+          parseFloat((tenHbars + thirtyHbars) / utils.tinybarToHbarCoef),
       );
       const updatedFixedFee = {
         amount: twentyHbars,
@@ -1993,10 +1986,10 @@ describe('TokenManagmentContract Test Suite', function () {
         await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
           tokenWithFixedHbarFee,
           [updatedFixedFee, updatedFixedFee2],
-          []
+          [],
         );
       const updateFeeResponseCode = (await updateFeeTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
       )[0].args.responseCode;
 
       const transferAfterFeeUpdate =
@@ -2004,21 +1997,21 @@ describe('TokenManagmentContract Test Suite', function () {
           tokenWithFixedHbarFee,
           [signers[1].address, signers[2].address],
           [-50, 50],
-          Constants.GAS_LIMIT_1_000_000
+          Constants.GAS_LIMIT_1_000_000,
         );
       await transferAfterFeeUpdate.wait();
       const balanceAfterUpdate = await hapi.getHbarBalance(signers[1].address);
 
       expect(parseFloat(balanceAfterUpdate)).to.be.equal(
         parseFloat(balanceAfterTransfer) -
-        parseFloat((twentyHbars * 2) / utils.tinybarToHbarCoef)
+          parseFloat((twentyHbars * 2) / utils.tinybarToHbarCoef),
       );
 
       const tokenInfoTx = await tokenQueryContract.getTokenInfoPublic(
-        tokenWithFixedHbarFee
+        tokenWithFixedHbarFee,
       );
       const tokenInfoResponse = (await tokenInfoTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.TokenInfo
+        (e) => e.fragment.name === Constants.Events.TokenInfo,
       )[0].args.tokenInfo;
 
       expect(tokenInfoResponse[5].length).to.be.greaterThan(0);
@@ -2038,12 +2031,12 @@ describe('TokenManagmentContract Test Suite', function () {
         maxSupply,
         decimals,
         false,
-        signers[3].address
+        signers[3].address,
       );
       await utils.associateToken(
         tokenCreateCustomContract,
         feeToken2,
-        Constants.Contract.TokenCreateContract
+        Constants.Contract.TokenCreateContract,
       );
 
       const fractionalFee = {
@@ -2067,7 +2060,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[0].address,
           [fixedFee2],
           [fractionalFee],
-          keys
+          keys,
         );
 
       await hapi.updateTokenKeys(tokenWithFees, [
@@ -2098,7 +2091,7 @@ describe('TokenManagmentContract Test Suite', function () {
       const transferTx = await tokenTransferContract.transferTokensPublic(
         tokenWithFees,
         [signers[0].address, signers[1].address],
-        [-500, 500]
+        [-500, 500],
       );
       await transferTx.wait();
 
@@ -2106,15 +2099,15 @@ describe('TokenManagmentContract Test Suite', function () {
         await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
           tokenWithFees,
           [],
-          updatedFractionalFee
+          updatedFractionalFee,
         );
       const updateFeeResponseCode = (await updateFeeTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
       )[0].args.responseCode;
       const tokenInfoTx =
         await tokenQueryContract.getTokenInfoPublic(tokenWithFees);
       const tokenInfoResponse = (await tokenInfoTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.TokenInfo
+        (e) => e.fragment.name === Constants.Events.TokenInfo,
       )[0].args.tokenInfo;
 
       // fractional fee is at position 7 in the tokenInfo array
@@ -2125,32 +2118,32 @@ describe('TokenManagmentContract Test Suite', function () {
 
       const feeCollectorBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[0].address,
-        tokenWithFees
+        tokenWithFees,
       );
       const senderBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[1].address,
-        tokenWithFees
+        tokenWithFees,
       );
       const feeToBeCharged = Math.floor(
-        (400 * updatedFractionalFeeNumerator) / fractionalFeeDenominator
+        (400 * updatedFractionalFeeNumerator) / fractionalFeeDenominator,
       );
       const transferTx1 = await tokenTransferContract.transferTokensPublic(
         tokenWithFees,
         [signers[1].address, signers[2].address],
         [-400, 400],
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       await transferTx1.wait();
 
       //ensure the fee has been updated and collected
       expect(
-        await hapi.getTokenBalance(signers[0].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[0].address, tokenWithFees),
       ).to.be.equal(feeCollectorBalanceBeforeTransfer + feeToBeCharged);
       expect(
-        await hapi.getTokenBalance(signers[1].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[1].address, tokenWithFees),
       ).to.be.equal(senderBalanceBeforeTransfer - 400);
       expect(
-        await hapi.getTokenBalance(signers[2].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[2].address, tokenWithFees),
       ).to.be.equal(400 - feeToBeCharged);
     });
 
@@ -2166,12 +2159,12 @@ describe('TokenManagmentContract Test Suite', function () {
         maxSupply,
         decimals,
         false,
-        signers[3].address
+        signers[3].address,
       );
       await utils.associateToken(
         tokenCreateCustomContract,
         feeToken2,
-        Constants.Contract.TokenCreateContract
+        Constants.Contract.TokenCreateContract,
       );
 
       const fractionalFee = {
@@ -2195,7 +2188,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[0].address,
           [fixedFee2],
           [fractionalFee],
-          keys
+          keys,
         );
 
       await hapi.updateTokenKeys(tokenWithFees, [
@@ -2228,7 +2221,7 @@ describe('TokenManagmentContract Test Suite', function () {
       const transferTx = await tokenTransferContract.transferTokensPublic(
         tokenWithFees,
         [signers[0].address, signers[1].address],
-        [-1000, 1000]
+        [-1000, 1000],
       );
       await transferTx.wait();
 
@@ -2236,15 +2229,15 @@ describe('TokenManagmentContract Test Suite', function () {
         await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
           tokenWithFees,
           [],
-          updatedFractionalFee
+          updatedFractionalFee,
         );
       const updateFeeResponseCode = (await updateFeeTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
       )[0].args.responseCode;
       const tokenInfoTx =
         await tokenQueryContract.getTokenInfoPublic(tokenWithFees);
       const tokenInfoResponse = (await tokenInfoTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.TokenInfo
+        (e) => e.fragment.name === Constants.Events.TokenInfo,
       )[0].args.tokenInfo;
 
       // fractional fee is at position 7 in the tokenInfo array
@@ -2255,32 +2248,32 @@ describe('TokenManagmentContract Test Suite', function () {
 
       const feeCollectorBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[0].address,
-        tokenWithFees
+        tokenWithFees,
       );
       const senderBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[1].address,
-        tokenWithFees
+        tokenWithFees,
       );
       const feeToBeCharged = Math.floor(
-        (400 * updatedFractionalFeeNumerator) / fractionalFeeDenominator
+        (400 * updatedFractionalFeeNumerator) / fractionalFeeDenominator,
       );
       const transferTx1 = await tokenTransferContract.transferTokensPublic(
         tokenWithFees,
         [signers[1].address, signers[2].address],
         [-400, 400],
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       await transferTx1.wait();
 
       //ensure the fee has been updated and collected
       expect(
-        await hapi.getTokenBalance(signers[0].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[0].address, tokenWithFees),
       ).to.be.equal(feeCollectorBalanceBeforeTransfer + feeToBeCharged);
       expect(
-        await hapi.getTokenBalance(signers[1].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[1].address, tokenWithFees),
       ).to.be.equal(senderBalanceBeforeTransfer - 400 - feeToBeCharged);
       expect(
-        await hapi.getTokenBalance(signers[2].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[2].address, tokenWithFees),
       ).to.be.equal(400);
     });
 
@@ -2298,12 +2291,12 @@ describe('TokenManagmentContract Test Suite', function () {
         maxSupply,
         decimals,
         false,
-        signers[3].address
+        signers[3].address,
       );
       await utils.associateToken(
         tokenCreateCustomContract,
         feeToken2,
-        Constants.Contract.TokenCreateCustomContract
+        Constants.Contract.TokenCreateCustomContract,
       );
 
       const fixedFeeAmount = tokenFeeAmount + 50;
@@ -2336,7 +2329,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[0].address,
           [fixedFee2],
           [fractionalFee, fractionalFee2],
-          keys
+          keys,
         );
 
       await hapi.updateTokenKeys(tokenWithFees, [
@@ -2372,12 +2365,12 @@ describe('TokenManagmentContract Test Suite', function () {
       await utils.associateAndGrantKyc(
         tokenCreateCustomContract,
         tokenWithFees,
-        [signers[1].address, signers[2].address]
+        [signers[1].address, signers[2].address],
       );
       const transferTx = await tokenTransferContract.transferTokensPublic(
         tokenWithFees,
         [signers[0].address, signers[1].address],
-        [-500, 500]
+        [-500, 500],
       );
       await transferTx.wait();
 
@@ -2385,15 +2378,15 @@ describe('TokenManagmentContract Test Suite', function () {
         await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
           tokenWithFees,
           [],
-          updatedFractionalFee
+          updatedFractionalFee,
         );
       const updateFeeResponseCode = (await updateFeeTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.ResponseCode
+        (e) => e.fragment.name === Constants.Events.ResponseCode,
       )[0].args.responseCode;
       const tokenInfoTx =
         await tokenQueryContract.getTokenInfoPublic(tokenWithFees);
       const tokenInfoResponse = (await tokenInfoTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.TokenInfo
+        (e) => e.fragment.name === Constants.Events.TokenInfo,
       )[0].args.tokenInfo;
 
       // fractional fee is at position 7 in the tokenInfo array
@@ -2405,37 +2398,37 @@ describe('TokenManagmentContract Test Suite', function () {
 
       const feeCollectorBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[0].address,
-        tokenWithFees
+        tokenWithFees,
       );
       const senderBalanceBeforeTransfer = await hapi.getTokenBalance(
         signers[1].address,
-        tokenWithFees
+        tokenWithFees,
       );
       const feeToBeCharged = Math.floor(
         400 *
-        ((updatedFractionalFeeNumerator + updatedFractionalFeeNumerator2) /
-          fractionalFeeDenominator)
+          ((updatedFractionalFeeNumerator + updatedFractionalFeeNumerator2) /
+            fractionalFeeDenominator),
       );
 
       const transferTx1 = await tokenTransferContract.transferTokensPublic(
         tokenWithFees,
         [signers[1].address, signers[2].address],
         [-400, 400],
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       await transferTx1.wait();
 
       const signer2BalanceAfterTransfer = await hapi.getTokenBalance(
         signers[2].address,
-        tokenWithFees
+        tokenWithFees,
       );
 
       //ensure the fee has been updated and collected
       expect(
-        await hapi.getTokenBalance(signers[0].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[0].address, tokenWithFees),
       ).to.be.equal(feeCollectorBalanceBeforeTransfer + feeToBeCharged);
       expect(
-        await hapi.getTokenBalance(signers[1].address, tokenWithFees)
+        await hapi.getTokenBalance(signers[1].address, tokenWithFees),
       ).to.be.equal(senderBalanceBeforeTransfer - 400);
       expect(signer2BalanceAfterTransfer).to.be.equal(400 - feeToBeCharged);
     });
@@ -2457,7 +2450,7 @@ describe('TokenManagmentContract Test Suite', function () {
         signers[0].address,
         fixedFees,
         royaltyFees,
-        keys
+        keys,
       );
       const nftTx = await utils.mintNFT(tokenCreateCustomContract, nft);
 
@@ -2470,7 +2463,7 @@ describe('TokenManagmentContract Test Suite', function () {
         nft,
         signers[0].address,
         signers[1].address,
-        nftTx
+        nftTx,
       );
       await transferNft.wait();
 
@@ -2492,15 +2485,15 @@ describe('TokenManagmentContract Test Suite', function () {
         await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
           nft,
           [],
-          updatedRoyaltyFee
+          updatedRoyaltyFee,
         );
       await updateRoyaltyFeeTx.wait();
 
       const beforeNftTransferHbars2 = await hapi.getHbarBalance(
-        signers[2].address
+        signers[2].address,
       );
       const beforeNftTransferHbars3 = await hapi.getHbarBalance(
-        signers[3].address
+        signers[3].address,
       );
 
       const transferNftToSigner3 =
@@ -2508,22 +2501,22 @@ describe('TokenManagmentContract Test Suite', function () {
           nft,
           signers[1].address,
           signers[3].address,
-          nftTx
+          nftTx,
         );
       await transferNftToSigner3.wait();
 
       expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
       expect(
-        parseFloat(await hapi.getHbarBalance(signers[2].address))
+        parseFloat(await hapi.getHbarBalance(signers[2].address)),
       ).to.equal(
         beforeNftTransferHbars2 +
-        parseFloat(twentyHbars / utils.tinybarToHbarCoef)
+          parseFloat(twentyHbars / utils.tinybarToHbarCoef),
       );
       expect(
-        parseFloat(await hapi.getHbarBalance(signers[3].address))
+        parseFloat(await hapi.getHbarBalance(signers[3].address)),
       ).to.equal(
         beforeNftTransferHbars3 -
-        parseFloat(twentyHbars / utils.tinybarToHbarCoef)
+          parseFloat(twentyHbars / utils.tinybarToHbarCoef),
       );
     });
 
@@ -2544,7 +2537,7 @@ describe('TokenManagmentContract Test Suite', function () {
         signers[0].address,
         fixedFees,
         royaltyFees,
-        keys
+        keys,
       );
       const nftTx = await utils.mintNFT(tokenCreateCustomContract, nft);
 
@@ -2557,7 +2550,7 @@ describe('TokenManagmentContract Test Suite', function () {
         nft,
         signers[0].address,
         signers[1].address,
-        nftTx
+        nftTx,
       );
       await transferNft.wait();
 
@@ -2587,15 +2580,15 @@ describe('TokenManagmentContract Test Suite', function () {
         await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
           nft,
           [],
-          updatedRoyaltyFee
+          updatedRoyaltyFee,
         );
       await updateRoyaltyFeeTx.wait();
 
       const beforeNftTransferHbars2 = await hapi.getHbarBalance(
-        signers[2].address
+        signers[2].address,
       );
       const beforeNftTransferHbars3 = await hapi.getHbarBalance(
-        signers[3].address
+        signers[3].address,
       );
 
       const transferNftToSigner3 =
@@ -2603,22 +2596,22 @@ describe('TokenManagmentContract Test Suite', function () {
           nft,
           signers[1].address,
           signers[3].address,
-          nftTx
+          nftTx,
         );
       await transferNftToSigner3.wait();
 
       expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
       expect(
-        parseFloat(await hapi.getHbarBalance(signers[2].address))
+        parseFloat(await hapi.getHbarBalance(signers[2].address)),
       ).to.equal(
         beforeNftTransferHbars2 +
-        parseFloat((twentyHbars + tenHbars) / utils.tinybarToHbarCoef)
+          parseFloat((twentyHbars + tenHbars) / utils.tinybarToHbarCoef),
       );
       expect(
-        parseFloat(await hapi.getHbarBalance(signers[3].address))
+        parseFloat(await hapi.getHbarBalance(signers[3].address)),
       ).to.equal(
         beforeNftTransferHbars3 -
-        parseFloat((twentyHbars + tenHbars) / utils.tinybarToHbarCoef)
+          parseFloat((twentyHbars + tenHbars) / utils.tinybarToHbarCoef),
       );
     });
 
@@ -2638,7 +2631,7 @@ describe('TokenManagmentContract Test Suite', function () {
         signers[0].address,
         fixedFees,
         royaltyFees,
-        keys
+        keys,
       );
       const nftTx = await utils.mintNFT(tokenCreateCustomContract, nft);
 
@@ -2651,7 +2644,7 @@ describe('TokenManagmentContract Test Suite', function () {
         nft,
         signers[0].address,
         signers[1].address,
-        nftTx
+        nftTx,
       );
       await transferNft.wait();
 
@@ -2672,15 +2665,15 @@ describe('TokenManagmentContract Test Suite', function () {
         await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
           nft,
           updatedfixedFees,
-          []
+          [],
         );
       await updateRoyaltyFeeTx.wait();
 
       const beforeNftTransferHbars2 = await hapi.getHbarBalance(
-        signers[2].address
+        signers[2].address,
       );
       const beforeNftTransferHbars1 = await hapi.getHbarBalance(
-        signers[1].address
+        signers[1].address,
       );
 
       const transferNftToSigner3 =
@@ -2688,22 +2681,22 @@ describe('TokenManagmentContract Test Suite', function () {
           nft,
           signers[1].address,
           signers[3].address,
-          nftTx
+          nftTx,
         );
       await transferNftToSigner3.wait();
 
       expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
       expect(
-        parseFloat(await hapi.getHbarBalance(signers[2].address))
+        parseFloat(await hapi.getHbarBalance(signers[2].address)),
       ).to.equal(
         beforeNftTransferHbars2 +
-        parseFloat(twentyHbars / utils.tinybarToHbarCoef)
+          parseFloat(twentyHbars / utils.tinybarToHbarCoef),
       );
       expect(
-        parseFloat(await hapi.getHbarBalance(signers[1].address))
+        parseFloat(await hapi.getHbarBalance(signers[1].address)),
       ).to.equal(
         beforeNftTransferHbars1 -
-        parseFloat(twentyHbars / utils.tinybarToHbarCoef)
+          parseFloat(twentyHbars / utils.tinybarToHbarCoef),
       );
     });
 
@@ -2711,13 +2704,13 @@ describe('TokenManagmentContract Test Suite', function () {
       await utils.associateToken(
         tokenCreateCustomContract,
         feeToken,
-        Constants.Contract.TokenCreateCustomContract
+        Constants.Contract.TokenCreateCustomContract,
       );
       //we need to grant kyc and associate token with the fee collector, which is signer[0]
       const grantKycFeeCollectorFeeToken =
         await tokenCreateCustomContract.grantTokenKycPublic(
           feeToken,
-          signers[0].address
+          signers[0].address,
         );
       await grantKycFeeCollectorFeeToken.wait();
 
@@ -2736,7 +2729,7 @@ describe('TokenManagmentContract Test Suite', function () {
         signers[0].address,
         fixedFees,
         royaltyFees,
-        keys
+        keys,
       );
       const nftTx = await utils.mintNFT(tokenCreateCustomContract, nft);
 
@@ -2748,7 +2741,7 @@ describe('TokenManagmentContract Test Suite', function () {
         nft,
         signers[0].address,
         signers[1].address,
-        nftTx
+        nftTx,
       );
       await transferNft.wait();
 
@@ -2770,26 +2763,21 @@ describe('TokenManagmentContract Test Suite', function () {
         await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
           nft,
           updatedfixedFees,
-          []
+          [],
         );
       await updateRoyaltyFeeTx.wait();
 
-      const beforeNftTransferHbars2 = await hapi.getHbarBalance(
-        signers[2].address
-      );
-      const beforeNftTransferHbars1 = await hapi.getHbarBalance(
-        signers[1].address
-      );
+      await hapi.getHbarBalance(signers[2].address);
+      await hapi.getHbarBalance(signers[1].address);
 
       // need to grant kyc from the account which is the kyc key a.k.a tokenCreateCustomContract
       //should work witho another contract if token keys are updated
       const grantKycSigner1FeeToken =
         await tokenCreateCustomContract.grantTokenKycPublic(
           feeToken,
-          signers[1].address
+          signers[1].address,
         );
-      const grantKycSigner1FeeTokenReceipt =
-        await grantKycSigner1FeeToken.wait();
+      await grantKycSigner1FeeToken.wait();
 
       // ---------- send fee token to signer 1 ------------
 
@@ -2799,52 +2787,52 @@ describe('TokenManagmentContract Test Suite', function () {
         feeToken,
         tokenTransferContract,
         1000,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       await approveTx.wait();
       const transferFeeToken = await tokenTransferContract.transferTokensPublic(
         feeToken,
         [tokenCreateCustomContractAddress, signers[1].address],
-        [-500, 500]
+        [-500, 500],
       );
       await transferFeeToken.wait();
 
       const balanceBeforeFeeCollector = await hapi.getTokenBalance(
         signers[0].address,
-        feeToken
+        feeToken,
       );
       const balanceBeforeSigner1 = await hapi.getTokenBalance(
         signers[1].address,
-        feeToken
+        feeToken,
       );
       const transferNftToSigner3 =
-          await tokenTransferContract.transferNFTPublic(
-            nft,
-            signers[1].address,
-            signers[3].address,
-            nftTx
-          );
-        await transferNftToSigner3.wait();
-        expect(
-          await hapi.getTokenBalance(signers[1].address, feeToken)
-        ).to.equal(balanceBeforeSigner1 - (tokenFeeAmount + 13));
-        expect(
-          await hapi.getTokenBalance(signers[0].address, feeToken)
-        ).to.equal(balanceBeforeFeeCollector + (tokenFeeAmount + 13));
-        expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
+        await tokenTransferContract.transferNFTPublic(
+          nft,
+          signers[1].address,
+          signers[3].address,
+          nftTx,
+        );
+      await transferNftToSigner3.wait();
+      expect(await hapi.getTokenBalance(signers[1].address, feeToken)).to.equal(
+        balanceBeforeSigner1 - (tokenFeeAmount + 13),
+      );
+      expect(await hapi.getTokenBalance(signers[0].address, feeToken)).to.equal(
+        balanceBeforeFeeCollector + (tokenFeeAmount + 13),
+      );
+      expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
     });
 
     xit('should be able to update fixed HTS fee and royalty fee in NFT', async function () {
       await utils.associateToken(
         tokenCreateCustomContract,
         feeToken,
-        Constants.Contract.TokenCreateContract
+        Constants.Contract.TokenCreateContract,
       );
       //we need to grant kyc and associate token with the fee collector, which is signer[0]
       const grantKycFeeCollectorFeeToken =
         await tokenCreateCustomContract.grantTokenKycPublic(
           feeToken,
-          signers[0].address
+          signers[0].address,
         );
       await grantKycFeeCollectorFeeToken.wait();
 
@@ -2872,7 +2860,7 @@ describe('TokenManagmentContract Test Suite', function () {
         signers[0].address,
         fixedFees,
         royaltyFees,
-        keys
+        keys,
       );
       const nftTx = await utils.mintNFT(tokenCreateCustomContract, nft);
 
@@ -2884,7 +2872,7 @@ describe('TokenManagmentContract Test Suite', function () {
         nft,
         signers[0].address,
         signers[1].address,
-        nftTx
+        nftTx,
       );
       await transferNft.wait();
 
@@ -2916,7 +2904,7 @@ describe('TokenManagmentContract Test Suite', function () {
         await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
           nft,
           updatedfixedFees,
-          updatedRoyaltyFee
+          updatedRoyaltyFee,
         );
       await updateRoyaltyFeeTx.wait();
 
@@ -2927,7 +2915,7 @@ describe('TokenManagmentContract Test Suite', function () {
       const tokenInfoTx =
         await tokenQueryContract.getNonFungibleTokenInfoPublic(nft, nftTx);
       const tokenInfoResponse = (await tokenInfoTx.wait()).logs.filter(
-        (e) => e.fragment.name === Constants.Events.NonFungibleTokenInfo
+        (e) => e.fragment.name === Constants.Events.NonFungibleTokenInfo,
       )[0].args.tokenInfo;
 
       // fractional fee is at position 7 in the tokenInfo array
@@ -2944,10 +2932,9 @@ describe('TokenManagmentContract Test Suite', function () {
       const grantKycSigner1FeeToken =
         await tokenCreateCustomContract.grantTokenKycPublic(
           feeToken,
-          signers[1].address
+          signers[1].address,
         );
-      const grantKycSigner1FeeTokenReceipt =
-        await grantKycSigner1FeeToken.wait();
+      await grantKycSigner1FeeToken.wait();
 
       // ---------- send fee token to signer 1 ------------
 
@@ -2957,58 +2944,58 @@ describe('TokenManagmentContract Test Suite', function () {
         feeToken,
         tokenTransferContract,
         1000,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
       await approveTx.wait();
 
       const transferFeeToken = await tokenTransferContract.transferTokensPublic(
         feeToken,
         [tokenCreateCustomContractAddress, signers[1].address],
-        [-500, 500]
+        [-500, 500],
       );
       await transferFeeToken.wait();
 
       const balanceBeforeFeeCollector = await hapi.getTokenBalance(
         signers[0].address,
-        feeToken
+        feeToken,
       );
       const balanceBeforeSigner1 = await hapi.getTokenBalance(
         signers[1].address,
-        feeToken
+        feeToken,
       );
       const beforeNftTransferHbars2 = await hapi.getHbarBalance(
-        signers[2].address
+        signers[2].address,
       );
       const beforeNftTransferHbars3 = await hapi.getHbarBalance(
-        signers[3].address
+        signers[3].address,
       );
       const transferNftToSigner3 =
         await tokenTransferContract.transferNFTPublic(
           nft,
           signers[1].address,
           signers[3].address,
-          nftTx
+          nftTx,
         );
       await transferNftToSigner3.wait();
 
-      expect(
-        await hapi.getTokenBalance(signers[1].address, feeToken)
-      ).to.equal(balanceBeforeSigner1 - (tokenFeeAmount + 13));
-      expect(
-        await hapi.getTokenBalance(signers[0].address, feeToken)
-      ).to.equal(balanceBeforeFeeCollector + (tokenFeeAmount + 13));
+      expect(await hapi.getTokenBalance(signers[1].address, feeToken)).to.equal(
+        balanceBeforeSigner1 - (tokenFeeAmount + 13),
+      );
+      expect(await hapi.getTokenBalance(signers[0].address, feeToken)).to.equal(
+        balanceBeforeFeeCollector + (tokenFeeAmount + 13),
+      );
       expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
       expect(
-        parseFloat(await hapi.getHbarBalance(signers[2].address))
+        parseFloat(await hapi.getHbarBalance(signers[2].address)),
       ).to.equal(
         beforeNftTransferHbars2 +
-        parseFloat(twentyHbars / utils.tinybarToHbarCoef)
+          parseFloat(twentyHbars / utils.tinybarToHbarCoef),
       );
       expect(
-        parseFloat(await hapi.getHbarBalance(signers[3].address))
+        parseFloat(await hapi.getHbarBalance(signers[3].address)),
       ).to.equal(
         beforeNftTransferHbars3 -
-        parseFloat(twentyHbars / utils.tinybarToHbarCoef)
+          parseFloat(twentyHbars / utils.tinybarToHbarCoef),
       );
     });
 
@@ -3019,7 +3006,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[0].address,
           [],
           [],
-          keys
+          keys,
         );
         await hapi.updateTokenKeys(tokenWithFees, [
           tokenManagementContractAddress,
@@ -3027,11 +3014,15 @@ describe('TokenManagmentContract Test Suite', function () {
           tokenCreateContractAddress,
           tokenCreateCustomContractAddress,
         ]);
-        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(
+          tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [],
-            []
-        )).to.eventually.be.rejectedWith(new RegExp(CUSTOM_SCHEDULE_ALREADY_HAS_NO_FEES));
+            [],
+          ),
+        ).to.eventually.be.rejectedWith(
+          new RegExp(CUSTOM_SCHEDULE_ALREADY_HAS_NO_FEES),
+        );
       });
 
       it('should fail when updating non fungible token non-existing fixed fee', async function () {
@@ -3041,7 +3032,7 @@ describe('TokenManagmentContract Test Suite', function () {
             signers[0].address,
             [],
             [],
-            keys
+            keys,
           );
         await hapi.updateTokenKeys(nft, [
           tokenManagementContractAddress,
@@ -3050,11 +3041,15 @@ describe('TokenManagmentContract Test Suite', function () {
           tokenCreateCustomContractAddress,
         ]);
 
-        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(
+          tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             [],
-            []
-        )).to.eventually.be.rejectedWith(new RegExp(CUSTOM_SCHEDULE_ALREADY_HAS_NO_FEES));
+            [],
+          ),
+        ).to.eventually.be.rejectedWith(
+          new RegExp(CUSTOM_SCHEDULE_ALREADY_HAS_NO_FEES),
+        );
       });
 
       it('should fail when trying to update fees of fungible token with no fee schedule key', async function () {
@@ -3065,7 +3060,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[0].address,
           [],
           [],
-          keysWithoutFeeSchedule
+          keysWithoutFeeSchedule,
         );
 
         await hapi.updateTokenKeys(
@@ -3076,13 +3071,17 @@ describe('TokenManagmentContract Test Suite', function () {
             tokenCreateContractAddress,
             tokenCreateCustomContractAddress,
           ],
-          (setFeeScheduleKey = false)
+          false,
         );
-        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(
+          tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [],
-            []
-        )).to.eventually.be.rejectedWith(new RegExp(TOKEN_HAS_NO_FEE_SCHEDULE_KEY));
+            [],
+          ),
+        ).to.eventually.be.rejectedWith(
+          new RegExp(TOKEN_HAS_NO_FEE_SCHEDULE_KEY),
+        );
       });
 
       it('should fail when trying to update fees of non fungible token with no fee schedule key', async function () {
@@ -3094,7 +3093,7 @@ describe('TokenManagmentContract Test Suite', function () {
             signers[0].address,
             [],
             [],
-            keysWithoutFeeSchedule
+            keysWithoutFeeSchedule,
           );
         await hapi.updateTokenKeys(nft, [
           tokenManagementContractAddress,
@@ -3102,11 +3101,15 @@ describe('TokenManagmentContract Test Suite', function () {
           tokenCreateContractAddress,
           tokenCreateCustomContractAddress,
         ]);
-        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(
+          tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             [],
-            []
-        )).to.eventually.be.rejectedWith(new RegExp(TOKEN_HAS_NO_FEE_SCHEDULE_KEY));
+            [],
+          ),
+        ).to.eventually.be.rejectedWith(
+          new RegExp(TOKEN_HAS_NO_FEE_SCHEDULE_KEY),
+        );
       });
 
       it('should fail when fee has negative values', async function () {
@@ -3123,7 +3126,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[0].address,
           [fixedFee],
           [],
-          keys
+          keys,
         );
         await hapi.updateTokenKeys(tokenWithFees, [
           tokenManagementContractAddress,
@@ -3135,11 +3138,15 @@ describe('TokenManagmentContract Test Suite', function () {
           useCurrentTokenForPayment: false,
           feeCollector: signers[0].address,
         };
-        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(
+          tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [updatedFixedFee],
-            []
-        )).to.eventually.be.rejectedWith(new RegExp(CUSTOM_FEE_MUST_BE_POSITIVE));
+            [],
+          ),
+        ).to.eventually.be.rejectedWith(
+          new RegExp(CUSTOM_FEE_MUST_BE_POSITIVE),
+        );
       });
 
       it('should fail when fee has negative values for non fungible token', async function () {
@@ -3157,11 +3164,9 @@ describe('TokenManagmentContract Test Suite', function () {
             signers[0].address,
             [fixedFee],
             [],
-            keys
+            keys,
           );
-        await hapi.updateTokenKeys(nft, [
-          tokenManagementContractAddress,
-        ]);
+        await hapi.updateTokenKeys(nft, [tokenManagementContractAddress]);
 
         const updatedFixedFee = {
           amount: negativeHbars,
@@ -3170,11 +3175,15 @@ describe('TokenManagmentContract Test Suite', function () {
           useCurrentTokenForPayment: false,
           feeCollector: signers[0].address,
         };
-        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(
+          tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             [updatedFixedFee],
-            []
-        )).to.eventually.be.rejectedWith(new RegExp(CUSTOM_FEE_MUST_BE_POSITIVE));
+            [],
+          ),
+        ).to.eventually.be.rejectedWith(
+          new RegExp(CUSTOM_FEE_MUST_BE_POSITIVE),
+        );
       });
 
       it('should fail when fractional fee has denominator zero', async function () {
@@ -3191,7 +3200,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[0].address,
           [],
           [fractionalFee],
-          keys
+          keys,
         );
         await hapi.updateTokenKeys(tokenWithFees, [
           tokenManagementContractAddress,
@@ -3204,11 +3213,13 @@ describe('TokenManagmentContract Test Suite', function () {
           netOfTransfers: false,
           feeCollector: signers[0].address,
         };
-        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(
+          tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [],
-            [updatedFractionalFee]
-        )).to.eventually.be.rejectedWith(new RegExp(FRACTION_DIVIDES_BY_ZERO));
+            [updatedFractionalFee],
+          ),
+        ).to.eventually.be.rejectedWith(new RegExp(FRACTION_DIVIDES_BY_ZERO));
       });
 
       // Note: Tests below are skipped due to CUSTOM_FEES_LIST_TOO_LONG error introduced in network node v0.56.0
@@ -3222,7 +3233,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[0].address,
           [],
           [],
-          keys
+          keys,
         );
         await hapi.updateTokenKeys(tokenWithFees, [
           tokenManagementContractAddress,
@@ -3242,7 +3253,7 @@ describe('TokenManagmentContract Test Suite', function () {
           await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             fees,
-            []
+            [],
           );
         try {
           await updateFeeTx.wait();
@@ -3267,11 +3278,9 @@ describe('TokenManagmentContract Test Suite', function () {
             signers[0].address,
             [],
             [],
-            keys
+            keys,
           );
-        await hapi.updateTokenKeys(nft, [
-          tokenManagementContractAddress,
-        ]);
+        await hapi.updateTokenKeys(nft, [tokenManagementContractAddress]);
 
         let transactionHash;
         const fees = [];
@@ -3288,7 +3297,7 @@ describe('TokenManagmentContract Test Suite', function () {
           await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             fees,
-            []
+            [],
           );
         try {
           await updateFeeTx.wait();
@@ -3308,7 +3317,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[0].address,
           [],
           [],
-          keys
+          keys,
         );
         await hapi.updateTokenKeys(tokenWithFees, [
           tokenManagementContractAddress,
@@ -3320,11 +3329,15 @@ describe('TokenManagmentContract Test Suite', function () {
           useCurrentTokenForPayment: false,
           feeCollector: feeToken,
         };
-        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(
+          tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [fixedFee],
-            []
-        )).to.eventually.be.rejectedWith(new RegExp(INVALID_CUSTOM_FEE_COLLECTOR));
+            [],
+          ),
+        ).to.eventually.be.rejectedWith(
+          new RegExp(INVALID_CUSTOM_FEE_COLLECTOR),
+        );
       });
 
       it('should fail when the provided fee collector is invalid for NFT', async function () {
@@ -3334,11 +3347,9 @@ describe('TokenManagmentContract Test Suite', function () {
             signers[0].address,
             [],
             [],
-            keys
+            keys,
           );
-        await hapi.updateTokenKeys(nft, [
-          tokenManagementContractAddress,
-        ]);
+        await hapi.updateTokenKeys(nft, [tokenManagementContractAddress]);
         const fixedFee = {
           amount: tenHbars,
           tokenId: ethers.ZeroAddress,
@@ -3346,11 +3357,15 @@ describe('TokenManagmentContract Test Suite', function () {
           useCurrentTokenForPayment: false,
           feeCollector: feeToken,
         };
-        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(
+          tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             [fixedFee],
-            []
-        )).to.eventually.be.rejectedWith(new RegExp(INVALID_CUSTOM_FEE_COLLECTOR));
+            [],
+          ),
+        ).to.eventually.be.rejectedWith(
+          new RegExp(INVALID_CUSTOM_FEE_COLLECTOR),
+        );
       });
 
       it('should fail when the provided token id is invalid', async function () {
@@ -3359,7 +3374,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[0].address,
           [],
           [],
-          keys
+          keys,
         );
         await hapi.updateTokenKeys(tokenWithFees, [
           tokenManagementContractAddress,
@@ -3373,11 +3388,15 @@ describe('TokenManagmentContract Test Suite', function () {
           feeCollector: signers[0].address,
         };
 
-        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(
+          tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             [fixedFee],
-            []
-        )).to.eventually.be.rejectedWith(new RegExp(INVALID_TOKEN_ID_IN_CUSTOM_FEES));
+            [],
+          ),
+        ).to.eventually.be.rejectedWith(
+          new RegExp(INVALID_TOKEN_ID_IN_CUSTOM_FEES),
+        );
       });
 
       it('should fail when the provided token id is invalid for NFT', async function () {
@@ -3387,11 +3406,9 @@ describe('TokenManagmentContract Test Suite', function () {
             signers[0].address,
             [],
             [],
-            keys
+            keys,
           );
-        await hapi.updateTokenKeys(nft, [
-          tokenManagementContractAddress,
-        ]);
+        await hapi.updateTokenKeys(nft, [tokenManagementContractAddress]);
         const fixedFee = {
           amount: 10,
           tokenId: signers[1].address,
@@ -3399,11 +3416,15 @@ describe('TokenManagmentContract Test Suite', function () {
           useCurrentTokenForPayment: false,
           feeCollector: signers[0].address,
         };
-        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(
+          tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             [fixedFee],
-            []
-        )).to.eventually.be.rejectedWith(new RegExp(INVALID_TOKEN_ID_IN_CUSTOM_FEES));
+            [],
+          ),
+        ).to.eventually.be.rejectedWith(
+          new RegExp(INVALID_TOKEN_ID_IN_CUSTOM_FEES),
+        );
       });
 
       it('should fail for updateFungibleTokenCustomFees when token is not associated to fee collector', async function () {
@@ -3413,7 +3434,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[0].address,
           [],
           [],
-          keys
+          keys,
         );
         await hapi.updateTokenKeys(tokenWithFees, [
           tokenManagementContractAddress,
@@ -3434,14 +3455,14 @@ describe('TokenManagmentContract Test Suite', function () {
 
         const grantKycTx = await tokenCreateCustomContract.grantTokenKycPublic(
           feeToken,
-          tokenCreateCustomContractAddress
+          tokenCreateCustomContractAddress,
         );
         await grantKycTx.wait();
 
         const transferTx = await tokenTransferContract.transferTokensPublic(
           tokenWithFees,
           [signers[0].address, signers[1].address],
-          [-500, 500]
+          [-500, 500],
         );
         await transferTx.wait();
 
@@ -3449,7 +3470,7 @@ describe('TokenManagmentContract Test Suite', function () {
           feeToken,
           tokenTransferContract,
           1000,
-          Constants.GAS_LIMIT_1_000_000
+          Constants.GAS_LIMIT_1_000_000,
         );
         await approveTx.wait();
 
@@ -3458,7 +3479,7 @@ describe('TokenManagmentContract Test Suite', function () {
             feeToken,
             [tokenCreateCustomContractAddress, signers[1].address],
             [-150, 150],
-            Constants.GAS_LIMIT_1_000_000
+            Constants.GAS_LIMIT_1_000_000,
           );
         await transferFeeTokenToSigner1.wait();
 
@@ -3472,11 +3493,15 @@ describe('TokenManagmentContract Test Suite', function () {
             feeCollector: signers[0].address,
           },
         ];
-        await expect(tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        await expect(
+          tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             updatedFixedFee,
-            []
-        )).to.eventually.be.rejectedWith(new RegExp(TOKEN_NOT_ASSOCIATED_TO_FEE_COLLECTOR));
+            [],
+          ),
+        ).to.eventually.be.rejectedWith(
+          new RegExp(TOKEN_NOT_ASSOCIATED_TO_FEE_COLLECTOR),
+        );
       });
 
       it('should fail for updateNonFungibleTokenCustomFees when token is not associated to fee collector', async function () {
@@ -3487,7 +3512,7 @@ describe('TokenManagmentContract Test Suite', function () {
             signers[0].address,
             [],
             [],
-            keys
+            keys,
           );
         const nftTx = await utils.mintNFT(tokenCreateCustomContract, nft);
 
@@ -3499,7 +3524,7 @@ describe('TokenManagmentContract Test Suite', function () {
           nft,
           signers[0].address,
           signers[1].address,
-          nftTx
+          nftTx,
         );
         await transferNft.wait();
 
@@ -3517,11 +3542,15 @@ describe('TokenManagmentContract Test Suite', function () {
           },
         ];
 
-        await expect(tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        await expect(
+          tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             updatedfixedFees,
-            []
-        )).to.eventually.be.rejectedWith(new RegExp(TOKEN_NOT_ASSOCIATED_TO_FEE_COLLECTOR));
+            [],
+          ),
+        ).to.eventually.be.rejectedWith(
+          new RegExp(TOKEN_NOT_ASSOCIATED_TO_FEE_COLLECTOR),
+        );
       });
     });
   });

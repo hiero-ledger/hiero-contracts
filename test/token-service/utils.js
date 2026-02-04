@@ -2,23 +2,19 @@
 
 import hre from 'hardhat';
 const { ethers, networkName } = await hre.network.connect();
-import { expect } from 'chai';
 import {
   AccountId,
-  AccountInfoQuery,
-  PrivateKey,
-  TokenId,
-  TokenAssociateTransaction,
-  AccountBalanceQuery,
   Hbar,
   HbarUnit,
   ScheduleCreateTransaction,
+  Timestamp,
   TransferTransaction,
-  Timestamp
 } from '@hashgraph/sdk';
-import Constants from '../constants';
 import axios from 'axios';
+import { expect } from 'chai';
+
 import { config } from '../config.js';
+import Constants from '../constants';
 
 class Utils {
   static createTokenCost = '50000000000000000000';
@@ -49,14 +45,14 @@ class Utils {
 
   static async deployContract(
     contractPath,
-    gasLimit = Constants.GAS_LIMIT_5_000_000
+    gasLimit = Constants.GAS_LIMIT_5_000_000,
   ) {
     const factory = await ethers.getContractFactory(contractPath);
     const contract = await factory.deploy(gasLimit);
 
     return await ethers.getContractAt(
       contractPath,
-      await contract.getAddress()
+      await contract.getAddress(),
     );
   }
 
@@ -80,11 +76,15 @@ class Utils {
   }
 
   static async deployTokenCreateCustomContract() {
-    return await this.deployContract(Constants.Contract.TokenCreateCustomContract);
+    return await this.deployContract(
+      Constants.Contract.TokenCreateCustomContract,
+    );
   }
 
   static async deployTokenManagementContract() {
-    return await this.deployContract(Constants.Contract.TokenManagementContract);
+    return await this.deployContract(
+      Constants.Contract.TokenManagementContract,
+    );
   }
 
   static async deployTokenQueryContract() {
@@ -110,7 +110,7 @@ class Utils {
   static async getTokenAddress(tx) {
     const receipt = await tx.wait();
     const { tokenAddress } = receipt.logs.filter(
-      (e) => e.fragment.name === Constants.Events.CreatedToken
+      (e) => e.fragment.name === Constants.Events.CreatedToken,
     )[0].args;
 
     return tokenAddress;
@@ -121,7 +121,7 @@ class Utils {
       await contract.createFungibleTokenPublic(treasury, {
         value: BigInt(this.createTokenCost),
         gasLimit: 1_000_000,
-      })
+      }),
     );
   }
 
@@ -134,7 +134,7 @@ class Utils {
     maxSupply,
     decimals,
     freezeDefaultStatus,
-    treasury
+    treasury,
   ) {
     return await this.getTokenAddress(
       await contract.createFungibleTokenWithPresetKeys(
@@ -149,8 +149,8 @@ class Utils {
         {
           value: BigInt(this.createTokenCost),
           gasLimit: 1_000_000,
-        }
-      )
+        },
+      ),
     );
   }
 
@@ -164,7 +164,7 @@ class Utils {
     freezeDefaultStatus,
     signerAddress,
     keys,
-    contract
+    contract,
   ) {
     const tokenAddress = (
       await (
@@ -181,7 +181,7 @@ class Utils {
           {
             value: '35000000000000000000',
             gasLimit: 1_000_000,
-          }
+          },
         )
       ).wait()
     ).logs.filter((e) => e.fragment.name === Constants.Events.CreatedToken)[0]
@@ -193,7 +193,7 @@ class Utils {
   static async createFungibleTokenWithSECP256K1AdminKey(
     contract,
     treasury,
-    adminKey
+    adminKey,
   ) {
     return await this.getTokenAddress(
       await contract.createFungibleTokenWithSECP256K1AdminKeyPublic(
@@ -202,15 +202,15 @@ class Utils {
         {
           value: BigInt(this.createTokenCost),
           gasLimit: 1_000_000,
-        }
-      )
+        },
+      ),
     );
   }
 
   static async createFungibleTokenWithSECP256K1AdminKeyWithoutKYC(
     contract,
     treasury,
-    adminKey
+    adminKey,
   ) {
     return await this.getTokenAddress(
       await contract.createFungibleTokenWithSECP256K1AdminKeyWithoutKYCPublic(
@@ -219,8 +219,8 @@ class Utils {
         {
           value: BigInt(this.createTokenCost),
           gasLimit: 1_000_000,
-        }
-      )
+        },
+      ),
     );
   }
 
@@ -232,8 +232,8 @@ class Utils {
         {
           value: BigInt(this.createTokenCustomFeesCost),
           gasLimit: 10_000_000,
-        }
-      )
+        },
+      ),
     );
   }
 
@@ -253,7 +253,7 @@ class Utils {
     treasury,
     fixedFees,
     fractionalFees,
-    keys
+    keys,
   ) {
     const updateFeesTx = await contract.createFungibleTokenWithCustomFeesPublic(
       treasury,
@@ -269,7 +269,7 @@ class Utils {
       {
         value: BigInt(this.createTokenCost),
         gasLimit: 1_000_000,
-      }
+      },
     );
     return await this.getTokenAddress(updateFeesTx);
   }
@@ -279,7 +279,7 @@ class Utils {
     treasury,
     fixedFees,
     royaltyFees,
-    keys
+    keys,
   ) {
     return await this.getTokenAddress(
       await contract.createNonFungibleTokenWithCustomFeesPublic(
@@ -294,8 +294,8 @@ class Utils {
         {
           value: BigInt(this.createTokenCost),
           gasLimit: 1_000_000,
-        }
-      )
+        },
+      ),
     );
   }
 
@@ -305,7 +305,7 @@ class Utils {
       {
         value: BigInt(this.createTokenCost),
         gasLimit: 1_000_000,
-      }
+      },
     );
     return await this.getTokenAddress(tokenAddressTx);
   }
@@ -313,7 +313,7 @@ class Utils {
   static async createNonFungibleTokenWithSECP256K1AdminKey(
     contract,
     treasury,
-    adminKey
+    adminKey,
   ) {
     return await this.getTokenAddress(
       await contract.createNonFungibleTokenWithSECP256K1AdminKeyPublic(
@@ -322,15 +322,15 @@ class Utils {
         {
           value: BigInt(this.createTokenCost),
           gasLimit: 1_000_000,
-        }
-      )
+        },
+      ),
     );
   }
 
   static async createNonFungibleTokenWithSECP256K1AdminKeyWithoutKYC(
     contract,
     treasury,
-    adminKey
+    adminKey,
   ) {
     return await this.getTokenAddress(
       await contract.createNonFungibleTokenWithSECP256K1AdminKeyWithoutKYCPublic(
@@ -339,8 +339,8 @@ class Utils {
         {
           value: BigInt(this.createTokenCost),
           gasLimit: 1_000_000,
-        }
-      )
+        },
+      ),
     );
   }
 
@@ -383,7 +383,7 @@ class Utils {
   static async getSerialNumbers(mintNftTx) {
     const tokenAddressReceipt = await mintNftTx.wait();
     const { serialNumbers } = tokenAddressReceipt.logs.filter(
-      (e) => e.fragment.name === Constants.Events.MintedToken
+      (e) => e.fragment.name === Constants.Events.MintedToken,
     )[0].args;
 
     return parseInt(serialNumbers);
@@ -394,7 +394,7 @@ class Utils {
       nftTokenAddress,
       0,
       data,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
 
     return await this.getSerialNumbers(mintNftTx);
@@ -405,7 +405,7 @@ class Utils {
       nftTokenAddress,
       0,
       data,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
 
     return await this.getSerialNumbers(mintNftTx);
@@ -419,39 +419,39 @@ class Utils {
     const associateTx1 = await ethers.getContractAt(
       contractName,
       await contract.getAddress(),
-      signers[0]
+      signers[0],
     );
     const associateTx2 = await ethers.getContractAt(
       contractName,
       await contract.getAddress(),
-      signers[1]
+      signers[1],
     );
 
     const associateTx3 = await ethers.getContractAt(
       contractName,
       await contract.getAddress(),
-      signers[2]
+      signers[2],
     );
 
     await contract.associateTokenPublic(
       await contract.getAddress(),
       tokenAddress,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     await associateTx1.associateTokenPublic(
       signers[0].address,
       tokenAddress,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     await associateTx2.associateTokenPublic(
       signers[1].address,
       tokenAddress,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
     await associateTx3.associateTokenPublic(
       signers[2].address,
       tokenAddress,
-      Constants.GAS_LIMIT_1_000_000
+      Constants.GAS_LIMIT_1_000_000,
     );
   }
 
@@ -459,7 +459,7 @@ class Utils {
     const signers = await ethers.getSigners();
     await contract.grantTokenKycPublic(
       tokenAddress,
-      await contract.getAddress()
+      await contract.getAddress(),
     );
     await contract.grantTokenKycPublic(tokenAddress, signers[0].address);
     await contract.grantTokenKycPublic(tokenAddress, signers[1].address);
@@ -481,10 +481,10 @@ class Utils {
   static getSignerCompressedPublicKey(
     index = 0,
     asBuffer = true,
-    prune0x = true
+    prune0x = true,
   ) {
     const wallet = new ethers.Wallet(
-        config.networks[networkName].accounts[index]
+      config.networks[networkName].accounts[index],
     );
     const cpk = prune0x
       ? wallet.signingKey.compressedPublicKey.replace('0x', '')
@@ -495,7 +495,7 @@ class Utils {
 
   static async getHardhatSignersPrivateKeys(add0xPrefix = true) {
     return config.networks[networkName].accounts.map((pk) =>
-      add0xPrefix ? pk : pk.replace('0x', '')
+      add0xPrefix ? pk : pk.replace('0x', ''),
     );
   }
 
@@ -586,9 +586,11 @@ class Utils {
    */
   static async getHTSResponseCode(txHash) {
     const mirrorNodeUrl = Utils.getMirrorNodeUrl(networkName);
-    const res = await Utils.retriedGetRequest(`${mirrorNodeUrl}/contracts/results/${txHash}/actions`);
+    const res = await Utils.retriedGetRequest(
+      `${mirrorNodeUrl}/contracts/results/${txHash}/actions`,
+    );
     const precompileAction = res.data.actions.find(
-      (x) => x.recipient === Constants.HTS_SYSTEM_CONTRACT_ID
+      (x) => x.recipient === Constants.HTS_SYSTEM_CONTRACT_ID,
     );
     return BigInt(precompileAction.result_data).toString();
   }
@@ -603,17 +605,22 @@ class Utils {
    */
   static async getContractResultFromMN(txHash) {
     const res = await axios.get(
-      `${Utils.getMirrorNodeUrl(networkName)}/contracts/results/${txHash}`
+      `${Utils.getMirrorNodeUrl(networkName)}/contracts/results/${txHash}`,
     );
 
     return res.data;
   }
 
-  static async sleep(ms){
-    return new Promise(resolve => setTimeout(resolve, ms));
+  static async sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  static async retriedGetRequest(url, maxAttempts = 30, intervalMs = 1000, attempt = 0) {
+  static async retriedGetRequest(
+    url,
+    maxAttempts = 30,
+    intervalMs = 1000,
+    attempt = 0,
+  ) {
     try {
       return await axios.get(url);
     } catch (e) {
@@ -634,9 +641,11 @@ class Utils {
    */
   static async getHASResponseCode(txHash) {
     const mirrorNodeUrl = Utils.getMirrorNodeUrl(networkName);
-    const res = await Utils.retriedGetRequest(`${mirrorNodeUrl}/contracts/results/${txHash}/actions`);
+    const res = await Utils.retriedGetRequest(
+      `${mirrorNodeUrl}/contracts/results/${txHash}/actions`,
+    );
     const precompileAction = res.data.actions.find(
-      (x) => x.recipient === Constants.HAS_SYSTEM_CONTRACT_ID
+      (x) => x.recipient === Constants.HAS_SYSTEM_CONTRACT_ID,
     );
     return BigInt(precompileAction.result_data).toString();
   }
@@ -646,7 +655,7 @@ class Utils {
       await this.createNonFungibleTokenWithSECP256K1AdminKeyWithoutKYC(
         tokenCreateContract,
         owner,
-        this.getSignerCompressedPublicKey()
+        this.getSignerCompressedPublicKey(),
       );
 
     await hapi.updateTokenKeys(
@@ -658,13 +667,13 @@ class Utils {
       true,
       true,
       true,
-      false
+      false,
     );
 
     await this.associateToken(
       tokenCreateContract,
       nftTokenAddress,
-      Constants.Contract.TokenCreateContract
+      Constants.Contract.TokenCreateContract,
     );
 
     return nftTokenAddress;
@@ -675,7 +684,7 @@ class Utils {
       await this.createFungibleTokenWithSECP256K1AdminKeyWithoutKYC(
         tokenCreateContract,
         owner,
-        this.getSignerCompressedPublicKey()
+        this.getSignerCompressedPublicKey(),
       );
 
     await hapi.updateTokenKeys(
@@ -687,13 +696,13 @@ class Utils {
       true,
       true,
       true,
-      false
+      false,
     );
 
     await this.associateToken(
       tokenCreateContract,
       tokenAddress,
-      Constants.Contract.TokenCreateContract
+      Constants.Contract.TokenCreateContract,
     );
 
     return tokenAddress;
@@ -715,7 +724,7 @@ class Utils {
     owner,
     airdropContract,
     receiver,
-    hapi
+    hapi,
   ) {
     const senders = [];
     const receivers = [];
@@ -724,9 +733,12 @@ class Utils {
     const amounts = [];
 
     for (let i = 0; i < count; i++) {
-      const tokenAddress = await this.setupToken(tokenCreateContract, owner, [
-        await airdropContract.getAddress(),
-      ], hapi);
+      const tokenAddress = await this.setupToken(
+        tokenCreateContract,
+        owner,
+        [await airdropContract.getAddress()],
+        hapi,
+      );
       const ftAmount = BigInt(i + 1); // Different amount for each airdrop
 
       const airdropTx = await airdropContract.tokenAirdrop(
@@ -737,7 +749,7 @@ class Utils {
         {
           value: Constants.ONE_HBAR,
           gasLimit: 2_000_000,
-        }
+        },
       );
       await airdropTx.wait();
 
@@ -755,19 +767,33 @@ class Utils {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   };
 
-  static createScheduleTransactionForTransfer = async (senderInfo, receiverInfo, client, adminPrivateKey = null, expiryNs = 0) => {
+  static createScheduleTransactionForTransfer = async (
+    senderInfo,
+    receiverInfo,
+    client,
+    adminPrivateKey = null,
+    expiryNs = 0,
+  ) => {
     const transferAmountAsTinybars = this.getRandomInt(1, 100_000_000);
-    const transferAmountAsWeibar = BigInt(transferAmountAsTinybars) * BigInt(Utils.tinybarToWeibarCoef);
+    const transferAmountAsWeibar =
+      BigInt(transferAmountAsTinybars) * BigInt(Utils.tinybarToWeibarCoef);
 
-    let transferTx = await new TransferTransaction()
-      .addHbarTransfer(senderInfo.accountId, new Hbar(-transferAmountAsTinybars, HbarUnit.Tinybar))
-      .addHbarTransfer(receiverInfo.accountId, new Hbar(transferAmountAsTinybars, HbarUnit.Tinybar));
+    const transferTx = await new TransferTransaction()
+      .addHbarTransfer(
+        senderInfo.accountId,
+        new Hbar(-transferAmountAsTinybars, HbarUnit.Tinybar),
+      )
+      .addHbarTransfer(
+        receiverInfo.accountId,
+        new Hbar(transferAmountAsTinybars, HbarUnit.Tinybar),
+      );
 
-    const tx = new ScheduleCreateTransaction()
-      .setScheduledTransaction(transferTx);
+    const tx = new ScheduleCreateTransaction().setScheduledTransaction(
+      transferTx,
+    );
 
     if (expiryNs) {
-      let timestamp = (Timestamp.generate()).plusNanos(expiryNs);
+      const timestamp = Timestamp.generate().plusNanos(expiryNs);
       tx.setExpirationTime(timestamp);
       tx.setWaitForExpiry(true);
     }

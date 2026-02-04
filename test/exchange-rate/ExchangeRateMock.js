@@ -13,7 +13,7 @@ describe('ExchangeRateMock Test Suite', function () {
 
   before(async function () {
     const factory = await ethers.getContractFactory(
-      Constants.Contract.ExchangeRateMock
+      Constants.Contract.ExchangeRateMock,
     );
 
     exchangeRateMock = await factory.deploy();
@@ -26,7 +26,7 @@ describe('ExchangeRateMock Test Suite', function () {
 
     const txReceipt = await tx.wait();
     const result = txReceipt.logs.filter(
-      (e) => e.fragment.name === Constants.Events.TinyBars
+      (e) => e.fragment.name === Constants.Events.TinyBars,
     )[0].args[0];
 
     expect(result).to.exist;
@@ -39,7 +39,7 @@ describe('ExchangeRateMock Test Suite', function () {
 
     const txReceipt = await tx.wait();
     const result = txReceipt.logs.filter(
-      (e) => e.fragment.name === Constants.Events.TinyCents
+      (e) => e.fragment.name === Constants.Events.TinyCents,
     )[0].args[0];
 
     expect(result).to.exist;

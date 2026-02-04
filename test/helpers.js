@@ -4,7 +4,7 @@ dotenv.config();
 
 const delay = (ms) => {
   return new Promise((resolve) =>
-    setTimeout(resolve, ms || process.env.RETRY_DELAY || 2000)
+    setTimeout(resolve, ms || process.env.RETRY_DELAY || 2000),
   );
 };
 
@@ -21,7 +21,7 @@ const getSignerBalance = async (provider, signersAddress) => {
 export const pollForNewBalance = async (
   IERC20,
   contractAddress,
-  tokenCreateBalanceBefore
+  tokenCreateBalanceBefore,
 ) => {
   for (
     let numberOfTries = 0;
@@ -39,7 +39,7 @@ export const pollForNewBalance = async (
   console.log('----');
 
   throw new Error(
-    `Failed to get a different balance value after ${process.env.MAX_RETRY} tries`
+    `Failed to get a different balance value after ${process.env.MAX_RETRY} tries`,
   );
 };
 
@@ -47,7 +47,7 @@ export const pollForNewERC20Balance = async (
   erc20Contract,
   tokenAddress,
   signersAddress,
-  balanceBefore
+  balanceBefore,
 ) => {
   for (
     let numberOfTries = 0;
@@ -58,7 +58,7 @@ export const pollForNewERC20Balance = async (
       const balanceAfter = await getBalance(
         erc20Contract,
         tokenAddress,
-        signersAddress
+        signersAddress,
       );
       if (balanceAfter !== balanceBefore) {
         return balanceAfter;
@@ -72,14 +72,14 @@ export const pollForNewERC20Balance = async (
   }
 
   throw new Error(
-    `Failed to get a different value after ${process.env.MAX_RETRY} tries`
+    `Failed to get a different value after ${process.env.MAX_RETRY} tries`,
   );
 };
 
 export const pollForNewSignerBalance = async (
   IERC20Contract,
   signersAddress,
-  signerBefore
+  signerBefore,
 ) => {
   for (
     let numberOfTries = 0;
@@ -96,14 +96,14 @@ export const pollForNewSignerBalance = async (
   }
 
   throw new Error(
-    `Failed to get a different balance value after ${process.env.MAX_RETRY} tries`
+    `Failed to get a different balance value after ${process.env.MAX_RETRY} tries`,
   );
 };
 
 export const pollForNewSignerBalanceUsingProvider = async (
   provider,
   signersAddress,
-  signerBefore
+  signerBefore,
 ) => {
   for (
     let numberOfTries = 0;
@@ -124,6 +124,6 @@ export const pollForNewSignerBalanceUsingProvider = async (
   }
 
   throw new Error(
-    `Failed to get a different value after ${process.env.MAX_RETRY} tries`
+    `Failed to get a different value after ${process.env.MAX_RETRY} tries`,
   );
 };

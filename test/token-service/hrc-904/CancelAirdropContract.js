@@ -3,9 +3,9 @@
 import { expect } from 'chai';
 import hre from 'hardhat';
 const { ethers } = await hre.network.connect();
-import utils from '../utils';
 import Constants from '../../constants';
 import hapi from '../../token-service/hapi';
+import utils from '../utils';
 
 describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
   let airdropContract;
@@ -17,13 +17,12 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
   let owner;
   let receiver;
   let contractAddresses;
-  let tokenAddress;
 
   before(async function () {
     signers = await ethers.getSigners();
     airdropContract = await utils.deployContract(Constants.Contract.Airdrop);
     cancelAirdropContract = await utils.deployContract(
-      Constants.Contract.CancelAirdrop
+      Constants.Contract.CancelAirdrop,
     );
 
     receiver = ethers.Wallet.createRandom().connect(ethers.provider);
@@ -34,13 +33,13 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       value: ethers.parseEther('100'),
     });
     tokenCreateContract = await utils.deployContract(
-      Constants.Contract.TokenCreateContract
+      Constants.Contract.TokenCreateContract,
     );
     erc20Contract = await utils.deployContract(
-      Constants.Contract.ERC20Contract
+      Constants.Contract.ERC20Contract,
     );
     erc721Contract = await utils.deployContract(
-      Constants.Contract.ERC721Contract
+      Constants.Contract.ERC721Contract,
     );
     owner = signers[0].address;
 
@@ -52,21 +51,16 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
 
     await hapi.updateAccountKeys(contractAddresses);
 
-    tokenAddress = await utils.setupToken(
-      tokenCreateContract,
-      owner,
-      contractAddresses,
-      hapi
-    );
+    await utils.setupToken(tokenCreateContract, owner, contractAddresses, hapi);
 
     const IHRC904AccountFacade = new ethers.Interface(
-      (await hre.artifacts.readArtifact('IHRC904AccountFacade')).abi
+      (await hre.artifacts.readArtifact('IHRC904AccountFacade')).abi,
     );
 
     const walletIHRC904AccountFacade = new ethers.Contract(
       receiver.address,
       IHRC904AccountFacade,
-      receiver
+      receiver,
     );
 
     // Disabling automatic associations for receiver so all airdrops will be pending
@@ -75,7 +69,7 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
         false,
         {
           gasLimit: 2_000_000,
-        }
+        },
       );
     await disableAutoAssociations.wait();
   });
@@ -91,12 +85,12 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       tokenCreateContract,
       owner,
       contractAddresses,
-      hapi
+      hapi,
     );
 
     const initialBalance = await erc20Contract.balanceOf(
       tokenAddress,
-      receiver.address
+      receiver.address,
     );
 
     const airdropTx = await airdropContract.tokenAirdrop(
@@ -107,7 +101,7 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       {
         value: Constants.ONE_HBAR,
         gasLimit: 2_000_000,
-      }
+      },
     );
     await airdropTx.wait();
 
@@ -115,13 +109,13 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       sender,
       receiver.address,
       tokenAddress,
-      Constants.GAS_LIMIT_2_000_000
+      Constants.GAS_LIMIT_2_000_000,
     );
     await cancelTx.wait();
 
     const updatedBalance = await erc20Contract.balanceOf(
       tokenAddress,
-      receiver.address
+      receiver.address,
     );
     expect(updatedBalance).to.equal(initialBalance);
   });
@@ -132,12 +126,12 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       tokenCreateContract,
       owner,
       contractAddresses,
-      hapi
+      hapi,
     );
 
     const serialNumber = await utils.mintNFTToAddress(
       tokenCreateContract,
-      nftTokenAddress
+      nftTokenAddress,
     );
 
     const airdropTx = await airdropContract.nftAirdrop(
@@ -148,7 +142,7 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       {
         value: Constants.ONE_HBAR,
         gasLimit: 2_000_000,
-      }
+      },
     );
     await airdropTx.wait();
 
@@ -157,31 +151,31 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       receiver.address,
       nftTokenAddress,
       serialNumber,
-      Constants.GAS_LIMIT_2_000_000
+      Constants.GAS_LIMIT_2_000_000,
     );
     await cancelTx.wait();
 
     const nftOwner = await erc721Contract.ownerOf(
       nftTokenAddress,
-      serialNumber
+      serialNumber,
     );
     expect(nftOwner).to.equal(sender);
   });
 
   it('should cancel multiple pending fungible token airdrops', async function () {
     const numAirdrops = 10;
-    const { senders, receivers, tokens, serials, amounts } =
+    const { senders, receivers, tokens, serials } =
       await utils.createPendingAirdrops(
         numAirdrops,
         tokenCreateContract,
         owner,
         airdropContract,
         receiver,
-        hapi
+        hapi,
       );
 
     const initialBalances = await Promise.all(
-      tokens.map(async (token) => erc20Contract.balanceOf(token, receiver))
+      tokens.map(async (token) => erc20Contract.balanceOf(token, receiver)),
     );
 
     const cancelTx = await cancelAirdropContract.cancelMultipleAirdrops(
@@ -189,7 +183,7 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       receivers,
       tokens,
       serials,
-      Constants.GAS_LIMIT_2_000_000
+      Constants.GAS_LIMIT_2_000_000,
     );
     await cancelTx.wait();
 
@@ -205,14 +199,14 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       tokenCreateContract,
       owner,
       contractAddresses,
-      hapi
+      hapi,
     );
 
     const tx = await cancelAirdropContract.cancelAirdrop(
       sender,
       receiver,
       tokenAddress,
-      Constants.GAS_LIMIT_2_000_000
+      Constants.GAS_LIMIT_2_000_000,
     );
     const responseCode = await utils.getHTSResponseCode(tx.hash);
     expect(responseCode).to.eq('367'); // INVALID_PENDING_AIRDROP_ID code
@@ -224,14 +218,14 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       tokenCreateContract,
       owner,
       contractAddresses,
-      hapi
+      hapi,
     );
 
     const tx = await cancelAirdropContract.cancelAirdrop(
       invalidSender,
       receiver,
       tokenAddress,
-      Constants.GAS_LIMIT_2_000_000
+      Constants.GAS_LIMIT_2_000_000,
     );
     const responseCode = await utils.getHTSResponseCode(tx.hash);
     expect(responseCode).to.eq('367'); // INVALID_PENDING_AIRDROP_ID code
@@ -243,14 +237,14 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       tokenCreateContract,
       owner,
       contractAddresses,
-      hapi
+      hapi,
     );
 
     const tx = await cancelAirdropContract.cancelAirdrop(
       owner,
       invalidReceiver,
       tokenAddress,
-      Constants.GAS_LIMIT_2_000_000
+      Constants.GAS_LIMIT_2_000_000,
     );
     const responseCode = await utils.getHTSResponseCode(tx.hash);
     expect(responseCode).to.eq('367'); // INVALID_PENDING_AIRDROP_ID code
@@ -263,7 +257,7 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       owner,
       receiver,
       invalidToken,
-      Constants.GAS_LIMIT_2_000_000
+      Constants.GAS_LIMIT_2_000_000,
     );
     const responseCode = await utils.getHTSResponseCode(tx.hash);
     const responseText = utils.decimalToAscii(responseCode);
@@ -279,7 +273,7 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       receiver,
       invalidNftToken,
       serialNumber,
-      Constants.GAS_LIMIT_2_000_000
+      Constants.GAS_LIMIT_2_000_000,
     );
     const responseCode = await utils.getHTSResponseCode(tx.hash);
     const responseText = utils.decimalToAscii(responseCode);
@@ -294,7 +288,7 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
         owner,
         airdropContract,
         receiver,
-        hapi
+        hapi,
       );
 
     const tx = await cancelAirdropContract.cancelMultipleAirdrops(
@@ -302,7 +296,7 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       receivers,
       tokens,
       serials,
-      Constants.GAS_LIMIT_2_000_000
+      Constants.GAS_LIMIT_2_000_000,
     );
     const responseCode = await utils.getHTSResponseCode(tx.hash);
     const responseText = utils.decimalToAscii(responseCode);
@@ -314,7 +308,7 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       tokenCreateContract,
       owner,
       contractAddresses,
-      hapi
+      hapi,
     );
     const invalidSerialNumber = 999;
 
@@ -323,7 +317,7 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       receiver,
       nftTokenAddress,
       invalidSerialNumber,
-      Constants.GAS_LIMIT_2_000_000
+      Constants.GAS_LIMIT_2_000_000,
     );
     const responseCode = await utils.getHTSResponseCode(tx.hash);
     expect(responseCode).to.eq('367'); // INVALID_PENDING_AIRDROP_ID code

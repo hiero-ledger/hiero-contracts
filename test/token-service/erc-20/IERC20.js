@@ -3,16 +3,12 @@
 import { expect } from 'chai';
 import { network } from 'hardhat';
 const { ethers } = await network.connect();
-import utils from '../utils';
 import Constants from '../../constants';
-import {
-  pollForNewBalance,
-  pollForNewSignerBalance,
-} from '../../helpers';
-
+import { pollForNewBalance, pollForNewSignerBalance } from '../../helpers';
 import hapi from '../hapi';
+import utils from '../utils';
 
-const sleep = () => new Promise(resolve => setTimeout(resolve, 1000));
+const sleep = () => new Promise((resolve) => setTimeout(resolve, 1000));
 
 describe('IERC20 Test Suite', function () {
   let tokenCreateContract;
@@ -34,7 +30,7 @@ describe('IERC20 Test Suite', function () {
     await sleep();
     tokenAddress = await utils.createFungibleToken(
       tokenCreateContract,
-      signers[0].address
+      signers[0].address,
     );
     await hapi.updateTokenKeys(tokenAddress, [
       await tokenCreateContract.getAddress(),
@@ -43,12 +39,12 @@ describe('IERC20 Test Suite', function () {
     await utils.associateToken(
       tokenCreateContract,
       tokenAddress,
-      Constants.Contract.TokenCreateContract
+      Constants.Contract.TokenCreateContract,
     );
     await utils.grantTokenKyc(tokenCreateContract, tokenAddress);
     IERC20 = await ethers.getContractAt(
       Constants.Contract.ERC20Mock,
-      tokenAddress
+      tokenAddress,
     );
   });
 
@@ -78,7 +74,7 @@ describe('IERC20 Test Suite', function () {
 
   it('should be able to get token balance of any account', async function () {
     const contractOwnerBalance = await IERC20.balanceOf(
-      await tokenCreateContract.getAddress()
+      await tokenCreateContract.getAddress(),
     );
     const signer0Balance = await IERC20.balanceOf(signers[0].address);
     const signer1Balance = await IERC20.balanceOf(signers[1].address);
@@ -94,16 +90,16 @@ describe('IERC20 Test Suite', function () {
   it('should be able to approve another account', async function () {
     const signer1AllowanceBefore = await IERC20.allowance(
       signers[0].address,
-      signers[1].address
+      signers[1].address,
     );
     await IERC20.approve(
       signers[1].address,
       AMOUNT,
-      Constants.GAS_LIMIT_800000
+      Constants.GAS_LIMIT_800000,
     );
     const signer1AllowanceAfter = await IERC20.allowance(
       signers[0].address,
-      signers[1].address
+      signers[1].address,
     );
 
     expect(signer1AllowanceBefore).to.eq(0);
@@ -118,7 +114,7 @@ describe('IERC20 Test Suite', function () {
     const signer0BalanceAfter = await pollForNewSignerBalance(
       IERC20,
       signers[0].address,
-      signer0BalanceBefore
+      signer0BalanceBefore,
     );
     const signer1BalanceAfter = await IERC20.balanceOf(signers[1].address);
 
@@ -128,7 +124,7 @@ describe('IERC20 Test Suite', function () {
 
   it('should be able to execute transferFrom to another account', async function () {
     const tokenCreateBalanceBefore = await IERC20.balanceOf(
-      await tokenCreateContract.getAddress()
+      await tokenCreateContract.getAddress(),
     );
     const signer0BalanceBefore = await IERC20.balanceOf(signers[0].address);
     const signer1BalanceBefore = await IERC20.balanceOf(signers[1].address);
@@ -136,25 +132,25 @@ describe('IERC20 Test Suite', function () {
     await IERC20.approve(
       signers[1].address,
       AMOUNT,
-      Constants.GAS_LIMIT_800000
+      Constants.GAS_LIMIT_800000,
     );
     const IERC20Signer1 = await IERC20.connect(signers[1]);
     await IERC20Signer1.transferFrom(
       signers[0].address,
       await tokenCreateContract.getAddress(),
       AMOUNT,
-      Constants.GAS_LIMIT_800000
+      Constants.GAS_LIMIT_800000,
     );
 
     const tokenCreateBalanceAfter = await pollForNewBalance(
       IERC20,
       await tokenCreateContract.getAddress(),
-      tokenCreateBalanceBefore
+      tokenCreateBalanceBefore,
     );
     const signer0BalanceAfter = await pollForNewSignerBalance(
       IERC20,
       signers[0].address,
-      signer0BalanceBefore
+      signer0BalanceBefore,
     );
     const signer1BalanceAfter = await IERC20.balanceOf(signers[1].address);
 

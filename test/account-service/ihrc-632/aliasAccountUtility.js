@@ -1,17 +1,19 @@
 // SPDX-License-Identifier: Apache-2.0
 
-import Utils from '../../token-service/utils';
 import { expect } from 'chai';
 import { network } from 'hardhat';
+
+import Utils from '../../token-service/utils';
 const { ethers } = await network.connect();
-import Constants from '../../constants';
 import HashgraphProto from '@hashgraph/proto';
 import {
-  Hbar,
-  PrivateKey,
   AccountCreateTransaction,
+  Hbar,
   KeyList,
+  PrivateKey,
 } from '@hashgraph/sdk';
+
+import Constants from '../../constants';
 import hapi from '../../token-service/hapi';
 
 describe('@HAS IHRC-632 Test Suite', () => {
@@ -19,15 +21,14 @@ describe('@HAS IHRC-632 Test Suite', () => {
     walletB,
     walletC,
     aliasAccountUtility,
-    walletAHederaAccountNumAlias
-  ;
+    walletAHederaAccountNumAlias;
 
   before(async () => {
     [walletA, walletB, walletC] = await ethers.getSigners();
 
     // deploy cyprtoAllowanceContract
     const AliasAccountUtilityFactory = await ethers.getContractFactory(
-      Constants.Contract.AliasAccountUtility
+      Constants.Contract.AliasAccountUtility,
     );
     aliasAccountUtility = await AliasAccountUtilityFactory.deploy();
     await aliasAccountUtility.waitForDeployment();
@@ -47,12 +48,12 @@ describe('@HAS IHRC-632 Test Suite', () => {
     it('Should execute getEvmAddressAliasPublic and get the corressponded evmAddressAlias', async () => {
       const tx = await aliasAccountUtility.getEvmAddressAliasPublic(
         walletAHederaAccountNumAlias,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
 
       const receipt = await tx.wait();
       const evmAddressAliasLog = receipt.logs.find(
-        (log) => log.fragment.name === 'AddressAliasResponse'
+        (log) => log.fragment.name === 'AddressAliasResponse',
       ).args;
 
       expect(evmAddressAliasLog[0]).to.eq(22); // responseCode 22 = success
@@ -62,13 +63,13 @@ describe('@HAS IHRC-632 Test Suite', () => {
     it('Should execute getEvmAddressAliasPublic with NOT long zero address and get INVALID_ACOUNT_ID', async () => {
       const tx = await aliasAccountUtility.getEvmAddressAliasPublic(
         walletA.address, // not a long zero address
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
 
       const receipt = await tx.wait();
 
       const evmAddressAlias = receipt.logs.find(
-        (log) => log.fragment.name === 'AddressAliasResponse'
+        (log) => log.fragment.name === 'AddressAliasResponse',
       ).args;
       expect(evmAddressAlias[0]).to.eq(15); // responseCode 15 = INVALID_ACCOUNT_ID
       expect(evmAddressAlias[1]).to.eq(ethers.ZeroAddress);
@@ -79,31 +80,31 @@ describe('@HAS IHRC-632 Test Suite', () => {
     it('Should execute getHederaAccountNumAlias and get the corressponded accountNumAlias', async () => {
       const tx = await aliasAccountUtility.getHederaAccountNumAliasPublic(
         walletA.address,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
 
       const receipt = await tx.wait();
 
       const evmAddressAliasLog = receipt.logs.find(
-        (log) => log.fragment.name === 'AddressAliasResponse'
+        (log) => log.fragment.name === 'AddressAliasResponse',
       ).args;
 
       expect(evmAddressAliasLog[0]).to.eq(22); // responseCode 22 = success
       expect(evmAddressAliasLog[1].toLowerCase()).to.eq(
-        walletAHederaAccountNumAlias
+        walletAHederaAccountNumAlias,
       ); // evm address
     });
 
     it('Should execute getEvmAddressAliasPublic with long zero address and get the corresponded evm address', async () => {
       const tx = await aliasAccountUtility.getEvmAddressAliasPublic(
         walletAHederaAccountNumAlias, // a long zero address
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
 
       const receipt = await tx.wait();
 
       const evmAddressAlias = receipt.logs.find(
-        (log) => log.fragment.name === 'AddressAliasResponse'
+        (log) => log.fragment.name === 'AddressAliasResponse',
       ).args;
       expect(evmAddressAlias[0]).to.eq(22); // responseCode 22 = success
       expect(evmAddressAlias[1]).to.eq(walletA.address);
@@ -114,13 +115,13 @@ describe('@HAS IHRC-632 Test Suite', () => {
     it('Should execute isValidAliasPublic with EVM address alias param and return TRUE', async () => {
       const tx = await aliasAccountUtility.isValidAliasPublic(
         walletA.address,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
 
       const receipt = await tx.wait();
 
       const evmAddressAliasLog = receipt.logs.find(
-        (log) => log.fragment.name === 'IsValidAliasResponse'
+        (log) => log.fragment.name === 'IsValidAliasResponse',
       ).args;
 
       expect(evmAddressAliasLog[0]).to.eq(22); // responseCode 22 = success
@@ -130,13 +131,13 @@ describe('@HAS IHRC-632 Test Suite', () => {
     it('Should execute isValidAliasPublic with Hedera Account Num Alias param and return TRUE', async () => {
       const tx = await aliasAccountUtility.isValidAliasPublic(
         walletAHederaAccountNumAlias,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
 
       const receipt = await tx.wait();
 
       const evmAddressAliasLog = receipt.logs.find(
-        (log) => log.fragment.name === 'IsValidAliasResponse'
+        (log) => log.fragment.name === 'IsValidAliasResponse',
       ).args;
 
       expect(evmAddressAliasLog[0]).to.eq(22); // responseCode 22 = success
@@ -146,13 +147,13 @@ describe('@HAS IHRC-632 Test Suite', () => {
     it('Should execute isValidAliasPublic with a non existed account param and return FALSE', async () => {
       const tx = await aliasAccountUtility.isValidAliasPublic(
         ethers.Wallet.createRandom().address,
-        Constants.GAS_LIMIT_1_000_000
+        Constants.GAS_LIMIT_1_000_000,
       );
 
       const receipt = await tx.wait();
 
       const evmAddressAliasLog = receipt.logs.find(
-        (log) => log.fragment.name === 'IsValidAliasResponse'
+        (log) => log.fragment.name === 'IsValidAliasResponse',
       ).args;
 
       expect(evmAddressAliasLog[0]).to.eq(22); // responseCode 22 = success
@@ -197,12 +198,12 @@ describe('@HAS IHRC-632 Test Suite', () => {
           walletB.address, // correct signer
           messageHash,
           signature,
-          Constants.GAS_LIMIT_1_000_000
+          Constants.GAS_LIMIT_1_000_000,
         )
       ).wait();
 
       const correctSignerReceiptResponse = correctSignerReceipt.logs.find(
-        (l) => l.fragment.name === 'AccountAuthorizationResponse'
+        (l) => l.fragment.name === 'AccountAuthorizationResponse',
       ).args;
 
       expect(correctSignerReceiptResponse[0]).to.eq(22);
@@ -219,12 +220,12 @@ describe('@HAS IHRC-632 Test Suite', () => {
           walletC.address, // incorrect signer
           messageHash,
           signature,
-          Constants.GAS_LIMIT_1_000_000
+          Constants.GAS_LIMIT_1_000_000,
         )
       ).wait();
 
       const incorrectSignerReceiptResponse = incorrectSignerReceipt.logs.find(
-        (l) => l.fragment.name === 'AccountAuthorizationResponse'
+        (l) => l.fragment.name === 'AccountAuthorizationResponse',
       ).args;
 
       expect(incorrectSignerReceiptResponse[0]).to.eq(22);
@@ -238,17 +239,17 @@ describe('@HAS IHRC-632 Test Suite', () => {
           EDItems[0].signerAlias, // correct alias
           messageHash,
           EDItems[0].signature, // correct signature
-          Constants.GAS_LIMIT_10_000_000
+          Constants.GAS_LIMIT_10_000_000,
         )
       ).wait();
 
       const correctSignerReceiptResponse = correctSignerReceipt.logs.find(
-        (l) => l.fragment.name === 'AccountAuthorizationResponse'
+        (l) => l.fragment.name === 'AccountAuthorizationResponse',
       ).args;
 
       expect(correctSignerReceiptResponse[0]).to.eq(22);
       expect(correctSignerReceiptResponse[1].toLowerCase()).to.eq(
-        EDItems[0].signerAlias.toLowerCase()
+        EDItems[0].signerAlias.toLowerCase(),
       );
       expect(correctSignerReceiptResponse[2]).to.be.true;
     });
@@ -259,20 +260,20 @@ describe('@HAS IHRC-632 Test Suite', () => {
           EDItems[0].signerAlias, // incorrect signer
           messageHash,
           EDItems[1].signature, // different signature
-          Constants.GAS_LIMIT_10_000_000
+          Constants.GAS_LIMIT_10_000_000,
         )
       ).wait();
 
       const incorrectSignerReceiptResponse = incorrectSignerReceipt.logs.find(
-        (l) => l.fragment.name === 'AccountAuthorizationResponse'
+        (l) => l.fragment.name === 'AccountAuthorizationResponse',
       ).args;
 
       expect(incorrectSignerReceiptResponse[0]).to.eq(22);
       expect(incorrectSignerReceiptResponse[1].toLowerCase()).to.eq(
-        EDItems[0].signerAlias.toLowerCase()
+        EDItems[0].signerAlias.toLowerCase(),
       );
       expect(incorrectSignerReceiptResponse[1].toLowerCase()).to.not.eq(
-        EDItems[1].signerAlias.toLowerCase()
+        EDItems[1].signerAlias.toLowerCase(),
       );
       expect(incorrectSignerReceiptResponse[2]).to.be.false;
     });
@@ -300,15 +301,12 @@ describe('@HAS IHRC-632 Test Suite', () => {
         [sig.signatureType]: Buffer.from(sig.signatureValue),
       }));
       return HashgraphProto.proto.SignatureMap.encode({
-        sigPair: sigPairs
+        sigPair: sigPairs,
       }).finish();
     };
 
-    const prepareSigBlobData = async (
-      signatureTypes,
-      unauthorized = false
-    ) => {
-      let keyData = {
+    const prepareSigBlobData = async (signatureTypes, unauthorized = false) => {
+      const keyData = {
         pubKeys: [],
         signatureBlobDatas: [],
       };
@@ -356,7 +354,7 @@ describe('@HAS IHRC-632 Test Suite', () => {
       // Create a threshold key with both public keys
       const thresholdKey = new KeyList(
         [...keyData.pubKeys],
-        keyData.pubKeys.length
+        keyData.pubKeys.length,
       );
 
       // Create new account with the new key
@@ -369,31 +367,31 @@ describe('@HAS IHRC-632 Test Suite', () => {
       const accountAddress = `0x${newAccount.toSolidityAddress()}`;
 
       // Create signature blob
-      const signatureBlob = await createSignatureBlob(keyData.signatureBlobDatas);
+      const signatureBlob = await createSignatureBlob(
+        keyData.signatureBlobDatas,
+      );
 
       return { accountAddress, signatureBlob };
     };
 
     it('Should verify message signature and return TRUE using isAuthorized for ECDSA key', async () => {
-      const sigBlobData = await prepareSigBlobData([
-        'ECDSASecp256k1',
-      ]);
+      const sigBlobData = await prepareSigBlobData(['ECDSASecp256k1']);
 
       const tx = await aliasAccountUtility.isAuthorizedPublic(
         sigBlobData.accountAddress,
         Buffer.from(messageToSign, 'utf-8'),
         sigBlobData.signatureBlob,
-        Constants.GAS_LIMIT_10_000_000
+        Constants.GAS_LIMIT_10_000_000,
       );
       const txReceipt = await tx.wait();
 
       const accountAuthorizationResponse = txReceipt.logs.find(
-        (l) => l.fragment.name === 'AccountAuthorizationResponse'
+        (l) => l.fragment.name === 'AccountAuthorizationResponse',
       ).args;
 
       expect(accountAuthorizationResponse[0]).to.eq(22);
       expect(accountAuthorizationResponse[1].toLowerCase()).to.eq(
-        sigBlobData.accountAddress.toLowerCase()
+        sigBlobData.accountAddress.toLowerCase(),
       );
       expect(accountAuthorizationResponse[2]).to.be.true;
     });
@@ -405,17 +403,17 @@ describe('@HAS IHRC-632 Test Suite', () => {
         sigBlobData.accountAddress,
         Buffer.from(messageToSign, 'utf-8'),
         sigBlobData.signatureBlob,
-        Constants.GAS_LIMIT_10_000_000
+        Constants.GAS_LIMIT_10_000_000,
       );
       const txReceipt = await tx.wait();
 
       const accountAuthorizationResponse = txReceipt.logs.find(
-        (l) => l.fragment.name === 'AccountAuthorizationResponse'
+        (l) => l.fragment.name === 'AccountAuthorizationResponse',
       ).args;
 
       expect(accountAuthorizationResponse[0]).to.eq(22);
       expect(accountAuthorizationResponse[1].toLowerCase()).to.eq(
-        sigBlobData.accountAddress.toLowerCase()
+        sigBlobData.accountAddress.toLowerCase(),
       );
       expect(accountAuthorizationResponse[2]).to.be.true;
     });
@@ -436,17 +434,17 @@ describe('@HAS IHRC-632 Test Suite', () => {
         sigBlobData.accountAddress,
         Buffer.from(messageToSign, 'utf-8'),
         sigBlobData.signatureBlob,
-        Constants.GAS_LIMIT_10_000_000
+        Constants.GAS_LIMIT_10_000_000,
       );
       const txReceipt = await tx.wait();
 
       const accountAuthorizationResponse = txReceipt.logs.find(
-        (l) => l.fragment.name === 'AccountAuthorizationResponse'
+        (l) => l.fragment.name === 'AccountAuthorizationResponse',
       ).args;
 
       expect(accountAuthorizationResponse[0]).to.eq(22);
       expect(accountAuthorizationResponse[1].toLowerCase()).to.eq(
-        sigBlobData.accountAddress.toLowerCase()
+        sigBlobData.accountAddress.toLowerCase(),
       );
       expect(accountAuthorizationResponse[2]).to.be.true;
     });
@@ -454,24 +452,24 @@ describe('@HAS IHRC-632 Test Suite', () => {
     it('Should FAIL to verify message signature and return FALSE using isAuthorized for unauthorized key', async () => {
       const sigBlobData = await prepareSigBlobData(
         ['ECDSASecp256k1'],
-        true // set unauthorized to true
+        true, // set unauthorized to true
       );
 
       const tx = await aliasAccountUtility.isAuthorizedPublic(
         sigBlobData.accountAddress,
         Buffer.from(messageToSign, 'utf-8'),
         sigBlobData.signatureBlob,
-        Constants.GAS_LIMIT_10_000_000
+        Constants.GAS_LIMIT_10_000_000,
       );
       const txReceipt = await tx.wait();
 
       const accountAuthorizationResponse = txReceipt.logs.find(
-        (l) => l.fragment.name === 'AccountAuthorizationResponse'
+        (l) => l.fragment.name === 'AccountAuthorizationResponse',
       ).args;
 
       expect(accountAuthorizationResponse[0]).to.eq(22);
       expect(accountAuthorizationResponse[1].toLowerCase()).to.eq(
-        sigBlobData.accountAddress.toLowerCase()
+        sigBlobData.accountAddress.toLowerCase(),
       );
       expect(accountAuthorizationResponse[2]).to.be.false; // unauthorized
     });
