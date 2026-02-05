@@ -75,6 +75,10 @@ describe('TokenTransferContract Test Suite', function () {
     await utils.grantTokenKyc(tokenCreateContract, nftTokenAddress);
   });
 
+  after(function () {
+    hapi.client.close();
+  });
+
   it('should NOT be able to use transferFrom on fungible tokens without approval', async function () {
     const amount = 1;
     try {
