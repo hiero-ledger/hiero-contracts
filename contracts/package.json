@@ -1,14 +1,14 @@
 {
-  "name": "@hashgraph/contracts",
+  "name": "@hiero-ledger/hiero-contracts",
   "version": "0.1.1",
-  "description": "Secure Hedera System Smart Contract Library for Solidity",
+  "description": "Secure Solidity Smart Contract Library for integrations with Hiero Ledger-based system contracts",
   "files": [
     "**/*.sol",
     "!/mocks/**/*"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hashgraph/contracts.git"
+    "url": "git+https://github.com/hiero-ledger/hiero-contracts.git"
   },
   "author": "2025 Hedera Hashgraph, LLC",
   "license": "Apache-2.0",
@@ -27,9 +27,9 @@
     "system-contracts"
   ],
   "bugs": {
-    "url": "https://github.com/hashgraph/hedera-smart-contracts/issues"
+    "url": "https://github.com/hiero-ledger/hiero-contracts/issues"
   },
-  "homepage": "https://github.com/hashgraph/hedera-smart-contracts#readme",
+  "homepage": "https://github.com/hiero-ledger/hiero-contracts#readme",
   "dependencies": {
     "@openzeppelin/contracts": "^5.3.0",
     "@openzeppelin/contracts-upgradeable": "^5.4.0"

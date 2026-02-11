@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  id-token: write  # Required for OIDC (trusted publishing)
+  pull-requests: write
+  contents: write
+
+jobs:
+  release:
+    runs-on: hl-contr-lin-lg
+    name: Release
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Use Node.js [24]
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24.12.0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create Release Pull Request or Publish to npm
+        id: changesets
+        uses: step-security/changeset-action@531a275d3847d9291b64e729d0ee55cd0dc93b16 # v1.5.3
+        with:
+          title: 'chore(release): new version'
+          commit: 'chore(release): new version'
+          publish: npm run release
+          version: npm run version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get current package version
+        id: get_version
+        working-directory: ./contracts
+        run: echo "CURRENT_PACKAGE_VERSION=$(node -p "require('./packages/core/package.json').version")" >> $GITHUB_ENV
+
+      - name: Create Github Release
+        if: "startsWith(github.event.head_commit.message, 'chore(release): new version')"
+        uses: step-security/action-gh-release@2677a32b1ab8b24324ede3be9da4e1d8c3f686ee # v2.3.2
+        with:
+          tag_name: v${{ env.CURRENT_PACKAGE_VERSION }}

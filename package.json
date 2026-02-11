@@ -32,7 +32,9 @@
   "scripts": {
     "hh:compile": "hardhat compile",
     "hh:test": "hardhat test",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "release": "cd ./contracts && npm publish --access public --no-git-tag",
+    "version": "cd ./contracts && npm version"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
