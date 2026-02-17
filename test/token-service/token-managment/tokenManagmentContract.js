@@ -3222,10 +3222,6 @@ describe('TokenManagmentContract Test Suite', function () {
         ).to.eventually.be.rejectedWith(new RegExp(FRACTION_DIVIDES_BY_ZERO));
       });
 
-      // Note: Tests below are skipped due to CUSTOM_FEES_LIST_TOO_LONG error introduced in network node v0.56.0
-      // which enforces a maximum of 10 custom fees per token. This validation was previously done at the SDK level.
-      // TODO: Re-enable tests once validation is properly handled - see https://github.com/hashgraph/hedera-services/issues/17533
-      // and https://github.com/hashgraph/hedera-smart-contracts/issues/1207
       it('should fail when updating fungible token fees to more than 10', async function () {
         let transactionHash;
         tokenWithFees = await utils.createFungibleTokenWithCustomFeesAndKeys(
@@ -3249,28 +3245,17 @@ describe('TokenManagmentContract Test Suite', function () {
             feeCollector: signers[0].address,
           });
         }
-        const updateFeeTx =
+        await expect(
           await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             fees,
             [],
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(CUSTOM_FEES_LIST_TOO_LONG);
+          ),
+        ).to.eventually.be.rejectedWith(
+            new RegExp(CUSTOM_FEES_LIST_TOO_LONG),
+        );
       });
 
-      // Note: Tests below are skipped due to CUSTOM_FEES_LIST_TOO_LONG error introduced in network node v0.56.0
-      // which enforces a maximum of 10 custom fees per token. This validation was previously done at the SDK level.
-      // TODO: Re-enable tests once validation is properly handled - see https://github.com/hashgraph/hedera-services/issues/17533
-      // and https://github.com/hashgraph/hedera-smart-contracts/issues/1207
       it('should fail when updating NFT token fees to more than 10', async function () {
         const nft =
           await utils.createNonFungibleTokenWithCustomRoyaltyFeeAndKeys(
@@ -3282,7 +3267,6 @@ describe('TokenManagmentContract Test Suite', function () {
           );
         await hapi.updateTokenKeys(nft, [tokenManagementContractAddress]);
 
-        let transactionHash;
         const fees = [];
         for (let i = 0; i < 11; i++) {
           fees.push({
@@ -3293,22 +3277,15 @@ describe('TokenManagmentContract Test Suite', function () {
             feeCollector: signers[0].address,
           });
         }
-        const updateFeeTx =
-          await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
-            nft,
-            fees,
-            [],
-          );
-        try {
-          await updateFeeTx.wait();
-        } catch (error) {
-          transactionHash = error.receipt.hash;
-        }
-
-        const revertReason =
-          await utils.getRevertReasonFromReceipt(transactionHash);
-        const decodeRevertReason = utils.decodeErrorMessage(revertReason);
-        expect(decodeRevertReason).to.equal(CUSTOM_FEES_LIST_TOO_LONG);
+        await expect(
+            await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+                nft,
+                fees,
+                [],
+            ),
+        ).to.eventually.be.rejectedWith(
+            new RegExp(CUSTOM_FEES_LIST_TOO_LONG),
+        );
       });
 
       it('should fail when the provided fee collector is invalid', async function () {
