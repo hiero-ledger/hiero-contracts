@@ -3223,7 +3223,6 @@ describe('TokenManagmentContract Test Suite', function () {
       });
 
       it('should fail when updating fungible token fees to more than 10', async function () {
-        let transactionHash;
         tokenWithFees = await utils.createFungibleTokenWithCustomFeesAndKeys(
           tokenCreateCustomContract,
           signers[0].address,
