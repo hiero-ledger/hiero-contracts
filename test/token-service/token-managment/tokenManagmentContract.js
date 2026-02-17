@@ -3250,9 +3250,7 @@ describe('TokenManagmentContract Test Suite', function () {
             fees,
             [],
           ),
-        ).to.eventually.be.rejectedWith(
-            new RegExp(CUSTOM_FEES_LIST_TOO_LONG),
-        );
+        ).to.eventually.be.rejectedWith(new RegExp(CUSTOM_FEES_LIST_TOO_LONG));
       });
 
       it('should fail when updating NFT token fees to more than 10', async function () {
@@ -3277,14 +3275,12 @@ describe('TokenManagmentContract Test Suite', function () {
           });
         }
         await expect(
-            await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
-                nft,
-                fees,
-                [],
-            ),
-        ).to.eventually.be.rejectedWith(
-            new RegExp(CUSTOM_FEES_LIST_TOO_LONG),
-        );
+          await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+            nft,
+            fees,
+            [],
+          ),
+        ).to.eventually.be.rejectedWith(new RegExp(CUSTOM_FEES_LIST_TOO_LONG));
       });
 
       it('should fail when the provided fee collector is invalid', async function () {
