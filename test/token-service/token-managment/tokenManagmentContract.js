@@ -2700,7 +2700,7 @@ describe('TokenManagmentContract Test Suite', function () {
       );
     });
 
-    xit('should be able to update fixed HTS fee for NFT', async function () {
+    it('should be able to update fixed HTS fee for NFT', async function () {
       await utils.associateToken(
         tokenCreateCustomContract,
         feeToken,
@@ -2822,7 +2822,7 @@ describe('TokenManagmentContract Test Suite', function () {
       expect(await hapi.getTokenBalance(signers[3].address, nft)).to.equal(1);
     });
 
-    xit('should be able to update fixed HTS fee and royalty fee in NFT', async function () {
+    it('should be able to update fixed HTS fee and royalty fee in NFT', async function () {
       await utils.associateToken(
         tokenCreateCustomContract,
         feeToken,

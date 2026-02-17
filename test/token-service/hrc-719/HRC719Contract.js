@@ -152,7 +152,7 @@ describe('@HRC-719 Test Suite', function () {
     // @notice: skip as IHRC719.isAssociated() is not yet supported by mirror node
     // @notice: should not be skipped when the feature is fully implemented in mirror node
     // @notice: track by https://github.com/hashgraph/hedera-smart-contracts/issues/948
-    xit('should be able to call isAssociated() to the token from an EOA', async function () {
+    it('should be able to call isAssociated() to the token from an EOA', async function () {
       const hrcTokenSigner1 = new Contract(tokenAddress, IHRC719, signers[1]);
       const isAssociatedSigner1 = await hrcTokenSigner1.isAssociated();
       expect(isAssociatedSigner1).to.be.false;
@@ -161,7 +161,7 @@ describe('@HRC-719 Test Suite', function () {
     // @notice: skip as IHRC719.isAssociated() is not yet supported by mirror node
     // @notice: should not be skipped when the feature is fully implemented in mirror node
     // @notice: track by https://github.com/hashgraph/hedera-smart-contracts/issues/948
-    xit('should be able to call isAssociated() to the token from an EOA when associated', async function () {
+    it('should be able to call isAssociated() to the token from an EOA when associated', async function () {
       const hrcTokenSigner1 = new Contract(tokenAddress, IHRC719, signers[1]);
 
       const txAssociate = await hrcTokenSigner1.associate(
@@ -177,7 +177,7 @@ describe('@HRC-719 Test Suite', function () {
     // @notice: skip as IHRC719.isAssociated() is not yet supported by mirror node
     // @notice: should not be skipped when the feature is fully implemented in mirror node
     // @notice: track by https://github.com/hashgraph/hedera-smart-contracts/issues/948
-    xit('should be able to call isAssociated() to the token from an EOA when dissociated', async function () {
+    it('should be able to call isAssociated() to the token from an EOA when dissociated', async function () {
       const hrcTokenSigner1 = new Contract(tokenAddress, IHRC719, signers[1]);
 
       const txAssociate = await hrcTokenSigner1.dissociate(
