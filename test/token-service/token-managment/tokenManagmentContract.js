@@ -20,7 +20,7 @@ const expectHTSError = async (transaction, expectedError) => {
   const encodedResponse = await utils.getHTSResponseCode(transaction.hash);
   const responseCode = utils.hexToASCII(BigInt(encodedResponse).toString(16));
   expect(responseCode).to.equal(expectedError);
-}
+};
 
 describe('TokenManagmentContract Test Suite', function () {
   const TX_SUCCESS_CODE = 22;
@@ -3265,7 +3265,7 @@ describe('TokenManagmentContract Test Suite', function () {
             fees,
             [],
             Constants.GAS_LIMIT_5_000_000,
-        );
+          );
         await expectHTSError(updateFeeTx, 'CUSTOM_FEES_LIST_TOO_LONG');
       });
 

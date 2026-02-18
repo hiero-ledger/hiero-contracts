@@ -476,7 +476,9 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
   });
 
   it('should be possible to delete the contract if it is the receiver of the pending airdrop', async function () {
-    const sampleContractFactory = await ethers.getContractFactory(Constants.Contract.Sample);
+    const sampleContractFactory = await ethers.getContractFactory(
+      Constants.Contract.Sample,
+    );
     const sampleContract = await sampleContractFactory.deploy();
     await sampleContract.waitForDeployment();
 
