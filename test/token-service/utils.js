@@ -582,7 +582,7 @@ class Utils {
    * to a string before being returned.
    *
    * @param {string} txHash - The transaction hash to query.
-   * @returns {string} - The response code as a string.
+   * @returns {Promise<string>} - The response code as a string.
    */
   static async getHTSResponseCode(txHash) {
     const mirrorNodeUrl = Utils.getMirrorNodeUrl(networkName);

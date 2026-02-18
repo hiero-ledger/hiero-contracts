@@ -14,7 +14,6 @@ describe('TokenManagmentContract Test Suite', function () {
   const TOKEN_HAS_NO_FEE_SCHEDULE_KEY = '240';
   const CUSTOM_FEE_MUST_BE_POSITIVE = '239';
   const FRACTION_DIVIDES_BY_ZERO = '230';
-  const CUSTOM_FEES_LIST_TOO_LONG = '232';
   const INVALID_CUSTOM_FEE_COLLECTOR = '233';
   const INVALID_TOKEN_ID_IN_CUSTOM_FEES = '234';
   const TOKEN_NOT_ASSOCIATED_TO_FEE_COLLECTOR = '235';
@@ -2811,6 +2810,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[1].address,
           signers[3].address,
           nftTx,
+          Constants.GAS_LIMIT_1_000_000,
         );
       await transferNftToSigner3.wait();
       expect(await hapi.getTokenBalance(signers[1].address, feeToken)).to.equal(
@@ -2975,6 +2975,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[1].address,
           signers[3].address,
           nftTx,
+          Constants.GAS_LIMIT_1_000_000,
         );
       await transferNftToSigner3.wait();
 
@@ -3234,23 +3235,26 @@ describe('TokenManagmentContract Test Suite', function () {
           tokenManagementContractAddress,
         ]);
 
+        const updatedTokenFeeAmount = tokenFeeAmount + 15;
         const fees = [];
         for (let i = 0; i < 11; i++) {
           fees.push({
-            amount: tokenFeeAmount + i,
-            tokenId: ethers.ZeroAddress,
-            useHbarsForPayment: true,
+            amount: updatedTokenFeeAmount + i,
+            tokenId: feeToken,
+            useHbarsForPayment: false,
             useCurrentTokenForPayment: false,
             feeCollector: signers[0].address,
           });
         }
-        await expect(
-          await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        const updateFeeTx = await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             fees,
             [],
-          ),
-        ).to.eventually.be.rejectedWith(new RegExp(CUSTOM_FEES_LIST_TOO_LONG));
+            Constants.GAS_LIMIT_5_000_000,
+        );
+        await expect(updateFeeTx.wait()).to.eventually.be.rejected;
+        const responseCode = utils.decodeErrorMessage(await utils.getHTSResponseCode(updateFeeTx.hash));
+        expect(responseCode).to.equal('CUSTOM_FEES_LIST_TOO_LONG');
       });
 
       it('should fail when updating NFT token fees to more than 10', async function () {
@@ -3263,24 +3267,26 @@ describe('TokenManagmentContract Test Suite', function () {
             keys,
           );
         await hapi.updateTokenKeys(nft, [tokenManagementContractAddress]);
-
+        const updatedTokenFeeAmount = tokenFeeAmount + 15;
         const fees = [];
         for (let i = 0; i < 11; i++) {
           fees.push({
-            amount: tokenFeeAmount + i,
-            tokenId: ethers.ZeroAddress,
-            useHbarsForPayment: true,
+            amount: updatedTokenFeeAmount + i,
+            tokenId: feeToken,
+            useHbarsForPayment: false,
             useCurrentTokenForPayment: false,
             feeCollector: signers[0].address,
           });
         }
-        await expect(
-          await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        const updateFeeTx = await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             fees,
             [],
-          ),
-        ).to.eventually.be.rejectedWith(new RegExp(CUSTOM_FEES_LIST_TOO_LONG));
+            Constants.GAS_LIMIT_5_000_000,
+        );
+        await expect(updateFeeTx.wait()).to.eventually.be.rejected;
+        const responseCode =  utils.decodeErrorMessage(await utils.getHTSResponseCode(updateFeeTx.hash));
+        expect(responseCode).to.equal('CUSTOM_FEES_LIST_TOO_LONG');
       });
 
       it('should fail when the provided fee collector is invalid', async function () {
