@@ -43,16 +43,6 @@ const Events = {
   IsAssociated: 'IsAssociated',
 };
 
-const Path = {
-  BLOCK_INFO: 'contracts/solidity/block/BlockInfo.sol:BlockInfo',
-  CRYPTO_MATH: 'contracts/solidity/cryptomath/CryptoMath.sol:CryptoMath',
-  HRC: 'contracts/hrc/HRC.sol:HRC',
-  TYPE_OPS: 'contracts/solidity/typeops/TypeOps.sol:TypeOps',
-  RECEIVER_PAYS:
-    'contracts/solidity/signature-example/ReceiverPays.sol:ReceiverPays',
-  RECEIVER: 'contracts/solidity/encoding/Receiver.sol:Receiver',
-};
-
 const Contract = {
   ERC20Mock: 'ERC20Mock',
   ERC20Contract: 'ERC20Contract',
@@ -76,6 +66,7 @@ const Contract = {
   AliasAccountUtility: 'AliasAccountUtility',
   CancelAirdrop: 'CancelAirdrop',
   InternalCallee: 'InternalCallee',
+  Sample: 'contracts/mocks/Sample.sol:Sample',
 };
 
 const CALL_EXCEPTION = 'CALL_EXCEPTION';
@@ -101,7 +92,6 @@ const HAS_SYSTEM_CONTRACT_ID = '0.0.362';
 
 export default {
   Events,
-  Path,
   Contract,
   CALL_EXCEPTION,
   CONTRACT_REVERT_EXECUTED_CODE,

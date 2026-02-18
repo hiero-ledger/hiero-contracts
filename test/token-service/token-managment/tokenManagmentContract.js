@@ -8,6 +8,20 @@ import { pollForNewERC20Balance } from '../../helpers';
 import hapi from '../hapi';
 import utils from '../utils';
 
+/**
+ * Asserts that a Hedera Token Service (HTS) transaction reverts and matches a specific HTS error string.
+ *
+ * @param {import('ethers').TransactionResponse} transaction - Tx object returned by a contract call.
+ * @param {string} expectedError - ASCII HTS error identifier to match.
+ * @returns {Promise<void>} Resolves when the assertion is completed.
+ */
+const expectHTSError = async (transaction, expectedError) => {
+  await expect(transaction.wait()).to.eventually.be.rejected;
+  const encodedResponse = await utils.getHTSResponseCode(transaction.hash);
+  const responseCode = utils.hexToASCII(BigInt(encodedResponse).toString(16));
+  expect(responseCode).to.equal(expectedError);
+}
+
 describe('TokenManagmentContract Test Suite', function () {
   const TX_SUCCESS_CODE = 22;
   const CUSTOM_SCHEDULE_ALREADY_HAS_NO_FEES = '244';
@@ -3235,26 +3249,24 @@ describe('TokenManagmentContract Test Suite', function () {
           tokenManagementContractAddress,
         ]);
 
-        const updatedTokenFeeAmount = tokenFeeAmount + 15;
         const fees = [];
         for (let i = 0; i < 11; i++) {
           fees.push({
-            amount: updatedTokenFeeAmount + i,
-            tokenId: feeToken,
-            useHbarsForPayment: false,
+            amount: tokenFeeAmount + i,
+            tokenId: ethers.ZeroAddress,
+            useHbarsForPayment: true,
             useCurrentTokenForPayment: false,
             feeCollector: signers[0].address,
           });
         }
-        const updateFeeTx = await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
+        const updateFeeTx =
+          await tokenManagmentContract.updateFungibleTokenCustomFeesPublic(
             tokenWithFees,
             fees,
             [],
             Constants.GAS_LIMIT_5_000_000,
         );
-        await expect(updateFeeTx.wait()).to.eventually.be.rejected;
-        const responseCode = utils.decodeErrorMessage(await utils.getHTSResponseCode(updateFeeTx.hash));
-        expect(responseCode).to.equal('CUSTOM_FEES_LIST_TOO_LONG');
+        await expectHTSError(updateFeeTx, 'CUSTOM_FEES_LIST_TOO_LONG');
       });
 
       it('should fail when updating NFT token fees to more than 10', async function () {
@@ -3267,26 +3279,24 @@ describe('TokenManagmentContract Test Suite', function () {
             keys,
           );
         await hapi.updateTokenKeys(nft, [tokenManagementContractAddress]);
-        const updatedTokenFeeAmount = tokenFeeAmount + 15;
         const fees = [];
         for (let i = 0; i < 11; i++) {
           fees.push({
-            amount: updatedTokenFeeAmount + i,
-            tokenId: feeToken,
-            useHbarsForPayment: false,
+            amount: tokenFeeAmount + i,
+            tokenId: ethers.ZeroAddress,
+            useHbarsForPayment: true,
             useCurrentTokenForPayment: false,
             feeCollector: signers[0].address,
           });
         }
-        const updateFeeTx = await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
+        const updateFeeTx =
+          await tokenManagmentContract.updateNonFungibleTokenCustomFeesPublic(
             nft,
             fees,
             [],
             Constants.GAS_LIMIT_5_000_000,
-        );
-        await expect(updateFeeTx.wait()).to.eventually.be.rejected;
-        const responseCode =  utils.decodeErrorMessage(await utils.getHTSResponseCode(updateFeeTx.hash));
-        expect(responseCode).to.equal('CUSTOM_FEES_LIST_TOO_LONG');
+          );
+        await expectHTSError(updateFeeTx, 'CUSTOM_FEES_LIST_TOO_LONG');
       });
 
       it('should fail when the provided fee collector is invalid', async function () {
