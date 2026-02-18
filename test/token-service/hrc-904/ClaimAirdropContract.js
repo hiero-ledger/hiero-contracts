@@ -475,8 +475,8 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
     expect(await Utils.getHTSResponseCode(airdropTx.hash)).to.equal('74'); // ACCOUNT_REPEATED_IN_ACCOUNT_AMOUNTS
   });
 
-  it('should fail to delete contract if there is pending airdrop', async function () {
-    const sampleContractFactory = await ethers.getContractFactory('Sample');
+  it('should be possible to delete the contract if it is the receiver of the pending airdrop', async function () {
+    const sampleContractFactory = await ethers.getContractFactory('contracts/mocks/Sample.sol:Sample');
     const sampleContract = await sampleContractFactory.deploy();
     await sampleContract.waitForDeployment();
 
@@ -504,7 +504,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
     const deleteTx = await sampleContract.selfDestructSample();
     await deleteTx.wait();
     const cr = await Utils.getContractResultFromMN(deleteTx.hash);
-    expect(cr.error_message).to.equal('CONTRACT_STILL_OWNS_NFTS');
+    expect(cr.error_message).to.be.null;
   });
 
   it('should fail to airdrop Number.MAX_SAFE_INTEGER + 1 tokens', async function () {
