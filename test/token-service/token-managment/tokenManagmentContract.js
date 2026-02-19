@@ -8,26 +8,13 @@ import { pollForNewERC20Balance } from '../../helpers';
 import hapi from '../hapi';
 import utils from '../utils';
 
-/**
- * Asserts that a Hedera Token Service (HTS) transaction reverts and matches a specific HTS error string.
- *
- * @param {import('ethers').TransactionResponse} transaction - Tx object returned by a contract call.
- * @param {string} expectedError - ASCII HTS error identifier to match.
- * @returns {Promise<void>} Resolves when the assertion is completed.
- */
-const expectHTSError = async (transaction, expectedError) => {
-  await expect(transaction.wait()).to.eventually.be.rejected;
-  const encodedResponse = await utils.getHTSResponseCode(transaction.hash);
-  const responseCode = utils.hexToASCII(BigInt(encodedResponse).toString(16));
-  expect(responseCode).to.equal(expectedError);
-};
-
 describe('TokenManagmentContract Test Suite', function () {
   const TX_SUCCESS_CODE = 22;
   const CUSTOM_SCHEDULE_ALREADY_HAS_NO_FEES = '244';
   const TOKEN_HAS_NO_FEE_SCHEDULE_KEY = '240';
   const CUSTOM_FEE_MUST_BE_POSITIVE = '239';
   const FRACTION_DIVIDES_BY_ZERO = '230';
+  const CUSTOM_FEES_LIST_TOO_LONG = '232';
   const INVALID_CUSTOM_FEE_COLLECTOR = '233';
   const INVALID_TOKEN_ID_IN_CUSTOM_FEES = '234';
   const TOKEN_NOT_ASSOCIATED_TO_FEE_COLLECTOR = '235';
@@ -49,6 +36,40 @@ describe('TokenManagmentContract Test Suite', function () {
   let tokenTransferContractAddress;
   let tokenQueryContractAddress;
   let tokenManagementContractAddress;
+
+  /**
+   * Asserts that a Hedera Token Service (HTS) transaction reverts and matches a specific HTS error string.
+   *
+   * @param {import('ethers').TransactionResponse} transaction - Tx object returned by a contract call.
+   * @param {string} expectedError - ASCII HTS error identifier to match.
+   * @param {string} expectedResponseCode - String containing response code string.
+   * @returns {Promise<void>} Resolves when the assertion is completed.
+   */
+  const expectHTSError = async (transaction, expectedError, expectedResponseCode) => {
+    await expect(transaction.wait()).to.eventually.be.rejected;
+
+    const encodedResponse = await utils.getHTSResponseCode(transaction.hash);
+    const responseCode = utils.hexToASCII(BigInt(encodedResponse).toString(16));
+    expect(responseCode).to.equal(expectedError);
+
+    const revertReason =
+        await utils.getRevertReasonFromReceipt(transaction.hash);
+    const decodeRevertReason = utils.decodeErrorMessage(revertReason);
+
+    // @todo Remove the code below once the consensus node issue (see referenced task) is resolved.
+    // The response code from `contracts/results/{txId}` (`error_message`, via getRevertReasonFromReceipt)
+    // should match the error from `contracts/results/{txId}/actions` (`revert_reason`, via getHTSResponseCode).
+    // Currently, this is not the case for the revert reason `CUSTOM_FEES_LIST_TOO_LONG`.
+    // Instead of the expected 232, we are receiving 21.
+    // It allows both values as a temporary workaround and ensures the test
+    // passes immediately once the consensus node issue is resolved, even before this logic is removed.
+    if (expectedResponseCode === CUSTOM_FEES_LIST_TOO_LONG) {
+      expect(decodeRevertReason).to.be.oneOf([expectedResponseCode, '21']);
+      return;
+    }
+
+    expect(decodeRevertReason).to.be.equal(expectedResponseCode);
+  };
 
   before(async function () {
     signers = await ethers.getSigners();
@@ -3266,7 +3287,11 @@ describe('TokenManagmentContract Test Suite', function () {
             [],
             Constants.GAS_LIMIT_5_000_000,
           );
-        await expectHTSError(updateFeeTx, 'CUSTOM_FEES_LIST_TOO_LONG');
+        await expectHTSError(
+            updateFeeTx,
+            'CUSTOM_FEES_LIST_TOO_LONG',
+            CUSTOM_FEES_LIST_TOO_LONG,
+        );
       });
 
       it('should fail when updating NFT token fees to more than 10', async function () {
@@ -3296,7 +3321,7 @@ describe('TokenManagmentContract Test Suite', function () {
             [],
             Constants.GAS_LIMIT_5_000_000,
           );
-        await expectHTSError(updateFeeTx, 'CUSTOM_FEES_LIST_TOO_LONG');
+        await expectHTSError(updateFeeTx, 'CUSTOM_FEES_LIST_TOO_LONG', CUSTOM_FEES_LIST_TOO_LONG);
       });
 
       it('should fail when the provided fee collector is invalid', async function () {
