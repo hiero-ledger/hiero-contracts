@@ -45,15 +45,20 @@ describe('TokenManagmentContract Test Suite', function () {
    * @param {string} expectedResponseCode - String containing response code string.
    * @returns {Promise<void>} Resolves when the assertion is completed.
    */
-  const expectHTSError = async (transaction, expectedError, expectedResponseCode) => {
+  const expectHTSError = async (
+    transaction,
+    expectedError,
+    expectedResponseCode,
+  ) => {
     await expect(transaction.wait()).to.eventually.be.rejected;
 
     const encodedResponse = await utils.getHTSResponseCode(transaction.hash);
     const responseCode = utils.hexToASCII(BigInt(encodedResponse).toString(16));
     expect(responseCode).to.equal(expectedError);
 
-    const revertReason =
-        await utils.getRevertReasonFromReceipt(transaction.hash);
+    const revertReason = await utils.getRevertReasonFromReceipt(
+      transaction.hash,
+    );
     const decodeRevertReason = utils.decodeErrorMessage(revertReason);
 
     // @todo Remove the code below once the consensus node issue (see referenced task) is resolved.
@@ -3288,9 +3293,9 @@ describe('TokenManagmentContract Test Suite', function () {
             Constants.GAS_LIMIT_5_000_000,
           );
         await expectHTSError(
-            updateFeeTx,
-            'CUSTOM_FEES_LIST_TOO_LONG',
-            CUSTOM_FEES_LIST_TOO_LONG,
+          updateFeeTx,
+          'CUSTOM_FEES_LIST_TOO_LONG',
+          CUSTOM_FEES_LIST_TOO_LONG,
         );
       });
 
@@ -3321,7 +3326,11 @@ describe('TokenManagmentContract Test Suite', function () {
             [],
             Constants.GAS_LIMIT_5_000_000,
           );
-        await expectHTSError(updateFeeTx, 'CUSTOM_FEES_LIST_TOO_LONG', CUSTOM_FEES_LIST_TOO_LONG);
+        await expectHTSError(
+          updateFeeTx,
+          'CUSTOM_FEES_LIST_TOO_LONG',
+          CUSTOM_FEES_LIST_TOO_LONG,
+        );
       });
 
       it('should fail when the provided fee collector is invalid', async function () {
