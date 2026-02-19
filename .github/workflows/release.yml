@@ -33,7 +33,7 @@ jobs:
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
-        uses: step-security/changeset-action@531a275d3847d9291b64e729d0ee55cd0dc93b16 # v1.5.3
+        uses: step-security/changeset-action@052fc3344788df4e12ebebe6a2ffe2e4b4595fae # v1.5.4
         with:
           title: 'chore(release): new version'
           commit: 'chore(release): new version'
