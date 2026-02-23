@@ -61,12 +61,14 @@ describe('TokenManagmentContract Test Suite', function () {
     );
     const decodeRevertReason = utils.decodeErrorMessage(revertReason);
 
-    // @todo Remove the code below once the consensus node issue (see referenced task) is resolved.
+    // @todo Remove the code below once the consensus node issue is resolved.
+    // See referenced task: https://github.com/hiero-ledger/hiero-consensus-node/issues/2377
+    //
     // The response code from `contracts/results/{txId}` (`error_message`, via getRevertReasonFromReceipt)
     // should match the error from `contracts/results/{txId}/actions` (`revert_reason`, via getHTSResponseCode).
     // Currently, this is not the case for the revert reason `CUSTOM_FEES_LIST_TOO_LONG`.
     // Instead of the expected 232, we are receiving 21.
-    // It allows both values as a temporary workaround and ensures the test
+    // Code below allows both values as a temporary workaround and ensures the test
     // passes immediately once the consensus node issue is resolved, even before this logic is removed.
     if (expectedResponseCode === CUSTOM_FEES_LIST_TOO_LONG) {
       expect(decodeRevertReason).to.be.oneOf([expectedResponseCode, '21']);
