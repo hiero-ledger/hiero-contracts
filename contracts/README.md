@@ -40,7 +40,7 @@ To access them, you must first start a local Hedera node.
     require("@nomicfoundation/hardhat-ethers");
     require("@nomicfoundation/hardhat-toolbox");
     
-    // This not secret. This account is created by default when starting solo node using default configuration
+    // This is not a secret. This account is created by default when starting solo node using default configuration
     const PRIVATE_KEY = '0x105d050185ccb907fba04dd92d8de9e32c18305e097ab41dadda21489a211524'; // NOT SECRET
 
     module.exports = {
@@ -57,8 +57,8 @@ To access them, you must first start a local Hedera node.
 
 #### Hardhat (npm)
 
-    ```
-    $ npm install @hashgraph/contracts
+    ```bash
+    npm install @hiero-ledger/hiero-contracts
     ```
 
 

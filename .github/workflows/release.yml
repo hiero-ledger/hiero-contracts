@@ -45,7 +45,7 @@ jobs:
       - name: Get current package version
         id: get_version
         working-directory: ./contracts
-        run: echo "CURRENT_PACKAGE_VERSION=$(node -p "require('./packages/core/package.json').version")" >> $GITHUB_ENV
+        run: echo "CURRENT_PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
 
       - name: Create Github Release
         if: "startsWith(github.event.head_commit.message, 'chore(release): new version')"
