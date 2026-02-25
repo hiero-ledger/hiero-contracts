@@ -30,6 +30,13 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        
+      - name: Debug npm config & auth   # ← group debug commands in one step
+        run: |
+          npm config list
+          cat ~/.npmrc 2>/dev/null || echo "No user .npmrc"
+          cat .npmrc   2>/dev/null || echo "No project .npmrc"
+          npm whoami --registry https://registry.npmjs.org || echo "Not logged in"
 
       - name: Create Release Pull Request or Publish to npm
         id: changesets
@@ -37,10 +44,8 @@ jobs:
         with:
           title: 'chore(release): new version'
           commit: 'chore(release): new version'
-          publish: npm run release
+          publish: npm run release --loglevel verbose
           version: npm run version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get current package version
         id: get_version
