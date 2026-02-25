@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   release:
-    runs-on: hl-contr-lin-lg
+    #runs-on: hl-contr-lin-lg
     name: Release
     steps:
       - name: Harden the runner (Audit all outbound calls)
