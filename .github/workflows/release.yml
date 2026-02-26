@@ -31,14 +31,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Workaround for cwd issue # https://github.com/changesets/action/issues/501#issuecomment-2902386740
+        run: cp -R ./contracts/.changeset .
+
       - name: Create Release Pull Request or Publish to npm
         id: changesets
-        uses: step-security/changeset-action@531a275d3847d9291b64e729d0ee55cd0dc93b16 # v1.5.3
+        uses: step-security/changeset-action@c3cee0943e9b8be3a72f62588e00dd7c107e101e # v1.6.0
         with:
+          cwd: contracts
           title: 'chore(release): new version'
           commit: 'chore(release): new version'
-          publish: npm run release
-          version: npm run version
+          publish: npx @changesets/cli@2.29.8 publish --tag rc
+          version: npx @changesets/cli@2.29.8 version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
