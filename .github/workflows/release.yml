@@ -2,6 +2,11 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      changesetsVersion:
+        description: 'Specify desired @changesets/cli version to use. Default: 2.29.8'
+        required: false
+        type: string
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -41,8 +46,8 @@ jobs:
           cwd: contracts
           title: 'chore(release): new version'
           commit: 'chore(release): new version'
-          publish: npx @changesets/cli@2.29.8 publish --tag rc
-          version: npx @changesets/cli@2.29.8 version
+          publish: npx @changesets/cli@${{ inputs.changesetsVersion || '2.29.8' }} publish --tag rc
+          version: npx @changesets/cli@${{ inputs.changesetsVersion || '2.29.8' }} version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
