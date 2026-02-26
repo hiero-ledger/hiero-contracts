@@ -66,7 +66,7 @@ jobs:
             --node-aliases: "node1"
           
           setup:
-            --release-tag: "${{ inputs.networkTag || 'v0.70.0' }}"
+            --release-tag: "${{ inputs.networkTag || 'v0.74.0' }}"
             --node-aliases: "node1"
           
           consensusNode:
@@ -75,7 +75,7 @@ jobs:
           mirrorNode:
             --enable-ingress: true
             --pinger: true
-            --mirror-node-version: "${{ inputs.mirrorTag || 'v0.144.0' }}"
+            --mirror-node-version: "${{ inputs.mirrorTag || 'v0.148.0' }}"
             --force-port-forward: true
           explorerNode:
             --enable-ingress: true
@@ -95,7 +95,7 @@ jobs:
           wait: 120s
 
       - name: Start the solo node
-        run: npx @hashgraph/solo@${{ inputs.soloVersion || '0.52.0' }} one-shot falcon deploy --values-file .github/falcon.yml --dev
+        run: npx @hashgraph/solo@${{ inputs.soloVersion || '0.58.0' }} one-shot falcon deploy --values-file .github/falcon.yml --dev
         timeout-minutes: 15
 
       - name: Forward solo ports
@@ -124,4 +124,4 @@ jobs:
 
       - name: Stop solo
         if: ${{ !cancelled() }}
-        run: npx @hashgraph/solo@${{ inputs.soloVersion || '0.52.0' }} one-shot single destroy
+        run: npx @hashgraph/solo@${{ inputs.soloVersion || '0.58.0' }} one-shot single destroy
