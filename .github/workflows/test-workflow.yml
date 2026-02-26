@@ -66,7 +66,7 @@ jobs:
             --node-aliases: "node1"
           
           setup:
-            --release-tag: "${{ inputs.networkTag || 'v0.74.0' }}"
+            --release-tag: "${{ inputs.networkTag || 'v0.70.0' }}"
             --node-aliases: "node1"
           
           consensusNode:
