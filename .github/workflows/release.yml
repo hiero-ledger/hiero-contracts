@@ -2,11 +2,6 @@ name: Release
 
 on:
   workflow_dispatch:
-    inputs:
-      changesetsVersion:
-        description: 'Specify desired @changesets/cli version to use. Default: 2.29.8'
-        required: false
-        type: string
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -36,25 +31,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Create Release Pull Request or Publish to npm
-        id: changesets
-        uses: step-security/changeset-action@c3cee0943e9b8be3a72f62588e00dd7c107e101e # v1.6.0
-        with:
-          cwd: contracts
-          title: 'chore(release): new version'
-          commit: 'chore(release): new version'
-          publish: npx @changesets/cli@${{ inputs.changesetsVersion || '2.29.8' }} publish --tag rc
-          version: npx @changesets/cli@${{ inputs.changesetsVersion || '2.29.8' }} version
+      - name: Publish
+        working-directory: ./contracts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get current package version
-        id: get_version
-        working-directory: ./contracts
-        run: echo "CURRENT_PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
-
-      - name: Create Github Release
-        if: "startsWith(github.event.head_commit.message, 'chore(release): new version')"
-        uses: step-security/action-gh-release@2677a32b1ab8b24324ede3be9da4e1d8c3f686ee # v2.3.2
-        with:
-          tag_name: v${{ env.CURRENT_PACKAGE_VERSION }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npx semantic-release --ci

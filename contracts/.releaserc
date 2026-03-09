@@ -1,0 +1,36 @@
+{
+  branches: ["main"],
+  tagFormat: "v${version}",
+  plugins: [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        preset: "conventionalcommits",
+        releaseRules: [
+          { type: "docs", release: "patch" },
+          { type: "refactor", release: "patch" },
+          { type: "chore", scope: "release", release: false }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      { preset: "conventionalcommits" }
+    ],
+    [
+      "@semantic-release/npm",
+      {
+        pkgRoot: ".",
+        npmPublish: true
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        successComment: false,
+        failComment: false,
+        releasedLabels: false
+      }
+    ]
+  ]
+};
