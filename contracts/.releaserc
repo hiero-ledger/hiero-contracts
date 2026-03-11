@@ -1,5 +1,5 @@
 {
-  branches: ["main"],
+  branches: ["main", { "name": "release", "prerelease": "rc" }],
   tagFormat: "v${version}",
   plugins: [
     [
