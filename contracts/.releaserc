@@ -1,6 +1,6 @@
 {
   branches: ["main", { "name": "50-rc-1", "prerelease": "rc" }],
-  tagFormat: "rc-v${version}",
+  tagFormat: "v${version}",
   plugins: [
     [
       "@semantic-release/commit-analyzer",
