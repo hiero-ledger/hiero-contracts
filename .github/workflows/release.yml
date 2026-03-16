@@ -1,14 +1,17 @@
 name: Release
 
 on:
+  push:
+    branches:
+      - 'rc/**'
+      - 'release/**'
   workflow_dispatch:
 
-concurrency: ${{ github.workflow }}-${{ github.ref }}
-
 permissions:
-  id-token: write  # Required for OIDC (trusted publishing)
-  pull-requests: write
   contents: write
+  issues: write
+  pull-requests: write
+  packages: write
 
 jobs:
   release:
