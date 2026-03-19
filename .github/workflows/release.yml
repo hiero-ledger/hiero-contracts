@@ -12,6 +12,7 @@ permissions:
   issues: write
   pull-requests: write
   packages: write
+  id-token: write # to enable use of OIDC for trusted publishing and npm provenance
 
 jobs:
   release:
@@ -44,5 +45,4 @@ jobs:
         working-directory: ./contracts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release --ci
