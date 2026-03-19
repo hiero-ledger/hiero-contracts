@@ -25,7 +25,7 @@ permissions:
 jobs:
   prepare:
     name: Release / Prepare
-    runs-on: hiero-cli-linux-medium
+    runs-on: hl-contr-lin-lg
     outputs:
       version: ${{ steps.set-outputs.outputs.version }}
       need-release: ${{ steps.set-outputs.outputs.need-release }}
@@ -118,7 +118,7 @@ jobs:
   create-github-release:
     name: Github / Release
     if: ${{ needs.prepare-release.outputs.need-release == 'true' }}
-    runs-on: hiero-cli-linux-medium
+    runs-on: hl-contr-lin-lg
     needs:
       - prepare
     outputs:
@@ -200,7 +200,7 @@ jobs:
         working-directory: contracts
         run: |
           VERSION=$(jq -r '.version' './package.json')
-          CLI_NPM_PACKAGE_NAME="hiero-ledger-hiero-cli-${VERSION}.tgz"
+          CLI_NPM_PACKAGE_NAME="hiero-ledger-hiero-contracts-${VERSION}.tgz"
           echo "artifact-name=${CLI_NPM_PACKAGE_NAME}" >> $GITHUB_OUTPUT
 
       - name: Pack tarball
@@ -222,7 +222,7 @@ jobs:
       - name: Upload Hiero Contracts package artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: cli-npm-package
+          name: contracts-npm-package
           path: ./contracts/dist/${{ steps.set-publish-data.outputs.artifact-name }}
           if-no-files-found: error
 
@@ -257,7 +257,7 @@ jobs:
       - name: Download Hiero Contracts NPM package artifact
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
-          name: cli-npm-package
+          name: contracts-npm-package
 
       - name: Publish Hiero Contracts NPM package
         run: |
