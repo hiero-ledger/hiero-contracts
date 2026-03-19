@@ -175,6 +175,7 @@ jobs:
           GIT_COMMITTER_NAME: ${{ secrets.GIT_USER_NAME }}
           GIT_COMMITTER_EMAIL: ${{ secrets.GIT_USER_EMAIL }}
         if: ${{ !cancelled() && !failure() }}
+        working-directory: contracts
         run: |
           FLAGS=""
           if [[ "${{ inputs.dry-run-enabled }}" == "true" ]]; then
@@ -190,21 +191,25 @@ jobs:
 
       - name: Update version for dry run
         if: ${{ inputs.dry-run-enabled == true }}
+        working-directory: contracts
         run: |
           npm version ${{ needs.prepare-release.outputs.version }} --no-git-tag-version
 
       - name: Set publish data
         id: set-publish-data
+        working-directory: contracts
         run: |
           VERSION=$(jq -r '.version' './package.json')
           CLI_NPM_PACKAGE_NAME="hiero-ledger-hiero-cli-${VERSION}.tgz"
           echo "artifact-name=${CLI_NPM_PACKAGE_NAME}" >> $GITHUB_OUTPUT
 
       - name: Pack tarball
+        working-directory: contracts
         run: |
           npm pack --pack-destination ./dist
 
       - name: Verify Package
+        working-directory: contracts
         run: |
           EXPECTED="./dist/${{ steps.set-publish-data.outputs.artifact-name }}"
           if [[ ! -f "${EXPECTED}" ]]; then
@@ -218,7 +223,7 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: cli-npm-package
-          path: ./dist/${{ steps.set-publish-data.outputs.artifact-name }}
+          path: ./contracts/dist/${{ steps.set-publish-data.outputs.artifact-name }}
           if-no-files-found: error
 
   publish-npm-package:
