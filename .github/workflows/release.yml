@@ -45,11 +45,6 @@ jobs:
           node-version: '24.12.0'
           node-registry: 'https://registry.npmjs.org/'
 
-      - name: Setup JQ
-        uses: dcarbone/install-jq-action@b7ef57d46ece78760b4019dbc4080a1ba2a40b45 # v3.2.0
-        with:
-          version: 1.7
-
       - name: Install Semantic Release
         run: |
           npm install -g semantic-release@25.0.2 @semantic-release/git@10.0.1 @semantic-release/github@12.0.2 @semantic-release/exec@7.1.0 gradle-semantic-release-plugin@1.7.6
