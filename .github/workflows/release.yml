@@ -204,24 +204,6 @@ jobs:
         run: |
           npm pack
 
-      - name: Verify Package
-        working-directory: contracts
-        run: |
-          EXPECTED="./${{ steps.set-publish-data.outputs.artifact-name }}"
-          if [[ ! -f "${EXPECTED}" ]]; then
-            echo "::error::Expected package not found: ${EXPECTED}"
-            ls -la .
-            exit 1
-          fi
-          echo "Package verified: ${EXPECTED} ($(du -h "${EXPECTED}" | cut -f1))"
-
-      - name: Upload Hiero Contracts package artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: contracts-npm-package
-          path: ./contracts/${{ steps.set-publish-data.outputs.artifact-name }}
-          if-no-files-found: error
-
       - name: Close the Milestone
         if: ${{ steps.version_parser.outputs.prerelease == '' }}
         id: milestone
@@ -272,8 +254,27 @@ jobs:
           tag: ${{ env.RELEASE_TAG }}
           token: ${{ secrets.GH_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
 
+
+      - name: Verify Package
+        working-directory: contracts
+        run: |
+          EXPECTED="./hiero-ledger-hiero-contracts-${{ env.VERSION }}.tgz"
+          if [[ ! -f "${EXPECTED}" ]]; then
+            echo "::error::Expected package not found: ${EXPECTED}"
+            ls -la .
+            exit 1
+          fi
+          echo "Package verified: ${EXPECTED} ($(du -h "${EXPECTED}" | cut -f1))"
+
+      - name: Upload Hiero Contracts package artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: contracts-npm-package
+          path: ./contracts/hiero-ledger-hiero-contracts-${{ env.VERSION }}.tgz
+          if-no-files-found: error
+
   create_snapshot_pr:
-    name: Create snapshot PR
+    name: Release / Create snapshot PR
     runs-on: hl-contr-lin-lg
     needs: prepare
     if: ${{ needs.branch_bump_tag.outputs.create_pr == 'true' }}
@@ -341,7 +342,7 @@ jobs:
           echo "artifact-name=${CLI_NPM_PACKAGE_NAME}" >> $GITHUB_OUTPUT
 
   publish-npm-package:
-    name: Publish Hiero Contracts NPM package
+    name: Release / Publish Hiero Contracts NPM package
     if: ${{ needs.prepare-release.outputs.need-release == 'true' && inputs.dry-run-enabled != true }}
     runs-on: ubuntu-latest
     needs:
