@@ -125,7 +125,7 @@ jobs:
             PROCEED="false"
           fi
 
-          echo "Calculated version: ${OUTVER}"
+          echo "Calculated version: ${VERSION}"
           echo "version=${OUTVER}" >> "${GITHUB_OUTPUT}"
           echo "need-release=${PROCEED}" >> "${GITHUB_OUTPUT}"
 
