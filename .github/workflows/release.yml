@@ -75,18 +75,16 @@ jobs:
           ref: main
           token: ${{ secrets.GH_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - name: Import GPG Key
-        id: gpg_importer
-        if: ${{ secrets.GPG_KEY_CONTENTS != '' }}
+      - name: Import GPG key
+        id: gpg_key
         uses: step-security/ghaction-import-gpg@69c854a83c7f79463f8bdf46772ab09826c560cd # v6.3.1
         with:
-          git_commit_gpgsign: true
-          git_committer_email: ${{ vars.GIT_USER_EMAIL || 'automation@users.noreply.github.com' }}
-          git_committer_name: ${{ vars.GIT_USER_NAME || 'release-automation' }}
-          git_tag_gpgsign: true
-          git_user_signingkey: true
           gpg_private_key: ${{ secrets.GPG_KEY_CONTENTS }}
           passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
+          git_config_global: true
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+          git_tag_gpgsign: false
 
       - name: Create and Switch to Release Branch
         run: |
@@ -173,7 +171,6 @@ jobs:
 
       - name: Import GPG Key
         id: gpg_importer
-        if: ${{ secrets.GPG_KEY_CONTENTS != '' }}
         uses: step-security/ghaction-import-gpg@69c854a83c7f79463f8bdf46772ab09826c560cd # v6.3.1
         with:
           git_commit_gpgsign: true
