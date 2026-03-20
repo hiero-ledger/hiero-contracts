@@ -27,8 +27,8 @@ permissions:
   packages: write
 
 jobs:
-  prepare:
-    name: Release / Create Github Release
+  prepare-release:
+    name: Release / Prepare
     runs-on: hl-contr-lin-lg
     outputs:
       version: ${{ steps.set-outputs.outputs.version }}
@@ -67,7 +67,6 @@ jobs:
         run: |
           PROCEED="true"
           SEMREL_OUTPUT=""
-          # Default branch release
           if [[ "${{ github.event.repository.default_branch }}" == "${{ github.ref_name }}" ]]; then
             if SEMREL_OUTPUT=$( (cd contracts && npx semantic-release --dry-run) 2>&1 ); then
               if echo "${SEMREL_OUTPUT}" | grep -q "The next release version is"; then
@@ -84,25 +83,6 @@ jobs:
               fi
             else
               echo "::notice file=flow-deploy-release-artifact.yaml::Semantic Release did NOT run successfully"
-              PROCEED="false"
-            fi
-          # RC prerelease on branches like rc/*
-          elif [[ "${{ github.ref_name }}" == rc/* ]]; then
-            if SEMREL_OUTPUT=$( (cd contracts && npx semantic-release --dry-run) 2>&1 ); then
-              if echo "${SEMREL_OUTPUT}" | grep -q "The next release version is"; then
-                echo "::notice file=flow-deploy-release-artifact.yaml::Semantic Release detected a new RC version for branch ${{ github.ref_name }}"
-                # Extract next RC version and persist
-                NEXT_VER=$(echo "${SEMREL_OUTPUT}" | sed -n 's/.*The next release version is \([^[:space:]]*\).*/\1/p' | head -n1)
-                if [[ -n "${NEXT_VER}" ]]; then
-                  echo "${NEXT_VER}" > VERSION
-                  echo "::notice::Parsed RC next version: ${NEXT_VER}"
-                fi
-              else
-                echo "::notice file=flow-deploy-release-artifact.yaml::Semantic Release detected NO RC version for branch ${{ github.ref_name }}"
-                PROCEED="false"
-              fi
-            else
-              echo "::notice file=flow-deploy-release-artifact.yaml::Semantic Release did NOT run successfully on RC branch"
               PROCEED="false"
             fi
           else
@@ -156,47 +136,57 @@ jobs:
           echo "version=${OUTVER}" >> "${GITHUB_OUTPUT}"
           echo "need-release=${PROCEED}" >> "${GITHUB_OUTPUT}"
 
-      - name: Parse Version
-        id: version_parser
-        uses: step-security/semver-utils@4ae9c1fd6d1c5f8f152fe7e2efe8069a952c2ace # v4.3.2
+  create-github-release:
+    name: Release / Github
+    if: ${{ needs.prepare-release.outputs.need-release == 'true' }}
+    runs-on: hiero-cli-linux-medium
+    needs:
+      - prepare-release
+    outputs:
+      npm-artifact-name: ${{ steps.set-publish-data.outputs.artifact-name }}
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
         with:
-          lenient: false
-          version: ${{ steps.set-outputs.outputs.version }}
+          egress-policy: audit
 
-      - name: Set Release Environment Variables
-        run: |
-          PREMINOR_VERSION=${{ steps.version_parser.outputs.inc-preminor }}
-          NEXT_VERSION_SNAPSHOT=${PREMINOR_VERSION//-0/-SNAPSHOT}
-          # Determine branch prefix: use 'rc' if the selected version is an RC, otherwise 'release'
-          if [[ "${{ steps.set-outputs.outputs.version }}" == *rc* ]] || [[ "${{ steps.version_parser.outputs.prerelease }}" == rc* ]]; then
-            RELEASE_BRANCH="rc"
-          else
-            RELEASE_BRANCH="${BR_PREFIX}/${{ steps.version_parser.outputs.major }}.${{ steps.version_parser.outputs.minor }}"
-          fi
-          [[ -z "${{ steps.version_parser.outputs.prerelease }}" ]] && \
-            VERSION=${{ steps.version_parser.outputs.release }} || \
-            VERSION="${{ steps.version_parser.outputs.release }}-${{ steps.version_parser.outputs.prerelease }}"
-          RELEASE_TAG="v${{ steps.set-outputs.outputs.version }}"
-          cat >> $GITHUB_ENV <<EOF
-          NEXT_VERSION_SNAPSHOT=$NEXT_VERSION_SNAPSHOT
-          RELEASE_BRANCH=$RELEASE_BRANCH
-          RELEASE_TAG=$RELEASE_TAG
-          VERSION=${{ steps.set-outputs.outputs.version }}
-          MILESTONE=${{ steps.version_parser.outputs.release}}
-          EOF
+      - name: Prepare Job
+        uses: pandaswhocode/initialize-github-job@ffb7446339e8e6007b942312ac95457d1a20b6cf # 1.0.4
+        with:
+          checkout: 'true'
+          checkout-ref: '${{ github.ref }}'
+          checkout-token: '${{ secrets.GITHUB_TOKEN }}'
+          setup-node: 'true'
+          node-version: '22'
+          node-registry: 'https://registry.npmjs.org/'
 
-      - name: Create and Switch to Release Branch
+      - name: Install GnuPG Tools
         run: |
-          if ! git ls-remote --exit-code --heads --quiet origin refs/heads/${RELEASE_BRANCH}; then
-            git checkout -b ${RELEASE_BRANCH}
-            git push -u origin ${RELEASE_BRANCH}
-          
-            # create a PR to bump main branch to the next snapshot version
-            echo "CREATE_PR=true" >> $GITHUB_ENV
-            echo "PR_TITLE=chore(release): Bump versions for v$NEXT_VERSION_SNAPSHOT" >> $GITHUB_ENV
-          else
-            git checkout ${RELEASE_BRANCH}
+          if ! command -v gpg2 >/dev/null 2>&1; then
+            echo "::group::Updating APT Repository Indices"
+              sudo apt update
+            echo "::endgroup::"
+            echo "::group::Installing GnuPG Tools"
+              sudo apt install -y gnupg2
+            echo "::endgroup::"
           fi
+
+      - name: Import GPG key
+        id: gpg_key
+        uses: step-security/ghaction-import-gpg@69c854a83c7f79463f8bdf46772ab09826c560cd # v6.3.1
+        with:
+          gpg_private_key: ${{ secrets.GPG_KEY_CONTENTS }}
+          passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
+          git_config_global: true
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+          git_tag_gpgsign: false
+
+      - name: Install Semantic Release
+        run: |
+          npm install -g semantic-release@25.0.2 @semantic-release/git@10.0.1 @semantic-release/github@12.0.2 @semantic-release/exec@7.1.0 gradle-semantic-release-plugin@1.7.6
+          npm install -g conventional-changelog-conventionalcommits@9.1.0 @commitlint/cli@18.6.0 @commitlint/config-conventional@18.6.0
+          npm install -g marked-mangle@1.1.6 marked-gfm-heading-id@3.1.2 semantic-release-conventional-commits@3.0.0
 
       - name: Publish Semantic Release
         env:
@@ -220,15 +210,28 @@ jobs:
             ls dist
           fi
 
-      - name: Pack tarball
+      - name: Update Version for Dry Run
+        if: ${{ inputs.dry-run-enabled == true }}
+        working-directory: contracts
+        run: |
+          npm version ${{ needs.prepare-release.outputs.version }} --no-git-tag-version
+
+      - name: Set Publish Data
+        id: set-publish-data
+        working-directory: contracts
+        run: |
+          VERSION=$(jq -r '.version' './package.json')
+          CLI_NPM_PACKAGE_NAME="hiero-ledger-hiero-contracts-${VERSION}.tgz"
+          echo "artifact-name=${CLI_NPM_PACKAGE_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Pack Tarball
         working-directory: contracts
         run: |
           npm pack
 
       - name: Verify Package
-        working-directory: contracts
         run: |
-          EXPECTED="./hiero-ledger-hiero-contracts-${{ env.VERSION }}.tgz"
+          EXPECTED="./${{ steps.set-publish-data.outputs.artifact-name }}"
           if [[ ! -f "${EXPECTED}" ]]; then
             echo "::error::Expected package not found: ${EXPECTED}"
             ls -la .
@@ -236,17 +239,17 @@ jobs:
           fi
           echo "Package verified: ${EXPECTED} ($(du -h "${EXPECTED}" | cut -f1))"
 
-      - name: Upload Hiero Contracts package artifact
+      - name: Upload Hiero CLI Package Artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
-          name: contracts-npm-package
-          path: ./contracts/hiero-ledger-hiero-contracts-${{ env.VERSION }}.tgz
+          name: cli-npm-package
+          path: ./${{ steps.set-publish-data.outputs.artifact-name }}
           if-no-files-found: error
 
   create_snapshot_pr:
-    name: Release / Create snapshot PR
+    name: Release / Snapshot
     runs-on: hl-contr-lin-lg
-    needs: prepare
+    needs: prepare-release
     if: ${{ needs.branch_bump_tag.outputs.create_pr == 'true' }}
     env:
       NEXT_VERSION_SNAPSHOT: ${{ needs.branch_bump_tag.outputs.next_version_snapshot }}
@@ -264,7 +267,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: main
-          token: ${{ secrets.GH_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Import GPG Key
         id: gpg_importer
@@ -302,7 +305,8 @@ jobs:
           title: ${{ env.PR_TITLE }}
           milestone: ${{ env.MILE_STONE }}
           labels: 'process'
-          token: ${{ secrets.GH_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Set publish data
         id: set-publish-data
         working-directory: contracts
@@ -316,7 +320,7 @@ jobs:
     if: ${{ needs.prepare-release.outputs.need-release == 'true' && inputs.dry-run-enabled != true }}
     runs-on: ubuntu-latest
     needs:
-      - prepare
+      - prepare-release
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2

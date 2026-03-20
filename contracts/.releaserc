@@ -1,40 +1,48 @@
 {
   branches: [
     "main",
-    "release/*",
-    { "name": "rc", "prerelease": "rc" }
+    {
+      "name": "release/([0-9]+).([0-9]+)",
+      "channel": "${name.replace(/release\\//g, '').split('.')[0]}.${name.replace(/release\\//g, '').split('.')[1]}.x",
+      "range": "${name.replace(/release\\//g, '').split('.')[0]}.${name.replace(/release\\//g, '').split('.')[1]}.x"
+    },
+    {
+      "name": "rc/*",
+      "prerelease": "rc",
+      "channel": "rc"
+    }
   ],
   tagFormat: "v${version}",
   plugins: [
     [
       "@semantic-release/commit-analyzer",
       {
-        preset: "conventionalcommits",
-        releaseRules: [
-          { type: "docs", release: "patch" },
-          { type: "refactor", release: "patch" },
-          { type: "chore", scope: "release", release: false }
-        ]
+        "preset": "conventionalcommits"
       }
     ],
     [
       "@semantic-release/release-notes-generator",
-      { preset: "conventionalcommits" }
-    ],
-    [
-      "@semantic-release/npm",
       {
-        pkgRoot: ".",
-        npmPublish: true
+        "preset": "conventionalcommits"
       }
     ],
     [
-      "@semantic-release/github",
+      "@semantic-release/exec",
       {
-        successComment: false,
-        failComment: false,
-        releasedLabels: false
+        "verifyReleaseCmd": "echo ${nextRelease.version} > VERSION",
+        "prepareCmd": "npm version ${nextRelease.version} --no-git-tag-version"
       }
-    ]
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "package.json",
+          "package-lock.json"
+        ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\nSigned-off-by: Hedera Eng Automation <eng-automation@hashgraph.com>"
+      }
+    ],
+    "@semantic-release/github"
   ]
 }
