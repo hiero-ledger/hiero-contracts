@@ -9,9 +9,9 @@ on:
         required: false
         default: true
       version:
-        description: 'Release Version (semver ie. 0.24.0):'
+        description: 'Release Version (semver ie. 0.24.0). Optional: if provided, it overrides computed version.'
         type: string
-        required: true
+        required: false
 
 defaults:
   run:
@@ -128,12 +128,22 @@ jobs:
         run: |
           PROCEED="true"
           OUTVER=""
-          
-          if [[ "${{ steps.calculate-version.outputs.need-release }}" == "true" ]] && [[ -f VERSION ]]; then
+
+          # 1) If a version was provided via workflow_dispatch input, prefer it
+          if [[ -n "${{ inputs.version }}" ]]; then
+            RAW_IN="${{ inputs.version }}"
+            # Trim whitespace and strip optional leading 'v'
+            TRIM_IN=$(echo -n "${RAW_IN}" | tr -d '[:space:]')
+            TRIM_IN=${TRIM_IN#v}
+            OUTVER="${TRIM_IN}"
+            echo "Using provided input version: ${OUTVER}"
+          # 2) Else, use the version computed earlier (from semantic-release dry run)
+          elif [[ "${{ steps.calculate-version.outputs.need-release }}" == "true" ]] && [[ -f VERSION ]]; then
             cat VERSION
             TRIMMED_VERSION=$(cat VERSION | tr -d '[:space:]')
             OUTVER="${TRIMMED_VERSION}"
-            echo "version=${TRIMMED_VERSION}"
+            echo "Using computed version from semantic-release: ${TRIMMED_VERSION}"
+          # 3) Else, for dry-run and no computed version, fall back to package.json
           elif [[ "${{ steps.calculate-version.outputs.need-release }}" == "true" ]] && [[ "${{ inputs.dry-run-enabled }}" == "true" ]] && [[ ! -f VERSION ]]; then
             VER=$(jq -r '.version' './package.json')
             OUTVER="${VER}"
@@ -142,7 +152,7 @@ jobs:
             PROCEED="false"
           fi
 
-          echo "Calculated version: ${VERSION}"
+          echo "Version: ${OUTVER}"
           echo "version=${OUTVER}" >> "${GITHUB_OUTPUT}"
           echo "need-release=${PROCEED}" >> "${GITHUB_OUTPUT}"
 
