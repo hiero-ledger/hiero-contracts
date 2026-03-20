@@ -61,8 +61,10 @@ jobs:
           GIT_COMMITTER_EMAIL: ${{ secrets.GIT_USER_EMAIL }}
         run: |
           PROCEED="true"
+          SEMREL_OUTPUT=""
+          # Default branch release
           if [[ "${{ github.event.repository.default_branch }}" == "${{ github.ref_name }}" ]]; then
-            if SEMREL_OUTPUT=$(npx semantic-release --dry-run 2>&1); then
+            if SEMREL_OUTPUT=$( (cd contracts && npx semantic-release --dry-run) 2>&1 ); then
               if echo "${SEMREL_OUTPUT}" | grep -q "The next release version is"; then
                 echo "::notice file=flow-deploy-release-artifact.yaml::Semantic Release detected a new version"
               else
@@ -73,9 +75,19 @@ jobs:
               echo "::notice file=flow-deploy-release-artifact.yaml::Semantic Release did NOT run successfully"
               PROCEED="false"
             fi
-            echo "::group::SemVer output"
-            echo "${SEMREL_OUTPUT}"
-            echo "::endgroup::"
+          # RC prerelease on branches like rc/*
+          elif [[ "${{ github.ref_name }}" == rc/* ]]; then
+            if SEMREL_OUTPUT=$( (cd contracts && npx semantic-release --dry-run) 2>&1 ); then
+              if echo "${SEMREL_OUTPUT}" | grep -q "The next release version is"; then
+                echo "::notice file=flow-deploy-release-artifact.yaml::Semantic Release detected a new RC version for branch ${{ github.ref_name }}"
+              else
+                echo "::notice file=flow-deploy-release-artifact.yaml::Semantic Release detected NO RC version for branch ${{ github.ref_name }}"
+                PROCEED="false"
+              fi
+            else
+              echo "::notice file=flow-deploy-release-artifact.yaml::Semantic Release did NOT run successfully on RC branch"
+              PROCEED="false"
+            fi
           else
             if [[ "${{ inputs.dry-run-enabled }}" == "true" ]]; then
               jq -r '.version' './package.json' > VERSION
@@ -83,6 +95,12 @@ jobs:
             else
               PROCEED="false"
             fi
+          fi
+
+          if [[ -n "${SEMREL_OUTPUT}" ]]; then
+            echo "::group::SemVer output"
+            echo "${SEMREL_OUTPUT}"
+            echo "::endgroup::"
           fi
 
           echo "need-release=${PROCEED}" >> "${GITHUB_OUTPUT}"
