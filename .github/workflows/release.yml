@@ -221,7 +221,7 @@ jobs:
         working-directory: contracts
         run: |
           VERSION=$(jq -r '.version' './package.json')
-          CLI_NPM_PACKAGE_NAME="hiero-ledger-hiero-contracts-${VERSION}.tgz"
+          CLI_NPM_PACKAGE_NAME="hiero-ledger-hiero-contracts-${{ needs.prepare-release.outputs.version }}.tgz"
           echo "artifact-name=${CLI_NPM_PACKAGE_NAME}" >> $GITHUB_OUTPUT
 
       - name: Pack Tarball
@@ -246,11 +246,20 @@ jobs:
           path: ./${{ steps.set-publish-data.outputs.artifact-name }}
           if-no-files-found: error
 
-  create_snapshot_pr:
+      - name: Close the Milestone
+        if: ${{ !contains(steps.prepare-release.outputs.version, rc) }}
+        id: milestone
+        uses: step-security/close-milestone@b097272a7aaa0f5c40dc6bc671d45d35c5e85b51 # v2.2.1
+        with:
+          milestone_name: ${{ needs.prepare-release.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  create-snapshot-pr:
     name: Release / Snapshot
     runs-on: hl-contr-lin-lg
     needs: prepare-release
-    if: ${{ needs.branch_bump_tag.outputs.create_pr == 'true' }}
+    if: ${{ needs.prepare-release.outputs.need-release == 'true' && inputs.dry-run-enabled != true }}
     env:
       NEXT_VERSION_SNAPSHOT: ${{ needs.branch_bump_tag.outputs.next_version_snapshot }}
       RELEASE_BRANCH: ${{ needs.branch_bump_tag.outputs.release_branch }}
@@ -307,14 +316,6 @@ jobs:
           labels: 'process'
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set publish data
-        id: set-publish-data
-        working-directory: contracts
-        run: |
-          VERSION=$(jq -r '.version' './package.json')
-          CLI_NPM_PACKAGE_NAME="hiero-ledger-hiero-contracts-${VERSION}.tgz"
-          echo "artifact-name=${CLI_NPM_PACKAGE_NAME}" >> $GITHUB_OUTPUT
-
   publish-npm-package:
     name: Release / Publish Hiero Contracts NPM package
     if: ${{ needs.prepare-release.outputs.need-release == 'true' && inputs.dry-run-enabled != true }}
@@ -348,6 +349,7 @@ jobs:
           name: contracts-npm-package
 
       - name: Publish Hiero Contracts NPM package
+        working-directory: contracts
         run: |
           args="--access=public"
           if [[ "${{ inputs.dry-run-enabled }}" == "true" ]]; then
