@@ -156,6 +156,82 @@ jobs:
           echo "version=${OUTVER}" >> "${GITHUB_OUTPUT}"
           echo "need-release=${PROCEED}" >> "${GITHUB_OUTPUT}"
 
+      - name: Parse Version
+        id: version_parser
+        uses: step-security/semver-utils@4ae9c1fd6d1c5f8f152fe7e2efe8069a952c2ace # v4.3.2
+        with:
+          lenient: false
+          version: ${{ steps.set-outputs.outputs.version }}
+
+      - name: Set Release Environment Variables
+        run: |
+          PREMINOR_VERSION=${{ steps.version_parser.outputs.inc-preminor }}
+          NEXT_VERSION_SNAPSHOT=${PREMINOR_VERSION//-0/-SNAPSHOT}
+          RELEASE_BRANCH="release/${{ steps.version_parser.outputs.major }}.${{ steps.version_parser.outputs.minor }}"
+          [[ -z "${{ steps.version_parser.outputs.prerelease }}" ]] && \
+            VERSION=${{ steps.version_parser.outputs.release }} || \
+            VERSION="${{ steps.version_parser.outputs.release }}-${{ steps.version_parser.outputs.prerelease }}"
+          RELEASE_TAG="v${{ steps.set-outputs.outputs.version }}"
+          cat >> $GITHUB_ENV <<EOF
+          NEXT_VERSION_SNAPSHOT=$NEXT_VERSION_SNAPSHOT
+          RELEASE_BRANCH=$RELEASE_BRANCH
+          RELEASE_TAG=$RELEASE_TAG
+          VERSION=${{ steps.set-outputs.outputs.version }}
+          MILESTONE=${{ steps.version_parser.outputs.release}}
+          EOF
+
+      - name: Create and Switch to Release Branch
+        run: |
+          if ! git ls-remote --exit-code --heads --quiet origin refs/heads/${RELEASE_BRANCH}; then
+            git checkout -b ${RELEASE_BRANCH}
+            git push -u origin ${RELEASE_BRANCH}
+          
+            # create a PR to bump main branch to the next snapshot version
+            echo "CREATE_PR=true" >> $GITHUB_ENV
+            echo "PR_TITLE=chore(release): Bump versions for v$NEXT_VERSION_SNAPSHOT" >> $GITHUB_ENV
+          else
+            git checkout ${RELEASE_BRANCH}
+          fi
+
+      - name: Close the Milestone
+        if: ${{ steps.version_parser.outputs.prerelease == '' }}
+        id: milestone
+        uses: step-security/close-milestone@b097272a7aaa0f5c40dc6bc671d45d35c5e85b51 # v2.2.1
+        with:
+          milestone_name: ${{ steps.version_parser.outputs.release }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release Notes
+        if: ${{ steps.milestone.outputs.milestone_id != '' }}
+        uses: step-security/release-notes-generator-action@796ee9c88dd2346ea1a5e9e85ca6cbd1e24e2e6a # v3.2.2
+        env:
+          FILENAME: ${{ env.RELEASE_NOTES_FILENAME }}
+          GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+          MILESTONE_NUMBER: ${{ steps.milestone.outputs.milestone_id }}
+
+      - name: Commit and Tag
+        uses: step-security/git-auto-commit-action@e2d505468267a3cb406af729d48d664de1f16393 # v6.0.2
+        with:
+          commit_author: ${{ steps.gpg_importer.outputs.name || vars.GIT_USER_NAME || 'release-automation' }} <${{ steps.gpg_importer.outputs.email || vars.GIT_USER_EMAIL || 'automation@users.noreply.github.com' }}>
+          commit_message: 'chore(release): Bump versions for ${{ env.RELEASE_TAG }}'
+          commit_options: '--no-verify --signoff'
+          commit_user_name: ${{ steps.gpg_importer.outputs.name || vars.GIT_USER_NAME || 'release-automation' }}
+          commit_user_email: ${{ steps.gpg_importer.outputs.email || vars.GIT_USER_EMAIL || 'automation@users.noreply.github.com' }}
+          tagging_message: ${{ env.RELEASE_TAG }}
+
+      - name: Create Github Release (draft)
+        uses: step-security/release-action@03a57407052f15d1537fd5469a6fbbc536aba326 # v1.20.0
+        with:
+          bodyFile: ${{ env.RELEASE_NOTES_FILENAME }}.md
+          commit: ${{ env.RELEASE_BRANCH }}
+          draft: true
+          name: ${{ env.RELEASE_TAG }}
+          omitBody: ${{ steps.milestone.outputs.milestone_id == '' }}
+          prerelease: ${{ steps.version_parser.outputs.prerelease != '' }}
+          tag: ${{ env.RELEASE_TAG }}
+          token: ${{ secrets.GH_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+
   create-github-release:
     name: Github / Release
     if: ${{ needs.prepare-release.outputs.need-release == 'true' }}
