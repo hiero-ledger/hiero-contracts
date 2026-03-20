@@ -2,7 +2,7 @@
   branches: [
     "main",
     "release/*",
-    { "name": "rc/*", "prerelease": "rc" }
+    { "name": "rc", "prerelease": "rc" }
   ],
   tagFormat: "v${version}",
   plugins: [
