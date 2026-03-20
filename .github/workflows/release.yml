@@ -28,6 +28,7 @@ permissions:
 
 jobs:
   branch_bump_tag:
+    name: Release / Create pull request
     runs-on: hl-contr-lin-lg
     env:
       RELEASE_NOTES_FILENAME: release_notes
@@ -237,6 +238,7 @@ jobs:
 
       - name: Calculate Next Version (default branch)
         id: calculate-version
+        working-directory: contracts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GIT_AUTHOR_NAME: ${{ secrets.GIT_USER_NAME }}
