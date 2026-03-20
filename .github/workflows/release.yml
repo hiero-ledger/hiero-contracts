@@ -247,7 +247,7 @@ jobs:
           if-no-files-found: error
 
       - name: Close the Milestone
-        if: ${{ !contains(steps.prepare-release.outputs.version, rc) }}
+        if: ${{ !contains(steps.prepare-release.outputs.version, 'rc') }}
         id: milestone
         uses: step-security/close-milestone@b097272a7aaa0f5c40dc6bc671d45d35c5e85b51 # v2.2.1
         with:
