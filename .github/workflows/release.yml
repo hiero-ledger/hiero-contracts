@@ -67,6 +67,12 @@ jobs:
             if SEMREL_OUTPUT=$( (cd contracts && npx semantic-release --dry-run) 2>&1 ); then
               if echo "${SEMREL_OUTPUT}" | grep -q "The next release version is"; then
                 echo "::notice file=flow-deploy-release-artifact.yaml::Semantic Release detected a new version"
+                # Extract next version from semantic-release output and persist for later steps
+                NEXT_VER=$(echo "${SEMREL_OUTPUT}" | sed -n 's/.*The next release version is \([^[:space:]]*\).*/\1/p' | head -n1)
+                if [[ -n "${NEXT_VER}" ]]; then
+                  echo "${NEXT_VER}" > VERSION
+                  echo "::notice::Parsed next version: ${NEXT_VER}"
+                fi
               else
                 echo "::notice file=flow-deploy-release-artifact.yaml::Semantic Release detected NO new version"
                 PROCEED="false"
@@ -80,6 +86,12 @@ jobs:
             if SEMREL_OUTPUT=$( (cd contracts && npx semantic-release --dry-run) 2>&1 ); then
               if echo "${SEMREL_OUTPUT}" | grep -q "The next release version is"; then
                 echo "::notice file=flow-deploy-release-artifact.yaml::Semantic Release detected a new RC version for branch ${{ github.ref_name }}"
+                # Extract next RC version and persist
+                NEXT_VER=$(echo "${SEMREL_OUTPUT}" | sed -n 's/.*The next release version is \([^[:space:]]*\).*/\1/p' | head -n1)
+                if [[ -n "${NEXT_VER}" ]]; then
+                  echo "${NEXT_VER}" > VERSION
+                  echo "::notice::Parsed RC next version: ${NEXT_VER}"
+                fi
               else
                 echo "::notice file=flow-deploy-release-artifact.yaml::Semantic Release detected NO RC version for branch ${{ github.ref_name }}"
                 PROCEED="false"
@@ -125,7 +137,7 @@ jobs:
             PROCEED="false"
           fi
 
-          echo "Calculated version: ${VERSION}"
+          echo "Calculated version: ${OUTVER}"
           echo "version=${OUTVER}" >> "${GITHUB_OUTPUT}"
           echo "need-release=${PROCEED}" >> "${GITHUB_OUTPUT}"
 
