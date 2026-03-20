@@ -1,7 +1,7 @@
 {
   branches: [
     "main",
-    "release/x",
+    "release/*",
     { "name": "rc/*", "prerelease": "rc" }
   ],
   tagFormat: "v${version}",
