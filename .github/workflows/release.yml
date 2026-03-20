@@ -199,6 +199,29 @@ jobs:
             git checkout ${RELEASE_BRANCH}
           fi
 
+      - name: Pack tarball
+        working-directory: contracts
+        run: |
+          npm pack --pack-destination ./dist
+
+      - name: Verify Package
+        working-directory: contracts
+        run: |
+          EXPECTED="./dist/${{ steps.set-publish-data.outputs.artifact-name }}"
+          if [[ ! -f "${EXPECTED}" ]]; then
+            echo "::error::Expected package not found: ${EXPECTED}"
+            ls -la ./dist/
+            exit 1
+          fi
+          echo "Package verified: ${EXPECTED} ($(du -h "${EXPECTED}" | cut -f1))"
+
+      - name: Upload Hiero Contracts package artifact
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: contracts-npm-package
+          path: ./contracts/dist/${{ steps.set-publish-data.outputs.artifact-name }}
+          if-no-files-found: error
+
       - name: Close the Milestone
         if: ${{ steps.version_parser.outputs.prerelease == '' }}
         id: milestone
@@ -215,6 +238,17 @@ jobs:
           FILENAME: ${{ env.RELEASE_NOTES_FILENAME }}
           GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
           MILESTONE_NUMBER: ${{ steps.milestone.outputs.milestone_id }}
+
+      - name: Import GPG key
+        id: gpg_importer
+        uses: step-security/ghaction-import-gpg@69c854a83c7f79463f8bdf46772ab09826c560cd # v6.3.1
+        with:
+          gpg_private_key: ${{ secrets.GPG_KEY_CONTENTS }}
+          passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
+          git_config_global: true
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+          git_tag_gpgsign: false
 
       - name: Commit and Tag
         uses: step-security/git-auto-commit-action@e2d505468267a3cb406af729d48d664de1f16393 # v6.0.2
@@ -306,29 +340,6 @@ jobs:
           VERSION=$(jq -r '.version' './package.json')
           CLI_NPM_PACKAGE_NAME="hiero-ledger-hiero-contracts-${VERSION}.tgz"
           echo "artifact-name=${CLI_NPM_PACKAGE_NAME}" >> $GITHUB_OUTPUT
-
-      - name: Pack tarball
-        working-directory: contracts
-        run: |
-          npm pack --pack-destination ./dist
-
-      - name: Verify Package
-        working-directory: contracts
-        run: |
-          EXPECTED="./dist/${{ steps.set-publish-data.outputs.artifact-name }}"
-          if [[ ! -f "${EXPECTED}" ]]; then
-            echo "::error::Expected package not found: ${EXPECTED}"
-            ls -la ./dist/
-            exit 1
-          fi
-          echo "Package verified: ${EXPECTED} ($(du -h "${EXPECTED}" | cut -f1))"
-
-      - name: Upload Hiero Contracts package artifact
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: contracts-npm-package
-          path: ./contracts/dist/${{ steps.set-publish-data.outputs.artifact-name }}
-          if-no-files-found: error
 
   publish-npm-package:
     name: Publish Hiero Contracts NPM package
