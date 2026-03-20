@@ -167,7 +167,13 @@ jobs:
         run: |
           PREMINOR_VERSION=${{ steps.version_parser.outputs.inc-preminor }}
           NEXT_VERSION_SNAPSHOT=${PREMINOR_VERSION//-0/-SNAPSHOT}
-          RELEASE_BRANCH="release/${{ steps.version_parser.outputs.major }}.${{ steps.version_parser.outputs.minor }}"
+          # Determine branch prefix: use 'rc' if the selected version is an RC, otherwise 'release'
+          if [[ "${{ steps.set-outputs.outputs.version }}" == *rc* ]] || [[ "${{ steps.version_parser.outputs.prerelease }}" == rc* ]]; then
+            BR_PREFIX="rc"
+          else
+            BR_PREFIX="release"
+          fi
+          RELEASE_BRANCH="mj-${BR_PREFIX}/${{ steps.version_parser.outputs.major }}.${{ steps.version_parser.outputs.minor }}"
           [[ -z "${{ steps.version_parser.outputs.prerelease }}" ]] && \
             VERSION=${{ steps.version_parser.outputs.release }} || \
             VERSION="${{ steps.version_parser.outputs.release }}-${{ steps.version_parser.outputs.prerelease }}"
