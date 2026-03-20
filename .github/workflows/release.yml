@@ -258,7 +258,9 @@ jobs:
   create-snapshot-pr:
     name: Release / Snapshot
     runs-on: hl-contr-lin-lg
-    needs: prepare-release
+    needs:
+      - prepare-release
+      - create-github-release
     if: ${{ needs.prepare-release.outputs.need-release == 'true' && inputs.dry-run-enabled != true }}
     env:
       NEXT_VERSION_SNAPSHOT: ${{ needs.branch_bump_tag.outputs.next_version_snapshot }}
@@ -322,6 +324,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - prepare-release
+      - create-github-release
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
