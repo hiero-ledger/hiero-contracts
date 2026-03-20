@@ -202,15 +202,15 @@ jobs:
       - name: Pack tarball
         working-directory: contracts
         run: |
-          npm pack --pack-destination ./dist
+          npm pack
 
       - name: Verify Package
         working-directory: contracts
         run: |
-          EXPECTED="./dist/${{ steps.set-publish-data.outputs.artifact-name }}"
+          EXPECTED="./${{ steps.set-publish-data.outputs.artifact-name }}"
           if [[ ! -f "${EXPECTED}" ]]; then
             echo "::error::Expected package not found: ${EXPECTED}"
-            ls -la ./dist/
+            ls -la .
             exit 1
           fi
           echo "Package verified: ${EXPECTED} ($(du -h "${EXPECTED}" | cut -f1))"
@@ -219,7 +219,7 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: contracts-npm-package
-          path: ./contracts/dist/${{ steps.set-publish-data.outputs.artifact-name }}
+          path: ./contracts/${{ steps.set-publish-data.outputs.artifact-name }}
           if-no-files-found: error
 
       - name: Close the Milestone
