@@ -33,6 +33,9 @@ jobs:
     outputs:
       version: ${{ steps.set-outputs.outputs.version }}
       need-release: ${{ steps.set-outputs.outputs.need-release }}
+      next_version_snapshot: ${{ steps.release_meta.outputs.next_version_snapshot }}
+      pr_title: ${{ steps.release_meta.outputs.pr_title }}
+      milestone: ${{ steps.release_meta.outputs.milestone }}
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
@@ -68,7 +71,7 @@ jobs:
           PROCEED="true"
           SEMREL_OUTPUT=""
           if [[ "${{ github.event.repository.default_branch }}" == "${{ github.ref_name }}" ]]; then
-            if SEMREL_OUTPUT=$( (cd contracts && npx semantic-release --dry-run) 2>&1 ); then
+            if SEMREL_OUTPUT=$(npx semantic-release --dry-run 2>&1); then
               if echo "${SEMREL_OUTPUT}" | grep -q "The next release version is"; then
                 echo "::notice file=flow-deploy-release-artifact.yaml::Semantic Release detected a new version"
                 # Extract next version from semantic-release output and persist for later steps
@@ -104,6 +107,7 @@ jobs:
 
       - name: Extract version
         id: set-outputs
+        working-directory: contracts
         if: ${{ !cancelled() && always() }}
         run: |
           PROCEED="true"
@@ -136,6 +140,27 @@ jobs:
           echo "version=${OUTVER}" >> "${GITHUB_OUTPUT}"
           echo "need-release=${PROCEED}" >> "${GITHUB_OUTPUT}"
 
+      - name: Parse Version
+        if: ${{ steps.set-outputs.outputs.need-release == 'true' }}
+        id: version_parser
+        uses: step-security/semver-utils@4ae9c1fd6d1c5f8f152fe7e2efe8069a952c2ace # v4.3.2
+        with:
+          lenient: false
+          version: ${{ steps.set-outputs.outputs.version }}
+
+      - name: Set Release Environment Variables
+        if: ${{ steps.set-outputs.outputs.need-release == 'true' }}
+        id: release_meta
+        run: |
+          PREMINOR_VERSION='${{ steps.version_parser.outputs.inc-preminor }}'
+          NEXT_VERSION_SNAPSHOT=${PREMINOR_VERSION//-0/-SNAPSHOT}
+          PR_TITLE="chore(release): Bump versions for v$NEXT_VERSION_SNAPSHOT"
+          MILESTONE='${{ steps.version_parser.outputs.release }}'
+
+          echo "next_version_snapshot=$NEXT_VERSION_SNAPSHOT" >> "$GITHUB_OUTPUT"
+          echo "pr_title=$PR_TITLE" >> "$GITHUB_OUTPUT"
+          echo "milestone=$MILESTONE" >> "$GITHUB_OUTPUT"
+
   create-github-release:
     name: Release / Github
     if: ${{ needs.prepare-release.outputs.need-release == 'true' }}
@@ -144,6 +169,7 @@ jobs:
       - prepare-release
     outputs:
       npm-artifact-name: ${{ steps.set-publish-data.outputs.artifact-name }}
+
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
@@ -157,7 +183,7 @@ jobs:
           checkout-ref: '${{ github.ref }}'
           checkout-token: '${{ secrets.GITHUB_TOKEN }}'
           setup-node: 'true'
-          node-version: '22'
+          node-version: '24.12.0'
           node-registry: 'https://registry.npmjs.org/'
 
       - name: Install GnuPG Tools
@@ -220,7 +246,6 @@ jobs:
         id: set-publish-data
         working-directory: contracts
         run: |
-          VERSION=$(jq -r '.version' './package.json')
           CLI_NPM_PACKAGE_NAME="hiero-ledger-hiero-contracts-${{ needs.prepare-release.outputs.version }}.tgz"
           echo "artifact-name=${CLI_NPM_PACKAGE_NAME}" >> $GITHUB_OUTPUT
 
@@ -230,6 +255,7 @@ jobs:
           npm pack
 
       - name: Verify Package
+        working-directory: contracts
         run: |
           EXPECTED="./${{ steps.set-publish-data.outputs.artifact-name }}"
           if [[ ! -f "${EXPECTED}" ]]; then
@@ -243,17 +269,18 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: contracts-npm-package
-          path: ./${{ steps.set-publish-data.outputs.artifact-name }}
+          path: ./contracts/${{ steps.set-publish-data.outputs.artifact-name }}
           if-no-files-found: error
 
       - name: Close the Milestone
-        if: ${{ !contains(steps.prepare-release.outputs.version, 'rc') }}
+        if: ${{ !contains(needs.prepare-release.outputs.version, 'rc') }}
         id: milestone
         uses: step-security/close-milestone@b097272a7aaa0f5c40dc6bc671d45d35c5e85b51 # v2.2.1
         with:
           milestone_name: ${{ needs.prepare-release.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
   create-snapshot-pr:
     name: Release / Snapshot
@@ -263,10 +290,9 @@ jobs:
       - create-github-release
     if: ${{ needs.prepare-release.outputs.need-release == 'true' && inputs.dry-run-enabled != true }}
     env:
-      NEXT_VERSION_SNAPSHOT: ${{ needs.branch_bump_tag.outputs.next_version_snapshot }}
-      RELEASE_BRANCH: ${{ needs.branch_bump_tag.outputs.release_branch }}
-      PR_TITLE: ${{ needs.branch_bump_tag.outputs.pr_title }}
-      MILE_STONE: ${{ needs.branch_bump_tag.outputs.milestone }}
+      NEXT_VERSION_SNAPSHOT: ${{ needs.prepare-release.outputs.next_version_snapshot }}
+      PR_TITLE: ${{ needs.prepare-release.outputs.pr_title }}
+      MILESTONE: ${{ needs.prepare-release.outputs.milestone }}
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
@@ -295,8 +321,12 @@ jobs:
         with:
           node-version: 24.12.0
 
+      # DO NOT move to /contracts — root install is required for workspace consistency
       - name: Install dependencies
         run: npm ci
+
+      - name: Bump Versions
+        run: npm run bump-version --semver="${{ env.NEXT_VERSION_SNAPSHOT }}" --snapshot=true
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
@@ -314,7 +344,7 @@ jobs:
           delete-branch: true
           signoff: true
           title: ${{ env.PR_TITLE }}
-          milestone: ${{ env.MILE_STONE }}
+          milestone: ${{ env.MILESTONE }}
           labels: 'process'
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -350,7 +380,10 @@ jobs:
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: contracts-npm-package
+          path: contracts
 
+      # NPM auth is configured by initialize-github-job for this job.
+      # Do not add extra npm auth setup here.
       - name: Publish Hiero Contracts NPM package
         working-directory: contracts
         run: |
