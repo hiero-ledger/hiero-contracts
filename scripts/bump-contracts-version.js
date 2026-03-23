@@ -44,8 +44,6 @@ console.log(`isSnapshot: ${isSnapshot}`);
 
 const jsonVersionFiles = existing([
   "contracts/package.json",
-  // add more files under contracts/ here if needed
-  // "contracts/some-doc.json",
 ]);
 
 if (jsonVersionFiles.length > 0) {
@@ -58,10 +56,7 @@ if (jsonVersionFiles.length > 0) {
   });
 }
 
-const yamlVersionFiles = existing([
-  // add chart/manifests if they exist
-  // "contracts/charts/my-chart/Chart.yaml",
-]);
+const yamlVersionFiles = existing([]);
 
 if (yamlVersionFiles.length > 0) {
   replace({

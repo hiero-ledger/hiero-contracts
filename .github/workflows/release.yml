@@ -325,6 +325,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Updates the version in package.json with the next snapshot version
       - name: Bump Versions
         run: npm run bump-version --semver="${{ env.NEXT_VERSION_SNAPSHOT }}" --snapshot=true
 
