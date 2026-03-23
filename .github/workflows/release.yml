@@ -8,14 +8,22 @@ on:
         type: boolean
         required: false
         default: true
-      version:
-        description: 'Release Version (semver ie. 0.24.0). Optional: if provided, it overrides computed version.'
-        type: string
-        required: false
+      release-type:
+        description: 'Release type'
+        type: choice
+        required: true
+        default: standard
+        options:
+          - standard
+          - rc
 
 defaults:
   run:
     shell: bash
+
+env:
+  DRY_RUN_ENABLED: ${{ inputs.dry-run-enabled && 'true' || 'false' }}
+  RELEASE_TYPE: ${{ inputs.release-type }}
 
 permissions:
   actions: read
@@ -36,11 +44,27 @@ jobs:
       next_version_snapshot: ${{ steps.release_meta.outputs.next_version_snapshot }}
       pr_title: ${{ steps.release_meta.outputs.pr_title }}
       milestone: ${{ steps.release_meta.outputs.milestone }}
+      is_prerelease: ${{ steps.release_meta.outputs.is_prerelease }}
+      semrel_config: ${{ steps.release_mode.outputs.semrel_config }}
+      npm_dist_tag: ${{ steps.release_mode.outputs.npm_dist_tag }}
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@5ef0c079ce82195b2a36a210272d6b661572d83e # v2.14.2
         with:
           egress-policy: audit
+
+      - name: Select release mode
+        id: release_mode
+        run: |
+          if [[ "${RELEASE_TYPE}" == "rc" ]]; then
+            echo "semrel_config=.releaserc.rc" >> "${GITHUB_OUTPUT}"
+            echo "npm_dist_tag=rc" >> "${GITHUB_OUTPUT}"
+            echo "::notice::Using RC release mode"
+          else
+            echo "semrel_config=.releaserc" >> "${GITHUB_OUTPUT}"
+            echo "npm_dist_tag=latest" >> "${GITHUB_OUTPUT}"
+            echo "::notice::Using standard release mode"
+          fi
 
       - name: Prepare Job
         uses: pandaswhocode/initialize-github-job@ffb7446339e8e6007b942312ac95457d1a20b6cf # 1.0.4
@@ -58,7 +82,18 @@ jobs:
           npm install -g conventional-changelog-conventionalcommits@9.1.0 @commitlint/cli@18.6.0 @commitlint/config-conventional@18.6.0
           npm install -g marked-mangle@1.1.6 marked-gfm-heading-id@3.1.2 semantic-release-conventional-commits@3.0.0
 
-      - name: Calculate Next Version (default branch)
+      - name: Create RC semantic-release config when started against non-rc branch (like main).
+        if: ${{ github.event.repository.default_branch == github.ref_name && inputs.release-type == 'rc' }}
+        working-directory: contracts
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          jq --arg branch "${DEFAULT_BRANCH}" '.branches = [{"name":$branch,"prerelease":"rc"}]' .releaserc > .releaserc.rc
+          echo "::group::.releaserc.rc"
+          cat .releaserc.rc
+          echo "::endgroup::"
+
+      - name: Calculate Next Version
         id: calculate-version
         working-directory: contracts
         env:
@@ -70,26 +105,25 @@ jobs:
         run: |
           PROCEED="true"
           SEMREL_OUTPUT=""
-          if [[ "${{ github.event.repository.default_branch }}" == "${{ github.ref_name }}" ]]; then
-            if SEMREL_OUTPUT=$(npx semantic-release --dry-run 2>&1); then
+          if [[ "${{ github.ref_name }}" == "${{ github.event.repository.default_branch }}" ]]; then
+            if SEMREL_OUTPUT=$(npx semantic-release --dry-run --extends "${{ steps.release_mode.outputs.semrel_config }}" 2>&1); then
               if echo "${SEMREL_OUTPUT}" | grep -q "The next release version is"; then
-                echo "::notice file=flow-deploy-release-artifact.yaml::Semantic Release detected a new version"
-                # Extract next version from semantic-release output and persist for later steps
+                echo "::notice::Semantic Release detected a new version"
                 NEXT_VER=$(echo "${SEMREL_OUTPUT}" | sed -n 's/.*The next release version is \([^[:space:]]*\).*/\1/p' | head -n1)
                 if [[ -n "${NEXT_VER}" ]]; then
                   echo "${NEXT_VER}" > VERSION
                   echo "::notice::Parsed next version: ${NEXT_VER}"
                 fi
               else
-                echo "::notice file=flow-deploy-release-artifact.yaml::Semantic Release detected NO new version"
+                echo "::notice::Semantic Release detected NO new version"
                 PROCEED="false"
               fi
             else
-              echo "::notice file=flow-deploy-release-artifact.yaml::Semantic Release did NOT run successfully"
+              echo "::notice::Semantic Release did NOT run successfully"
               PROCEED="false"
             fi
           else
-            if [[ "${{ inputs.dry-run-enabled }}" == "true" ]]; then
+            if [[ "${DRY_RUN_ENABLED}" == "true" ]]; then
               jq -r '.version' './package.json' > VERSION
               PROCEED="true"
             else
@@ -108,30 +142,15 @@ jobs:
       - name: Extract version
         id: set-outputs
         working-directory: contracts
-        if: ${{ !cancelled() && always() }}
+        if: ${{ always() }}
         run: |
           PROCEED="true"
           OUTVER=""
 
-          # 1) If a version was provided via workflow_dispatch input, prefer it
-          if [[ -n "${{ inputs.version }}" ]]; then
-            RAW_IN="${{ inputs.version }}"
-            # Trim whitespace and strip optional leading 'v'
-            TRIM_IN=$(echo -n "${RAW_IN}" | tr -d '[:space:]')
-            TRIM_IN=${TRIM_IN#v}
-            OUTVER="${TRIM_IN}"
-            echo "Using provided input version: ${OUTVER}"
-          # 2) Else, use the version computed earlier (from semantic-release dry run)
-          elif [[ "${{ steps.calculate-version.outputs.need-release }}" == "true" ]] && [[ -f VERSION ]]; then
-            cat VERSION
-            TRIMMED_VERSION=$(cat VERSION | tr -d '[:space:]')
+          if [[ "${{ steps.calculate-version.outputs.need-release }}" == "true" ]] && [[ -f VERSION ]]; then
+            TRIMMED_VERSION=$(tr -d '[:space:]' < VERSION)
             OUTVER="${TRIMMED_VERSION}"
-            echo "Using computed version from semantic-release: ${TRIMMED_VERSION}"
-          # 3) Else, for dry-run and no computed version, fall back to package.json
-          elif [[ "${{ steps.calculate-version.outputs.need-release }}" == "true" ]] && [[ "${{ inputs.dry-run-enabled }}" == "true" ]] && [[ ! -f VERSION ]]; then
-            VER=$(jq -r '.version' './package.json')
-            OUTVER="${VER}"
-            echo "Dry run enabled and VERSION file not found, using package.json version: ${VER}"
+            echo "Using computed version: ${TRIMMED_VERSION}"
           else
             PROCEED="false"
           fi
@@ -152,6 +171,11 @@ jobs:
         if: ${{ steps.set-outputs.outputs.need-release == 'true' }}
         id: release_meta
         run: |
+          IS_PRERELEASE="false"
+          if [[ "${{ steps.set-outputs.outputs.version }}" == *-* ]]; then
+            IS_PRERELEASE="true"
+          fi
+
           PREMINOR_VERSION='${{ steps.version_parser.outputs.inc-preminor }}'
           NEXT_VERSION_SNAPSHOT=${PREMINOR_VERSION//-0/-SNAPSHOT}
           PR_TITLE="chore(release): Bump versions for v$NEXT_VERSION_SNAPSHOT"
@@ -160,6 +184,7 @@ jobs:
           echo "next_version_snapshot=$NEXT_VERSION_SNAPSHOT" >> "$GITHUB_OUTPUT"
           echo "pr_title=$PR_TITLE" >> "$GITHUB_OUTPUT"
           echo "milestone=$MILESTONE" >> "$GITHUB_OUTPUT"
+          echo "is_prerelease=$IS_PRERELEASE" >> "$GITHUB_OUTPUT"
 
   create-github-release:
     name: Release / Github
@@ -209,10 +234,22 @@ jobs:
           git_tag_gpgsign: false
 
       - name: Install Semantic Release
+        if: ${{ github.event.repository.default_branch == github.ref_name }}
         run: |
           npm install -g semantic-release@25.0.2 @semantic-release/git@10.0.1 @semantic-release/github@12.0.2 @semantic-release/exec@7.1.0 gradle-semantic-release-plugin@1.7.6
           npm install -g conventional-changelog-conventionalcommits@9.1.0 @commitlint/cli@18.6.0 @commitlint/config-conventional@18.6.0
           npm install -g marked-mangle@1.1.6 marked-gfm-heading-id@3.1.2 semantic-release-conventional-commits@3.0.0
+
+      - name: Create RC semantic-release config when started against non-rc branch (like main).
+        if: ${{ github.event.repository.default_branch == github.ref_name && inputs.release-type == 'rc' }}
+        working-directory: contracts
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          jq --arg branch "${DEFAULT_BRANCH}" '.branches = [{"name":$branch,"prerelease":"rc"}]' .releaserc > .releaserc.rc
+          echo "::group::.releaserc.rc"
+          cat .releaserc.rc
+          echo "::endgroup::"
 
       - name: Publish Semantic Release
         env:
@@ -221,23 +258,28 @@ jobs:
           GIT_AUTHOR_EMAIL: ${{ secrets.GIT_USER_EMAIL }}
           GIT_COMMITTER_NAME: ${{ secrets.GIT_USER_NAME }}
           GIT_COMMITTER_EMAIL: ${{ secrets.GIT_USER_EMAIL }}
-        if: ${{ !cancelled() && !failure() }}
+        if: ${{ github.event.repository.default_branch == github.ref_name }}
         working-directory: contracts
         run: |
           FLAGS=""
-          if [[ "${{ inputs.dry-run-enabled }}" == "true" ]]; then
+          if [[ "${DRY_RUN_ENABLED}" == "true" ]]; then
             FLAGS="--dry-run"
           fi
-          
-          npx semantic-release --no-sign ${FLAGS}
-          
+
+          npx semantic-release --no-sign --extends "${{ needs.prepare-release.outputs.semrel_config }}" ${FLAGS}
+
           if [[ -d "dist" ]]; then
             echo "Dist dir has the following contents:"
             ls dist
           fi
 
+      - name: Skip semantic-release on non-default branch dry run
+        if: ${{ github.event.repository.default_branch != github.ref_name }}
+        run: |
+          echo "::notice::Skipping semantic-release for non-default branch dry run"
+
       - name: Update Version for Dry Run
-        if: ${{ inputs.dry-run-enabled == true }}
+        if: ${{ inputs.dry-run-enabled }}
         working-directory: contracts
         run: |
           npm version ${{ needs.prepare-release.outputs.version }} --no-git-tag-version
@@ -273,7 +315,7 @@ jobs:
           if-no-files-found: error
 
       - name: Close the Milestone
-        if: ${{ !contains(needs.prepare-release.outputs.version, 'rc') }}
+        if: ${{ needs.prepare-release.outputs.is_prerelease != 'true' }}
         id: milestone
         uses: step-security/close-milestone@b097272a7aaa0f5c40dc6bc671d45d35c5e85b51 # v2.2.1
         with:
@@ -281,14 +323,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-
   create-snapshot-pr:
     name: Release / Snapshot
     runs-on: hl-contr-lin-lg
     needs:
       - prepare-release
       - create-github-release
-    if: ${{ needs.prepare-release.outputs.need-release == 'true' && inputs.dry-run-enabled != true }}
+    if: ${{ needs.prepare-release.outputs.need-release == 'true' && !inputs.dry-run-enabled && inputs.release-type == 'standard' }}
     env:
       NEXT_VERSION_SNAPSHOT: ${{ needs.prepare-release.outputs.next_version_snapshot }}
       PR_TITLE: ${{ needs.prepare-release.outputs.pr_title }}
@@ -351,7 +392,7 @@ jobs:
 
   publish-npm-package:
     name: Release / Publish Hiero Contracts NPM package
-    if: ${{ needs.prepare-release.outputs.need-release == 'true' && inputs.dry-run-enabled != true }}
+    if: ${{ needs.prepare-release.outputs.need-release == 'true' && !inputs.dry-run-enabled }}
     runs-on: ubuntu-latest
     needs:
       - prepare-release
@@ -372,24 +413,22 @@ jobs:
           node-version: '24.12.0'
           node-registry: 'https://registry.npmjs.org/'
 
-      - name: Use Node.js [24]
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: 24.12.0
-
       - name: Download Hiero Contracts NPM package artifact
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: contracts-npm-package
           path: contracts
 
-      # NPM auth is configured by initialize-github-job for this job.
-      # Do not add extra npm auth setup here.
       - name: Publish Hiero Contracts NPM package
         working-directory: contracts
         run: |
           args="--access=public"
-          if [[ "${{ inputs.dry-run-enabled }}" == "true" ]]; then
+
+          if [[ "${{ needs.prepare-release.outputs.npm_dist_tag }}" != "latest" ]]; then
+            args="${args} --tag ${{ needs.prepare-release.outputs.npm_dist_tag }}"
+          fi
+
+          if [[ "${DRY_RUN_ENABLED}" == "true" ]]; then
             args="${args} --dry-run"
           else
             args="${args} --provenance"
