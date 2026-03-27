@@ -1,13 +1,15 @@
-**A library for hedera secure smart contract development.**
+**A library for secure Hiero smart contract development.**
 
 ## Overview
+
+For **naming and backward compatibility** (Hiero network vs. `Hedera*` Solidity identifiers and subsystem names such as HTS), see the root [README.md](../README.md#backward-compatibility).
 
 ### Installation
 
 ### Prerequisites
 
-For this script to work, you need to communicate with the Hedera consensus node precompiles.
-To access them, you must first start a local Hedera node.
+For this script to work, you need to communicate with the Hiero consensus node precompiles.
+To access them, you must first start a local Hiero node.
 
 1. Start a Solo Node
 
@@ -16,13 +18,13 @@ To access them, you must first start a local Hedera node.
     * **Node.js** ≥ 20.19.0 with npm ([details](https://docs.npmjs.com))
     * **Docker** and **Docker Compose** installed and running - ([details](https://docs.docker.com))
 
-    Then start a local Hedera Solo node with a single command:
+    Then start a local Hiero Solo node with a single command:
     
     ```bash
     npx @hashgraph/solo one-shot single deploy
     ```
     
-    This launches a single-node Hedera network locally for quick testing and development.
+    This launches a single-node Hiero network locally for quick testing and development.
     If the `@hashgraph/solo` is not yet installed, `npx` will prompt for confirmation to install it.
 
     > Note: This command will install additional required tools (such as [Kind](https://kind.sigs.k8s.io/)) inside the Docker container.
@@ -69,8 +71,8 @@ Once installed, you can use the contracts in the library by importing them (`con
 ```solidity
 pragma solidity ^0.8.20;
 
-import {IHederaTokenService} from "@hashgraph/contracts/token-service/IHederaTokenService.sol";
-import {HederaResponseCodes} from "@hashgraph/contracts/common/HederaResponseCodes.sol";
+import {IHederaTokenService} from "@hiero-ledger/hiero-contracts/contracts/token-service/IHederaTokenService.sol";
+import {HederaResponseCodes} from "@hiero-ledger/hiero-contracts/contracts/common/HederaResponseCodes.sol";
 
 contract SampleHTSUsage {
     function calLPrecompile(address tokenAddress) external view {
@@ -86,7 +88,7 @@ Sample hardhat test for the Smart Contract above (`test/SampleHTSUsage.js`):
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("TestHTS against Hedera (precompile @ 0x167)", function () {
+describe("TestHTS against Hiero (precompile @ 0x167)", function () {
   let deployer, testHTS;
 
   before(async function () {
@@ -102,15 +104,15 @@ describe("TestHTS against Hedera (precompile @ 0x167)", function () {
 });
 ```
 
-If you're new to hedera smart contract development, head to [Developing Hedera Smart Contracts](https://github.com/hashgraph/hedera-docs/blob/main/core-concepts/smart-contracts/understanding-hederas-evm-differences-and-compatibility/README.md).
+If you're new to Hiero smart contract development, head to [Developing Hiero Smart Contracts](https://github.com/hashgraph/hedera-docs/tree/main/hedera/core-concepts/smart-contracts/understanding-hederas-evm-differences-and-compatibility).
 
 ## Learn More
 
-The Hedera network utilizes system contracts at a reserved contract address on the EVM to surface HAPI service functionality through EVM processed transactions.
+The Hiero network utilizes system contracts at a reserved contract address on the EVM to surface HAPI service functionality through EVM processed transactions.
 These system contracts are precompiled smart contracts whose function selectors are mapped to defined network logic.
 In this way EVM users can utilize exposed HAPI features natively in their smart contracts.
 
-The system contract functions are defined in this library and implemented by the [Hedera Services](https://github.com/hashgraph/hedera-services) repo as part of consensus node functionality.
+The system contract functions are defined in this library and implemented by the [Hiero consensus node](https://github.com/hiero-ledger/hiero-consensus-node) repository as part of consensus node functionality.
 
 ## Security
 
@@ -129,4 +131,4 @@ to [oss@hedera.com](mailto:oss@hedera.com).
 
 ## License
 
-[Apache License 2.0](https://github.com/hashgraph/hedera-smart-contracts/blob/main/LICENSE)
+[Apache License 2.0](https://github.com/hiero-ledger/hiero-contracts/blob/main/LICENSE)

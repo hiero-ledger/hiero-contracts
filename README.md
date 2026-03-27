@@ -1,16 +1,23 @@
 :warning: :bangbang: ***All examples and contracts in this repository are exploration code and have NOT been audited. Use them at your own risk!*** :bangbang: :warning:
 
-# Hedera Smart Contracts
+# Hiero Smart Contracts
 
-Reference library for Smart Contracts utilized by the Hedera network with supporting files and examples.
+Reference library for Smart Contracts utilized on the Hiero network with supporting files and examples.
 
 ## Overview
 
-The Hedera network utilizes system contracts at a reserved contract address on the EVM to surface HAPI service functionality through EVM processed transactions.
+The Hiero network utilizes system contracts at a reserved contract address on the EVM to surface HAPI service functionality through EVM processed transactions.
 These system contracts are precompiled smart contracts whose function selectors are mapped to defined network logic.
 In this way EVM users can utilize exposed HAPI features natively in their smart contracts.
 
-The system contract functions are defined in this library and implemented by the [Hedera Services](https://github.com/hiero-ledger/hiero-consensus-node) repo as part of consensus node functionality.
+The system contract functions are defined in this library and implemented by the [Hiero consensus node](https://github.com/hiero-ledger/hiero-consensus-node) repository as part of consensus node functionality.
+
+### Backward compatibility
+
+- This repository targets the **Hiero** ecosystem; documentation refers to the **Hiero network** (and related project naming) where that clarifies deployment context.
+- **Subsystem names** such as **Hedera Token Service (HTS)** remain the official architecture terms on Hiero and are not renamed in documentation.
+- The **Solidity public API** intentionally retains **Hedera-prefixed** identifiers (`HederaToken`, `HederaTokenService`, `HederaResponseCodes`, `getHederaAccountNumAlias`, and similar) for backward compatibility with existing contracts and tooling.
+- New integrations should import and use these identifiers as-is.
 
 ### Hedera Token Service (HTS) System Contract
 
@@ -65,4 +72,3 @@ to [oss@hedera.com](mailto:oss@hedera.com).
 ## License
 
 [Apache License 2.0](LICENSE)
-
