@@ -12,13 +12,9 @@ In this way EVM users can utilize exposed HAPI features natively in their smart 
 
 The system contract functions are defined in this library and implemented by the [Hiero consensus node](https://github.com/hiero-ledger/hiero-consensus-node) repository as part of consensus node functionality.
 
-### Backward compatibility
+## Backward Compatibility
 
-- This repository targets the **Hiero** ecosystem; documentation refers to the **Hiero network** (and related project naming) where that clarifies deployment context.
-- **Subsystem names** such as **Hedera Token Service (HTS)** remain the official architecture terms on Hiero and are not renamed in documentation.
-- The **Solidity public API** intentionally retains **Hedera-prefixed** identifiers (`HederaToken`, `HederaTokenService`, `HederaResponseCodes`, `getHederaAccountNumAlias`, and similar) for backward compatibility with existing contracts and tooling.
-- New integrations should import and use these identifiers as-is.
-
+This repository targets the **Hiero** ecosystem. Documentation and project naming use **Hiero** throughout. However, the **Solidity public API** intentionally retains **Hedera-prefixed** identifiers for backward compatibility with existing contracts and tooling.
 ### Hedera Token Service (HTS) System Contract
 
 The Hedera Token Service (HTS) functionality is defined by the [IHederaTokenService.sol](contracts/token-service/IHederaTokenService.sol) interface smart contract as defined in [HIP 206](https://hips.hedera.com/hip/hip-206), [HIP 376](https://hips.hedera.com/hip/hip-376) and [HIP 514](https://hips.hedera.com/hip/hip-514). The contract is exposed via the `0x167` address.
