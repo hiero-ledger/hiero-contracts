@@ -15,6 +15,7 @@ The system contract functions are defined in this library and implemented by the
 ## Backward Compatibility
 
 This repository targets the **Hiero** ecosystem. Documentation and project naming use **Hiero** throughout. However, the **Solidity public API** intentionally retains **Hedera-prefixed** identifiers for backward compatibility with existing contracts and tooling.
+
 ### Hedera Token Service (HTS) System Contract
 
 The Hedera Token Service (HTS) functionality is defined by the [IHederaTokenService.sol](contracts/token-service/IHederaTokenService.sol) interface smart contract as defined in [HIP 206](https://hips.hedera.com/hip/hip-206), [HIP 376](https://hips.hedera.com/hip/hip-376) and [HIP 514](https://hips.hedera.com/hip/hip-514). The contract is exposed via the `0x167` address.
