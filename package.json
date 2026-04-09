@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/hiero-ledger/hiero-contracts/#readme",
   "scripts": {
-    "bump-contracts-version": "SEM_VER=${npm_config_semver} SNAPSHOT=${npm_config_snapshot} node scripts/.bump-contracts-version.js"
+    "bump-contracts-version": "node scripts/bump-contracts-version.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
