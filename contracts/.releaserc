@@ -1,5 +1,5 @@
 {
-  branches: [
+  "branches": [
     "main",
     {
       "name": "release/([0-9]+).([0-9]+)",
@@ -12,8 +12,8 @@
       "channel": "rc"
     }
   ],
-  tagFormat: "v${version}",
-  plugins: [
+  "tagFormat": "v${version}",
+  "plugins": [
     [
       "@semantic-release/commit-analyzer",
       {
