@@ -10,9 +10,10 @@
    - contracts/package.json
 */
 
-import replace from 'replace';
 import { execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
+
+import replace from 'replace';
 
 const versionRegex = /^\d+\.\d+\.\d+(-[\w.]+)?$/i;
 const newVersion = process.env.SEM_VER;
