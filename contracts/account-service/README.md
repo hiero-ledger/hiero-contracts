@@ -1,8 +1,8 @@
-## Hedera Account Service (HAS) System Contract Functions
+## Hiero Account Service (HAS) System Contract Functions
 
-The Hedera Account Service (HAS) System Contract is accessible at address `0x16a` on the Hiero network. This contract interface introduces a new account proxy contract to interact with other contracts for functionality such as HBAR allowances. It enables querying and granting HBAR approval to a spender account from within smart contracts, allowing developers to grant, retrieve, and manage HBAR allowances directly in their code. Additionally, HAS can verify whether a given address (Hiero account or EVM address) is authorized based on a provided message hash and signature through the `isAuthorizedRaw` method.
+The Hiero Account Service (HAS) System Contract is accessible at address `0x16a` on the Hiero network. This contract interface introduces a new account proxy contract to interact with other contracts for functionality such as HBAR allowances. It enables querying and granting HBAR approval to a spender account from within smart contracts, allowing developers to grant, retrieve, and manage HBAR allowances directly in their code. Additionally, HAS can verify whether a given address (Hiero account or EVM address) is authorized based on a provided message hash and signature through the `isAuthorizedRaw` method.
 
-The table below outlines the available Hedera Account Service System Contract functions:
+The table below outlines the available Hiero Account Service System Contract functions:
 
 | Function Name     | Function Selector Hash | Consensus Node Release Version                                                       | HIP                                            | Method Interface                                                           |
 |-------------------|------------------------|--------------------------------------------------------------------------------------|------------------------------------------------|----------------------------------------------------------------------------|
@@ -13,7 +13,7 @@ The table below outlines the available Hedera Account Service System Contract fu
 
 The Hiero network also makes facade contract calls available to EOAs for improved experience.
 Facade function allow for EOAs to make calls without requiring a deployed contract
-The table below outlines the available Hedera Account Service (HAS) System Contract facade functions:
+The table below outlines the available Hiero Account Service (HAS) System Contract facade functions:
 
 | Function Name                          | Function Selector Hash | Consensus Node Release Version                                                        | HIP                                            | Method Interface                                                                                       | Comments |
 |----------------------------------------|------------------------|---------------------------------------------------------------------------------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------|----------|

@@ -1,8 +1,8 @@
-## Hedera Schedule Service (HSS) System Contract Functions
+## Hiero Schedule Service (HSS) System Contract Functions
 
-The Hedera Schedule Service (HSS) System Contract is accessible at address `0x16b` on the Hiero network. This contract interface introduces a new schedule transaction proxy contract to interact with other contracts for functionality such as creating and signing scheduled transactions. It also enables querying information about certain scheduled transactions.
+The Hiero Schedule Service (HSS) System Contract is accessible at address `0x16b` on the Hiero network. This contract interface introduces a new schedule transaction proxy contract to interact with other contracts for functionality such as creating and signing scheduled transactions. It also enables querying information about certain scheduled transactions.
 
-The table below outlines the available Hedera Schedule Service System Contract functions:
+The table below outlines the available Hiero Schedule Service System Contract functions:
 
 | Function Name     | Function Selector Hash | Consensus Node Release Version                                               | HIP                                            | Method Interface                                                           |
 | -----------------  | ---------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------- |
@@ -14,7 +14,7 @@ The table below outlines the available Hedera Schedule Service System Contract f
 
 The Hiero network also makes facade contract calls available to EOAs for improved experience.
 Facade function allow for EOAs to make calls without requiring a deployed contract
-The table below outlines the available Hedera Schedule Service (HSS) System Contract facade functions:
+The table below outlines the available Hiero Schedule Service (HSS) System Contract facade functions:
 
 | Function Name                          | Function Selector Hash | Consensus Node Release Version                                               | HIP                                            | Method Interface                                                                                |
 | -------------------------------------- | ---------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | 

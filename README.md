@@ -16,16 +16,16 @@ The system contract functions are defined in this library and implemented by the
 
 This repository targets the **Hiero** ecosystem. Documentation and project naming use **Hiero** throughout. However, the **Solidity public API** intentionally retains **Hedera-prefixed** identifiers for backward compatibility with existing contracts and tooling.
 
-### Hedera Token Service (HTS) System Contract
+### Hiero Token Service (HTS) System Contract
 
-The Hedera Token Service (HTS) functionality is defined by the [IHederaTokenService.sol](contracts/token-service/IHederaTokenService.sol) interface smart contract as defined in [HIP 206](https://hips.hedera.com/hip/hip-206), [HIP 376](https://hips.hedera.com/hip/hip-376) and [HIP 514](https://hips.hedera.com/hip/hip-514). The contract is exposed via the `0x167` address.
+The Hiero Token Service (HTS) functionality is defined by the [IHederaTokenService.sol](contracts/token-service/IHederaTokenService.sol) interface smart contract as defined in [HIP 206](https://hips.hedera.com/hip/hip-206), [HIP 376](https://hips.hedera.com/hip/hip-376) and [HIP 514](https://hips.hedera.com/hip/hip-514). The contract is exposed via the `0x167` address.
 Reference smart contracts to call these functions can be found under [contracts/token-service](contracts/token-service)
 
 For further details on methods, hashes and availability please refer to [HTS System Contract Methods](contracts/token-service/README.md)
 
-### Hedera Account Service (HAS) System Contract
+### Hiero Account Service (HAS) System Contract
 
-The Hedera Account Service (HAS) functionality is defined by the [IHederaAccountService.sol](contracts/account-service/IHederaAccountService.sol) interface smart contract as defined in [HIP 632](https://hips.hedera.com/hip/hip-632) and [HIP 906](https://hips.hedera.com/hip/hip-906). The contract is exposed via the `0x16a` address.
+The Hiero Account Service (HAS) functionality is defined by the [IHederaAccountService.sol](contracts/account-service/IHederaAccountService.sol) interface smart contract as defined in [HIP 632](https://hips.hedera.com/hip/hip-632) and [HIP 906](https://hips.hedera.com/hip/hip-906). The contract is exposed via the `0x16a` address.
 Reference smart contracts to call these functions as well as examples can be found under [contracts/account-service](contracts/account-service)
 
 For further details on methods, hashes and availability please refer to [HAS System Contract Methods](contracts/account-service/README.md)
