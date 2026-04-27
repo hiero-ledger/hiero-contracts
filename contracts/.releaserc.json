@@ -7,8 +7,8 @@
       "range": "${name.replace(/release\\//g, '').split('.')[0]}.${name.replace(/release\\//g, '').split('.')[1]}.x"
     },
     {
-      "name": "rc/*",
-      "prerelease": "rc",
+      "name": "rc",
+      "prerelease": "${name}",
       "channel": "rc"
     }
   ],
