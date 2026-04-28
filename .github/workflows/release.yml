@@ -49,7 +49,7 @@ jobs:
       npm_dist_tag: ${{ steps.release_mode.outputs.npm_dist_tag }}
     steps:
       - name: Prepare Job
-        uses: pandaswhocode/initialize-github-job@ffb7446339e8e6007b942312ac95457d1a20b6cf # 1.0.4
+        uses: pandaswhocode/initialize-github-job@d93cd457947758129c6d93e09f89ad528119960f # 1.0.8
         with:
           checkout: 'true'
           checkout-ref: '${{ github.ref }}'
@@ -195,7 +195,7 @@ jobs:
 
     steps:
       - name: Prepare Job
-        uses: pandaswhocode/initialize-github-job@ffb7446339e8e6007b942312ac95457d1a20b6cf # 1.0.4
+        uses: pandaswhocode/initialize-github-job@d93cd457947758129c6d93e09f89ad528119960f # 1.0.8
         with:
           checkout: 'true'
           checkout-ref: '${{ github.ref }}'
@@ -336,7 +336,7 @@ jobs:
       MILESTONE: ${{ needs.prepare-release.outputs.milestone }}
     steps:
       - name: Prepare Job
-        uses: pandaswhocode/initialize-github-job@ffb7446339e8e6007b942312ac95457d1a20b6cf # 1.0.4
+        uses: pandaswhocode/initialize-github-job@d93cd457947758129c6d93e09f89ad528119960f # 1.0.8
         with:
           checkout: 'true'
           checkout-ref: '${{ github.event.repository.default_branch }}'
@@ -407,7 +407,7 @@ jobs:
       - create-github-release
     steps:
       - name: Prepare Release
-        uses: pandaswhocode/initialize-github-job@ffb7446339e8e6007b942312ac95457d1a20b6cf # 1.0.4
+        uses: pandaswhocode/initialize-github-job@d93cd457947758129c6d93e09f89ad528119960f # 1.0.8
         with:
           checkout: 'true'
           checkout-ref: '${{ github.ref }}'
