@@ -17,6 +17,7 @@ To access them, you must first start a local Hiero node.
     
     * **Node.js** ≥ 20.19.0 with npm ([details](https://docs.npmjs.com))
     * **Docker** and **Docker Compose** installed and running - ([details](https://docs.docker.com))
+    * **kubectl** and **Helm**: Solo requires these pre-installed. The one-shot command checks for their presence but does not install them.
 
     Then start a local Hiero Solo node with a single command:
     
