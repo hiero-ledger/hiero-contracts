@@ -266,7 +266,7 @@ jobs:
             FLAGS="--dry-run"
           fi
 
-          npx semantic-release --no-sign --extends "${{ needs.prepare-release.outputs.semrel_config }}" ${FLAGS}
+          npx semantic-release --no-sign --extends "./${{ needs.prepare-release.outputs.semrel_config }}" ${FLAGS}
 
           if [[ -d "dist" ]]; then
             echo "Dist dir has the following contents:"
