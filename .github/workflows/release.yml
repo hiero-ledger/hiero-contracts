@@ -45,7 +45,6 @@ jobs:
       pr_title: ${{ steps.release_meta.outputs.pr_title }}
       milestone: ${{ steps.release_meta.outputs.milestone }}
       is_prerelease: ${{ steps.release_meta.outputs.is_prerelease }}
-      semrel_config: ${{ steps.release_mode.outputs.semrel_config }}
       npm_dist_tag: ${{ steps.release_mode.outputs.npm_dist_tag }}
     steps:
       - name: Prepare Job
@@ -62,11 +61,9 @@ jobs:
         id: release_mode
         run: |
           if [[ "${RELEASE_TYPE}" == "rc" ]]; then
-            echo "semrel_config=.releaserc.rc.json" >> "${GITHUB_OUTPUT}"
             echo "npm_dist_tag=rc" >> "${GITHUB_OUTPUT}"
             echo "::notice::Using RC release mode"
           else
-            echo "semrel_config=.releaserc.json" >> "${GITHUB_OUTPUT}"
             echo "npm_dist_tag=latest" >> "${GITHUB_OUTPUT}"
             echo "::notice::Using standard release mode"
           fi
@@ -80,15 +77,16 @@ jobs:
             marked-mangle@1.1.6 marked-gfm-heading-id@3.1.2 conventional-changelog-conventionalcommits@9.1.0 \
             @semantic-release/commit-analyzer@13.0.1
 
-      - name: Create RC semantic-release config when started against non-rc branch (like main).
+      - name: Update semantic-release config for RC release
         if: ${{ github.event.repository.default_branch == github.ref_name && inputs.release-type == 'rc' }}
         working-directory: contracts
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          jq --arg branch "${DEFAULT_BRANCH}" '.branches = [{"name":$branch,"prerelease":"rc"}]' .releaserc.json > .releaserc.rc.json
-          echo "::group::.releaserc.rc.json"
-          cat .releaserc.rc.json
+          jq --arg branch "${DEFAULT_BRANCH}" '.branches = [{"name":$branch,"prerelease":"rc"}]' .releaserc.json > .releaserc.tmp.json
+          mv .releaserc.tmp.json .releaserc.json
+          echo "::group::.releaserc.json"
+          cat .releaserc.json
           echo "::endgroup::"
 
       - name: Calculate Next Version
@@ -104,7 +102,7 @@ jobs:
           PROCEED="true"
           SEMREL_OUTPUT=""
           if [[ "${{ github.ref_name }}" == "${{ github.event.repository.default_branch }}" ]]; then
-            if SEMREL_OUTPUT=$(npx semantic-release --dry-run --extends "./${{ steps.release_mode.outputs.semrel_config }}" 2>&1); then
+            if SEMREL_OUTPUT=$(npx semantic-release --dry-run --extends "./.releaserc.json" 2>&1); then
               if echo "${SEMREL_OUTPUT}" | grep -q "The next release version is"; then
                 echo "::notice::Semantic Release detected a new version"
                 NEXT_VER=$(echo "${SEMREL_OUTPUT}" | sed -n 's/.*The next release version is \([^[:space:]]*\).*/\1/p' | head -n1)
@@ -240,15 +238,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Create RC semantic-release config when started against non-rc branch (like main).
+      - name: Update semantic-release config for RC release
         if: ${{ github.event.repository.default_branch == github.ref_name && inputs.release-type == 'rc' }}
         working-directory: contracts
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          jq --arg branch "${DEFAULT_BRANCH}" '.branches = [{"name":$branch,"prerelease":"rc"}]' .releaserc.json > .releaserc.rc.json
-          echo "::group::.releaserc.rc.json"
-          cat .releaserc.rc.json
+          jq --arg branch "${DEFAULT_BRANCH}" '.branches = [{"name":$branch,"prerelease":"rc"}]' .releaserc.json > .releaserc.tmp.json
+          mv .releaserc.tmp.json .releaserc.json
+          echo "::group::.releaserc.json"
+          cat .releaserc.json
           echo "::endgroup::"
 
       - name: Publish Semantic Release
@@ -266,7 +265,7 @@ jobs:
             FLAGS="--dry-run"
           fi
 
-          npx semantic-release --no-sign --extends "./${{ needs.prepare-release.outputs.semrel_config }}" ${FLAGS}
+          npx semantic-release --no-sign --extends "./.releaserc.json" ${FLAGS}
 
           if [[ -d "dist" ]]; then
             echo "Dist dir has the following contents:"
