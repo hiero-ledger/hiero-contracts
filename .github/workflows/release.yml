@@ -102,7 +102,7 @@ jobs:
           PROCEED="true"
           SEMREL_OUTPUT=""
           if [[ "${{ github.ref_name }}" == "${{ github.event.repository.default_branch }}" ]]; then
-            if SEMREL_OUTPUT=$(npx semantic-release --dry-run --extends "./.releaserc.json" 2>&1); then
+            if SEMREL_OUTPUT=$(npx semantic-release --dry-run 2>&1); then
               if echo "${SEMREL_OUTPUT}" | grep -q "The next release version is"; then
                 echo "::notice::Semantic Release detected a new version"
                 NEXT_VER=$(echo "${SEMREL_OUTPUT}" | sed -n 's/.*The next release version is \([^[:space:]]*\).*/\1/p' | head -n1)
@@ -265,7 +265,7 @@ jobs:
             FLAGS="--dry-run"
           fi
 
-          npx semantic-release --no-sign --extends "./.releaserc.json" ${FLAGS}
+          npx semantic-release --no-sign ${FLAGS}
 
           if [[ -d "dist" ]]; then
             echo "Dist dir has the following contents:"
