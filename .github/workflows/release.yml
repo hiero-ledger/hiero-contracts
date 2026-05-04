@@ -83,7 +83,7 @@ jobs:
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          jq --arg branch "${DEFAULT_BRANCH}" '.branches = [{"name":$branch,"prerelease":"rc"}]' .releaserc.json > .releaserc.tmp.json
+          jq --arg branch "${DEFAULT_BRANCH}" '.branches = [{"name":$branch,"prerelease":"rc"},"fakerelease"]' .releaserc.json > .releaserc.tmp.json
           mv .releaserc.tmp.json .releaserc.json
           echo "::group::.releaserc.json"
           cat .releaserc.json
@@ -244,7 +244,7 @@ jobs:
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          jq --arg branch "${DEFAULT_BRANCH}" '.branches = [{"name":$branch,"prerelease":"rc"}]' .releaserc.json > .releaserc.tmp.json
+          jq --arg branch "${DEFAULT_BRANCH}" '.branches = [{"name":$branch,"prerelease":"rc"},"fakerelease"]' .releaserc.json > .releaserc.tmp.json
           mv .releaserc.tmp.json .releaserc.json
           echo "::group::.releaserc.json"
           cat .releaserc.json
