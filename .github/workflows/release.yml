@@ -381,7 +381,7 @@ jobs:
           git_commit_gpgsign: true
           git_tag_gpgsign: false
 
-      # DO NOT move to /contracts — root install is required for workspace consistency
+      # DO NOT move to /contracts - root install is required for workspace consistency
       - name: Install dependencies
         run: npm ci
 
