@@ -1,9 +1,6 @@
 name: Release
 
 on:
-  push:
-    branches:
-      - 'rc/*.*.*'
   workflow_dispatch:
     inputs:
       dry-run-enabled:
@@ -25,8 +22,8 @@ defaults:
     shell: bash
 
 env:
-  DRY_RUN_ENABLED: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run-enabled && 'true' || 'false' }}
-  RELEASE_TYPE: ${{ github.event_name == 'workflow_dispatch' && inputs.release-type || (startsWith(github.ref_name, 'rc/') && 'rc' || 'standard') }}
+  DRY_RUN_ENABLED: ${{ inputs.dry-run-enabled && 'true' || 'false' }}
+  RELEASE_TYPE: ${{ inputs.release-type }}
 
 permissions:
   actions: write
@@ -38,8 +35,56 @@ permissions:
   packages: write
 
 jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # When RC is requested from main, create the rc/ branch and re-dispatch
+  # this workflow on that branch. The current run then exits.
+  # ─────────────────────────────────────────────────────────────────────────────
+  dispatch-rc:
+    name: Release / Dispatch RC
+    if: ${{ inputs.release-type == 'rc' && github.ref_name == github.event.repository.default_branch }}
+    runs-on: hl-contr-lin-lg
+    steps:
+      - name: Prepare Job
+        uses: pandaswhocode/initialize-github-job@d93cd457947758129c6d93e09f89ad528119960f # 1.0.8
+        with:
+          checkout: 'true'
+          checkout-ref: '${{ github.ref }}'
+          checkout-token: '${{ secrets.GH_ACCESS_TOKEN }}'
+          setup-node: 'true'
+          node-version: '24.12.0'
+          node-registry: 'https://registry.npmjs.org/'
+
+      - name: Create RC branch and dispatch workflow
+        env:
+          GH_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+        run: |
+          VER=$(jq -r '.version' package.json)
+          VER=${VER%-SNAPSHOT}
+          RC_BRANCH="rc/${VER}"
+
+          if git ls-remote --heads origin "${RC_BRANCH}" | grep -q "${RC_BRANCH}"; then
+            echo "::notice::RC branch already exists: ${RC_BRANCH}"
+          else
+            git config user.name "${{ vars.GIT_USER_NAME }}"
+            git config user.email "${{ vars.GIT_USER_EMAIL }}"
+            git checkout -b "${RC_BRANCH}"
+            git push origin "${RC_BRANCH}"
+            echo "::notice::Created RC branch: ${RC_BRANCH}"
+          fi
+
+          echo "::notice::Dispatching release workflow on ${RC_BRANCH}"
+          gh workflow run release.yml \
+            --ref "${RC_BRANCH}" \
+            -f release-type=rc \
+            -f dry-run-enabled=${{ inputs.dry-run-enabled }}
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Prepare: calculate the next version via semantic-release dry-run
+  # Runs for standard releases on main, or RC releases on rc/* branches.
+  # ─────────────────────────────────────────────────────────────────────────────
   prepare-release:
     name: Release / Prepare
+    if: ${{ (inputs.release-type == 'standard' && github.ref_name == github.event.repository.default_branch) || (inputs.release-type == 'rc' && startsWith(github.ref_name, 'rc/')) }}
     runs-on: hl-contr-lin-lg
     outputs:
       version: ${{ steps.set-outputs.outputs.version }}
@@ -65,7 +110,7 @@ jobs:
         run: |
           if [[ "${RELEASE_TYPE}" == "rc" ]]; then
             echo "npm_dist_tag=rc" >> "${GITHUB_OUTPUT}"
-            echo "::notice::Using RC release mode"
+            echo "::notice::Using RC release mode on branch ${{ github.ref_name }}"
           else
             echo "npm_dist_tag=latest" >> "${GITHUB_OUTPUT}"
             echo "::notice::Using standard release mode"
@@ -80,26 +125,6 @@ jobs:
             marked-mangle@1.1.6 marked-gfm-heading-id@3.1.2 conventional-changelog-conventionalcommits@9.1.0 \
             @semantic-release/commit-analyzer@13.0.1
 
-      - name: Create RC branch from default and dispatch workflow
-        if: ${{ github.event.repository.default_branch == github.ref_name && inputs.release-type == 'rc' }}
-        env:
-          GH_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
-          REPO: ${{ github.repository }}
-        run: |
-          VER=$(jq -r '.version' package.json)
-          VER=${VER%-SNAPSHOT}
-          BRANCH="rc/${VER}"
-          if git ls-remote --heads origin "${BRANCH}" | grep -q "${BRANCH}"; then
-            echo "::notice::RC branch already exists: ${BRANCH}"
-          else
-            git config user.name "${{ vars.GIT_USER_NAME }}"
-            git config user.email "${{ vars.GIT_USER_EMAIL }}"
-            git checkout -b "${BRANCH}"
-            git push origin "${BRANCH}"
-            echo "::notice::Created branch ${BRANCH}"
-          fi
-          echo "::notice::Pushed ${BRANCH}; workflow will auto-start via push trigger"
-
       - name: Calculate Next Version
         id: calculate-version
         working-directory: contracts
@@ -113,34 +138,21 @@ jobs:
           PROCEED="true"
           SEMREL_OUTPUT=""
 
-          # If RC requested on default branch, we already dispatched a run on rc/*; skip current run
-          if [[ "${{ github.ref_name }}" == "${{ github.event.repository.default_branch }}" && "${RELEASE_TYPE}" == "rc" ]]; then
-            echo "::notice::RC flow dispatched to rc/* branch; skipping current run on default branch"
-            PROCEED="false"
-          elif [[ "${{ github.ref_name }}" == "${{ github.event.repository.default_branch }}" || "${{ github.ref_name }}" == rc/* ]]; then
-            if SEMREL_OUTPUT=$(npx semantic-release --dry-run 2>&1); then
-              if echo "${SEMREL_OUTPUT}" | grep -q "The next release version is"; then
-                echo "::notice::Semantic Release detected a new version"
-                NEXT_VER=$(echo "${SEMREL_OUTPUT}" | sed -n 's/.*The next release version is \([^[:space:]]*\).*/\1/p' | head -n1)
-                if [[ -n "${NEXT_VER}" ]]; then
-                  echo "${NEXT_VER}" > VERSION
-                  echo "::notice::Parsed next version: ${NEXT_VER}"
-                fi
-              else
-                echo "::notice::Semantic Release detected NO new version"
-                PROCEED="false"
+          if SEMREL_OUTPUT=$(npx semantic-release --dry-run 2>&1); then
+            if echo "${SEMREL_OUTPUT}" | grep -q "The next release version is"; then
+              echo "::notice::Semantic Release detected a new version"
+              NEXT_VER=$(echo "${SEMREL_OUTPUT}" | sed -n 's/.*The next release version is \([^[:space:]]*\).*/\1/p' | head -n1)
+              if [[ -n "${NEXT_VER}" ]]; then
+                echo "${NEXT_VER}" > VERSION
+                echo "::notice::Parsed next version: ${NEXT_VER}"
               fi
             else
-              echo "::notice::Semantic Release did NOT run successfully"
+              echo "::notice::Semantic Release detected NO new version"
               PROCEED="false"
             fi
           else
-            if [[ "${DRY_RUN_ENABLED}" == "true" ]]; then
-              jq -r '.version' './package.json' > VERSION
-              PROCEED="true"
-            else
-              PROCEED="false"
-            fi
+            echo "::notice::Semantic Release did NOT run successfully"
+            PROCEED="false"
           fi
 
           if [[ -n "${SEMREL_OUTPUT}" ]]; then
@@ -159,7 +171,7 @@ jobs:
           PROCEED="true"
           OUTVER=""
 
-          if [[ -f VERSION ]]; then
+          if [[ "${{ steps.calculate-version.outputs.need-release }}" == "true" ]] && [[ -f VERSION ]]; then
             TRIMMED_VERSION=$(tr -d '[:space:]' < VERSION)
             OUTVER="${TRIMMED_VERSION}"
             echo "Using computed version: ${TRIMMED_VERSION}"
@@ -198,6 +210,9 @@ jobs:
           echo "milestone=$MILESTONE" >> "$GITHUB_OUTPUT"
           echo "is_prerelease=$IS_PRERELEASE" >> "$GITHUB_OUTPUT"
 
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Run semantic-release for real, create GitHub release, pack tarball
+  # ─────────────────────────────────────────────────────────────────────────────
   create-github-release:
     name: Release / Github
     if: ${{ needs.prepare-release.outputs.need-release == 'true' }}
@@ -260,7 +275,6 @@ jobs:
           GIT_AUTHOR_EMAIL: ${{ vars.GIT_USER_EMAIL }}
           GIT_COMMITTER_NAME: ${{ vars.GIT_USER_NAME }}
           GIT_COMMITTER_EMAIL: ${{ vars.GIT_USER_EMAIL }}
-        if: ${{ needs.prepare-release.outputs.need-release == 'true' }}
         working-directory: contracts
         run: |
           FLAGS=""
@@ -274,11 +288,6 @@ jobs:
             echo "Dist dir has the following contents:"
             ls dist
           fi
-
-      - name: Skip semantic-release on non-default branch dry run
-        if: ${{ github.event.repository.default_branch != github.ref_name && !startsWith(github.ref_name, 'rc/') }}
-        run: |
-          echo "::notice::Skipping semantic-release for non-default branch dry run"
 
       - name: Update Version for Dry Run
         if: ${{ inputs.dry-run-enabled }}
@@ -325,6 +334,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
 
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Bump to next SNAPSHOT version (standard releases only)
+  # ─────────────────────────────────────────────────────────────────────────────
   create-snapshot-pr:
     name: Release / Snapshot
     runs-on: hl-contr-lin-lg
@@ -400,6 +412,9 @@ jobs:
           labels: 'process'
           token: ${{ secrets.GH_ACCESS_TOKEN }}
 
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Publish the npm package
+  # ─────────────────────────────────────────────────────────────────────────────
   publish-npm-package:
     name: Release / Publish Hiero Contracts NPM package
     if: ${{ needs.prepare-release.outputs.need-release == 'true' && !inputs.dry-run-enabled }}
