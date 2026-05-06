@@ -18,7 +18,8 @@ This repository targets the **Hiero** ecosystem. Documentation and project namin
 
 ### Hiero Token Service (HTS) System Contract
 
-The Hiero Token Service (HTS) functionality is defined by the [IHederaTokenService.sol](contracts/token-service/IHederaTokenService.sol) interface smart contract as defined in [HIP 206](https://hips.hedera.com/hip/hip-206), [HIP 376](https://hips.hedera.com/hip/hip-376) and [HIP 514](https://hips.hedera.com/hip/hip-514). The contract is exposed via the `0x167` address.
+The Hiero Token Service (HTS) functionality is defined by the [IHederaTokenService.sol](contracts/token-service/IHederaTokenService.sol) interface smart contract as defined in [HIP 206](https://hips.hedera.com/hip/hip-206), [HIP 376](https://hips.hedera.com/hip/hip-376) and [HIP 514](https://hips.hedera.com/hip/hip-514).
+The contract is exposed via the `0x167` address.
 Reference smart contracts to call these functions can be found under [contracts/token-service](contracts/token-service)
 
 For further details on methods, hashes and availability please refer to [HTS System Contract Methods](contracts/token-service/README.md)
