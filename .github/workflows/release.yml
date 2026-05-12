@@ -45,7 +45,7 @@ jobs:
     runs-on: hl-contr-lin-lg
     steps:
       - name: Prepare Job
-        uses: pandaswhocode/initialize-github-job@d93cd457947758129c6d93e09f89ad528119960f # 1.0.8
+        uses: pandaswhocode/initialize-github-job@5965b3a7378a5db66c505b70227aa5e7e6d45860 # 1.0.9
         with:
           checkout: 'true'
           checkout-ref: '${{ github.ref }}'
@@ -96,7 +96,7 @@ jobs:
       npm_dist_tag: ${{ steps.release_mode.outputs.npm_dist_tag }}
     steps:
       - name: Prepare Job
-        uses: pandaswhocode/initialize-github-job@d93cd457947758129c6d93e09f89ad528119960f # 1.0.8
+        uses: pandaswhocode/initialize-github-job@5965b3a7378a5db66c505b70227aa5e7e6d45860 # 1.0.9
         with:
           checkout: 'true'
           checkout-ref: '${{ github.ref }}'
@@ -224,7 +224,7 @@ jobs:
 
     steps:
       - name: Prepare Job
-        uses: pandaswhocode/initialize-github-job@d93cd457947758129c6d93e09f89ad528119960f # 1.0.8
+        uses: pandaswhocode/initialize-github-job@5965b3a7378a5db66c505b70227aa5e7e6d45860 # 1.0.9
         with:
           checkout: 'true'
           checkout-ref: '${{ github.ref }}'
@@ -350,7 +350,7 @@ jobs:
       MILESTONE: ${{ needs.prepare-release.outputs.milestone }}
     steps:
       - name: Prepare Job
-        uses: pandaswhocode/initialize-github-job@d93cd457947758129c6d93e09f89ad528119960f # 1.0.8
+        uses: pandaswhocode/initialize-github-job@5965b3a7378a5db66c505b70227aa5e7e6d45860 # 1.0.9
         with:
           checkout: 'true'
           checkout-ref: '${{ github.event.repository.default_branch }}'
@@ -424,7 +424,7 @@ jobs:
       - create-github-release
     steps:
       - name: Prepare Release
-        uses: pandaswhocode/initialize-github-job@d93cd457947758129c6d93e09f89ad528119960f # 1.0.8
+        uses: pandaswhocode/initialize-github-job@5965b3a7378a5db66c505b70227aa5e7e6d45860 # 1.0.9
         with:
           checkout: 'true'
           checkout-ref: '${{ github.ref }}'
