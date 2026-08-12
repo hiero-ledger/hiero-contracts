@@ -339,4 +339,8 @@ contract TokenCreateContract is HederaTokenService, ExpiryHelper, KeyHelper {
             revert ();
         }
     }
+
+    function redirectForTokenPublic(address token, bytes memory encodedFunctionSelector) external returns (int responseCode, bytes memory response) {
+        (responseCode, response) = HederaTokenService.redirectForToken(token, encodedFunctionSelector);
+    }
 }

@@ -185,7 +185,7 @@ describe('@HRC-719 Test Suite', function () {
   describe('redirectoForToken', () => {
     it('should be able to execute associate() via redirectForToken', async function () {
       const encodedFunc = IHRC719.encodeFunctionData('associate()');
-      const tx = await tokenCreateContract.redirectForToken(
+      const tx = await tokenCreateContract.redirectForTokenPublic(
         tokenAddress,
         encodedFunc,
         Constants.GAS_LIMIT_1_000_000,
@@ -198,7 +198,7 @@ describe('@HRC-719 Test Suite', function () {
     it('should be able to execute dissociate() via redirectForToken', async function () {
       // first associate the token before dissociate other wise get response_code = 184 instead of 22 (success)
       const encodedFuncAssociate = IHRC719.encodeFunctionData('associate()');
-      const associateTx = await tokenCreateContract.redirectForToken(
+      const associateTx = await tokenCreateContract.redirectForTokenPublic(
         tokenAddress,
         encodedFuncAssociate,
         Constants.GAS_LIMIT_1_000_000,
@@ -206,7 +206,7 @@ describe('@HRC-719 Test Suite', function () {
       await associateTx.wait();
 
       const enCodedFuncDissociate = IHRC719.encodeFunctionData('dissociate()');
-      const dissociateTx = await tokenCreateContract.redirectForToken(
+      const dissociateTx = await tokenCreateContract.redirectForTokenPublic(
         tokenAddress,
         enCodedFuncDissociate,
         Constants.GAS_LIMIT_1_000_000,
@@ -219,7 +219,7 @@ describe('@HRC-719 Test Suite', function () {
 
     it('should be able to execute isAssociated() via redirectForToken', async function () {
       const encodedFunc = IHRC719.encodeFunctionData('isAssociated()');
-      const tx = await tokenCreateContract.redirectForToken(
+      const tx = await tokenCreateContract.redirectForTokenPublic(
         tokenAddress,
         encodedFunc,
         Constants.GAS_LIMIT_1_000_000,
@@ -231,7 +231,7 @@ describe('@HRC-719 Test Suite', function () {
 
     it('should be able to execute isAssociated() after association via redirectForToken', async function () {
       await (
-        await tokenCreateContract.redirectForToken(
+        await tokenCreateContract.redirectForTokenPublic(
           tokenAddress,
           IHRC719.encodeFunctionData('associate()'),
           Constants.GAS_LIMIT_1_000_000,
@@ -239,7 +239,7 @@ describe('@HRC-719 Test Suite', function () {
       ).wait();
 
       const encodedFunc = IHRC719.encodeFunctionData('isAssociated()');
-      const tx = await tokenCreateContract.redirectForToken(
+      const tx = await tokenCreateContract.redirectForTokenPublic(
         tokenAddress,
         encodedFunc,
         Constants.GAS_LIMIT_1_000_000,

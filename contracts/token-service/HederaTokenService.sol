@@ -286,7 +286,7 @@ abstract contract HederaTokenService {
     /// @param to The account address of the receiver of the `amount` tokens
     /// @param amount The amount of tokens to transfer from `from` to `to`
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
-    function transferFrom(address token, address from, address to, uint256 amount) external returns (int64 responseCode)
+    function transferFrom(address token, address from, address to, uint256 amount) internal returns (int64 responseCode)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.transferFrom.selector,
@@ -301,7 +301,7 @@ abstract contract HederaTokenService {
     /// @param to The account address of the receiver of `serialNumber`
     /// @param serialNumber The NFT serial number to transfer
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
-    function transferFromNFT(address token, address from, address to, uint256 serialNumber) external returns (int64 responseCode)
+    function transferFromNFT(address token, address from, address to, uint256 serialNumber) internal returns (int64 responseCode)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.transferFromNFT.selector,
@@ -674,7 +674,7 @@ abstract contract HederaTokenService {
     /// @param encodedFunctionSelector The function selector from the ERC20 interface + the bytes input for the function called
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
     /// @return response The result of the call that had been encoded and sent for execution.
-    function redirectForToken(address token, bytes memory encodedFunctionSelector) external returns (int responseCode, bytes memory response) {
+    function redirectForToken(address token, bytes memory encodedFunctionSelector) internal returns (int responseCode, bytes memory response) {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.redirectForToken.selector, token, encodedFunctionSelector)
         );

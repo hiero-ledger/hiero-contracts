@@ -87,7 +87,7 @@ contract AtomicHTS is HederaTokenService {
         (int grantKYCResponseCode) = HederaTokenService.grantTokenKyc(token, receipient); 
         require(grantKYCResponseCode == HederaResponseCodes.SUCCESS, "Failed to grant token KYC.");
 
-        (int transferFromResponseCode) = this.transferFrom(token, spender, receipient, allowance);
+        (int transferFromResponseCode) = HederaTokenService.transferFrom(token, spender, receipient, allowance);
         require(transferFromResponseCode == HederaResponseCodes.SUCCESS, "Failed to transfer token.");
 
         emit BatchApproveAssociateGrantKYCTransferFrom(transferTokenResponseCode, approveResponseCode, associateResponseCode, grantKYCResponseCode, transferFromResponseCode);

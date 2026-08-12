@@ -88,7 +88,7 @@ describe('RedirectForToken Test Suite', function () {
 
   it('should be able to execute name()', async function () {
     const encodedFunc = IERC20.encodeFunctionData('name()');
-    const tx = await tokenCreateContract.redirectForToken(
+    const tx = await tokenCreateContract.redirectForTokenPublic(
       tokenAddress,
       encodedFunc,
     );
@@ -99,7 +99,7 @@ describe('RedirectForToken Test Suite', function () {
 
   it('should be able to execute symbol()', async function () {
     const encodedFunc = IERC20.encodeFunctionData('symbol()');
-    const tx = await tokenCreateContract.redirectForToken(
+    const tx = await tokenCreateContract.redirectForTokenPublic(
       tokenAddress,
       encodedFunc,
     );
@@ -110,7 +110,7 @@ describe('RedirectForToken Test Suite', function () {
 
   it('should be able to execute decimals()', async function () {
     const encodedFunc = IERC20.encodeFunctionData('decimals()');
-    const tx = await tokenCreateContract.redirectForToken(
+    const tx = await tokenCreateContract.redirectForTokenPublic(
       tokenAddress,
       encodedFunc,
     );
@@ -121,7 +121,7 @@ describe('RedirectForToken Test Suite', function () {
 
   it('should be able to execute totalSupply()', async function () {
     const encodedFunc = IERC20.encodeFunctionData('totalSupply()');
-    const tx = await tokenCreateContract.redirectForToken(
+    const tx = await tokenCreateContract.redirectForTokenPublic(
       tokenAddress,
       encodedFunc,
     );
@@ -134,7 +134,7 @@ describe('RedirectForToken Test Suite', function () {
     const encodedFuncSigner0 = IERC20.encodeFunctionData('balanceOf(address)', [
       signers[0].address,
     ]);
-    const tx0 = await tokenCreateContract.redirectForToken(
+    const tx0 = await tokenCreateContract.redirectForTokenPublic(
       tokenAddress,
       encodedFuncSigner0,
     );
@@ -145,7 +145,7 @@ describe('RedirectForToken Test Suite', function () {
     const encodedFuncSigner1 = IERC20.encodeFunctionData('balanceOf(address)', [
       signers[1].address,
     ]);
-    const tx1 = await tokenCreateContract.redirectForToken(
+    const tx1 = await tokenCreateContract.redirectForTokenPublic(
       tokenAddress,
       encodedFuncSigner1,
     );
@@ -159,7 +159,7 @@ describe('RedirectForToken Test Suite', function () {
       signers[1].address,
       amount,
     ]);
-    const tx = await tokenCreateContract.redirectForToken(
+    const tx = await tokenCreateContract.redirectForTokenPublic(
       tokenAddress,
       encodedFunc,
       Constants.GAS_LIMIT_10_000_000,
@@ -173,7 +173,7 @@ describe('RedirectForToken Test Suite', function () {
       'allowance(address,address)',
       [await tokenCreateContract.getAddress(), signers[1].address],
     );
-    const tx = await tokenCreateContract.redirectForToken(
+    const tx = await tokenCreateContract.redirectForTokenPublic(
       tokenAddress,
       encodedFunc,
       Constants.GAS_LIMIT_10_000_000,
@@ -198,7 +198,7 @@ describe('RedirectForToken Test Suite', function () {
       signers[1].address,
       amount,
     ]);
-    const tx = await tokenCreateContract.redirectForToken(
+    const tx = await tokenCreateContract.redirectForTokenPublic(
       tokenAddress,
       encodedFunc,
     );
@@ -237,7 +237,7 @@ describe('RedirectForToken Test Suite', function () {
       'transferFrom(address,address,uint256)',
       [await tokenCreateContract.getAddress(), signers[1].address, amount],
     );
-    const tx = await tokenCreateContract.redirectForToken(
+    const tx = await tokenCreateContract.redirectForTokenPublic(
       tokenAddress,
       encodedFunc,
       Constants.GAS_LIMIT_1_000_000,
