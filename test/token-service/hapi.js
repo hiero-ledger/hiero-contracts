@@ -69,7 +69,6 @@ class Hapi {
   async updateTokenKeys(
     tokenAddress,
     contractAddresses,
-    // eslint-disable-next-line no-unused-vars -- kept for positional-arg compatibility with existing callers; the admin key is intentionally never re-keyed to a contract (a contract cannot sign to accept it, per HIP-540)
     setAdmin = true,
     setPause = true,
     setKyc = true,
@@ -89,11 +88,6 @@ class Hapi {
     // Under the v2 smart-contract security model, a contract may only use a token
     // key if that key IS a contract id (a `KeyList` of contract ids works — any
     // member is authorized). Hand the operational keys to the contracts directly.
-    // NOTE: the admin key is intentionally NOT re-keyed here. Per HIP-540 the new
-    // admin key must sign the update, and a contract cannot sign a HAPI
-    // transaction, so admin can never be handed to a contract this way. It stays
-    // with the operator; admin-gated ops through a contract (delete /
-    // updateTokenInfo / updateExpiry / updateTokenKeys) are handled separately.
     const keyList = new KeyList(
       contractAddresses.map((address) =>
         ContractId.fromEvmAddress(0, 0, address),
@@ -101,9 +95,28 @@ class Hapi {
       1,
     );
 
+    // The admin key additionally includes signer0's public key. Per HIP-540 a
+    // change to the admin key must be signed by the NEW admin key; a contract
+    // cannot sign a HAPI transaction, so a contracts-only admin could never be
+    // accepted. Because this KeyList is threshold-1 and signer0 is a member,
+    // signer0's signature satisfies both the old admin (signer0) and the new one,
+    // so the rotation is accepted — and any listed contract is then an authorized
+    // admin for ops made through it (delete / updateTokenInfo / updateExpiry /
+    // updateTokenKeys).
+    const adminKeyList = new KeyList(
+      [
+        pkSigners[0].publicKey,
+        ...contractAddresses.map((address) =>
+          ContractId.fromEvmAddress(0, 0, address),
+        ),
+      ],
+      1,
+    );
+
     const tx = new TokenUpdateTransaction().setTokenId(
       TokenId.fromSolidityAddress(tokenAddress),
     );
+    if (setAdmin) tx.setAdminKey(adminKeyList);
     if (setPause) tx.setPauseKey(keyList);
     if (setKyc) tx.setKycKey(keyList);
     if (setFreeze) tx.setFreezeKey(keyList);
