@@ -2543,6 +2543,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[1].address,
           signers[3].address,
           nftTx,
+          Constants.GAS_LIMIT_1_000_000,
         );
       await transferNftToSigner3.wait();
 
@@ -2638,6 +2639,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[1].address,
           signers[3].address,
           nftTx,
+          Constants.GAS_LIMIT_1_000_000,
         );
       await transferNftToSigner3.wait();
 
@@ -2723,6 +2725,7 @@ describe('TokenManagmentContract Test Suite', function () {
           signers[1].address,
           signers[3].address,
           nftTx,
+          Constants.GAS_LIMIT_1_000_000,
         );
       await transferNftToSigner3.wait();
 
