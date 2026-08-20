@@ -80,11 +80,13 @@ abstract contract HederaAccountService {
     }
 
     /// Determines if the signature is valid for the given message hash and account.
-    /// It is assumed that the signature is composed of a single EDCSA or ED25519 key.
+    /// It is assumed that the signature is composed of a single ECDSA or ED25519 key.
+    /// The underlying precompile returns a bare `bool`; this wrapper synthesises the
+    /// responseCode from the low-level call's success for parity with the other helpers.
     /// @param account The account to check the signature against
     /// @param messageHash The hash of the message to check the signature against
     /// @param signature The signature to check
-    /// @return responseCode The response code for the status of the request. SUCCESS is 22.
+    /// @return responseCode SUCCESS (22) if the precompile call succeeded, otherwise UNKNOWN.
     /// @return authorized True if the signature is valid, false otherwise
     function isAuthorizedRaw(address account, bytes memory messageHash, bytes memory signature) internal returns (int64 responseCode, bool authorized) {
         (bool success, bytes memory result) = HASPrecompileAddress.call(

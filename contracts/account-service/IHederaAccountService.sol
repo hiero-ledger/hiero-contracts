@@ -46,17 +46,19 @@ interface IHederaAccountService {
     function isValidAlias(address addr) external returns (int64 responseCode, bool response);
 
     /// Determines if the signature is valid for the given message hash and account.
-    /// It is assumed that the signature is composed of a single EDCSA or ED25519 key.
+    /// It is assumed that the signature is composed of a single ECDSA or ED25519 key.
+    /// Unlike `isAuthorized`, this returns a bare `bool` — the precompile returns
+    /// BOOL, not RESPONSE_CODE64_BOOL, because it performs a pure signature check
+    /// without the heavier authorization flow.
     /// @param account The account to check the signature against.
     /// @param messageHash The hash of the message to check the signature against.
     /// @param signature The signature to check.
-    /// @return responseCode The response code for the status of the request.  SUCCESS is 22.
     /// @return authorized True if the signature is valid, false otherwise.
     function isAuthorizedRaw(
         address account,
         bytes memory messageHash,
         bytes memory signature
-    ) external returns (int64 responseCode, bool authorized);
+    ) external returns (bool authorized);
 
     /// Determines if the signature is valid for the given message and account.
     /// It is assumed that the signature is composed of a possibly complex cryptographic key.
