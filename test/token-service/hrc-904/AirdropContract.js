@@ -93,10 +93,7 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
   it('should airdrop a non-fungible token (NFT) to a single account', async function () {
     const receiver = signers[1].address;
 
-    const serial = await utils.mintNFTToAddress(
-      tokenCreateContract,
-      nftTokenAddress,
-    );
+    const serial = await utils.mintNFT(tokenCreateContract, nftTokenAddress);
 
     const txNFT = await airdropContract.nftAirdrop(
       nftTokenAddress,
@@ -178,10 +175,7 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
 
   it('should airdrop non-fungible token (NFT) to a single account using distribute', async function () {
     const receiver = signers[1].address;
-    const serial = await utils.mintNFTToAddress(
-      tokenCreateContract,
-      nftTokenAddress,
-    );
+    const serial = await utils.mintNFT(tokenCreateContract, nftTokenAddress);
 
     const txNFT = await airdropContract.nftAirdropDistribute(
       nftTokenAddress,
@@ -204,12 +198,8 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
       hapi,
     );
     const serials = [];
-    serials.push(
-      await utils.mintNFTToAddress(tokenCreateContract, nftTokenAddress),
-    );
-    serials.push(
-      await utils.mintNFTToAddress(tokenCreateContract, nftTokenAddress),
-    );
+    serials.push(await utils.mintNFT(tokenCreateContract, nftTokenAddress));
+    serials.push(await utils.mintNFT(tokenCreateContract, nftTokenAddress));
 
     const txNFT = await airdropContract.nftAirdropDistribute(
       nftTokenAddress,
@@ -272,10 +262,7 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
           contractAddresses,
           hapi,
         );
-        const serial = await utils.mintNFTToAddress(
-          tokenCreateContract,
-          tokenAddress,
-        );
+        const serial = await utils.mintNFT(tokenCreateContract, tokenAddress);
         tokens.push(tokenAddress);
         serials.push(serial);
       }
@@ -327,7 +314,7 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
 
   it('should fail when the receiver does not have a valid account', async function () {
     const invalidReceiver = '0x000000000000000000000000000000000000dead';
-    const mintedTokenSerialNumber = await utils.mintNFTToAddress(
+    const mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );
@@ -382,10 +369,7 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
         contractAddresses,
         hapi,
       );
-      const serial = await utils.mintNFTToAddress(
-        tokenCreateContract,
-        tokenAddress,
-      );
+      const serial = await utils.mintNFT(tokenCreateContract, tokenAddress);
       nftTokens.push(tokenAddress);
       nftSerials.push(serial);
     }

@@ -3,11 +3,9 @@ pragma solidity >=0.5.0 <0.9.0;
 pragma experimental ABIEncoderV2;
 
 import "../../token-service/HederaTokenService.sol";
-import "../../token-service/ExpiryHelper.sol";
-import "../../token-service/KeyHelper.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract TokenManagementContract is HederaTokenService, ExpiryHelper, KeyHelper {
+contract TokenManagementContract is HederaTokenService {
 
     event ResponseCode(int responseCode);
     event PausedToken(bool paused);

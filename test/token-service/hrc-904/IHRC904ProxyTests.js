@@ -159,7 +159,7 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
   });
 
   it('should cancel a pending airdrop for a non-fungible token (NFT)', async function () {
-    const mintedTokenSerialNumber = await utils.mintNFTToAddress(
+    const mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );
@@ -255,7 +255,7 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
   });
 
   it('should claim a pending airdrop for a non-fungible token (NFT)', async function () {
-    const mintedTokenSerialNumber = await utils.mintNFTToAddress(
+    const mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );
@@ -309,7 +309,7 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
       contractAddresses,
       hapi,
     );
-    const mintedTokenSerialNumber = await utils.mintNFTToAddress(
+    const mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );
@@ -357,7 +357,7 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
     let serialNumbers = [];
     for (let i = 0; i < 10; i++) {
       serialNumbers.push(
-        await utils.mintNFTToAddress(tokenCreateContract, nftTokenAddress),
+        await utils.mintNFT(tokenCreateContract, nftTokenAddress),
       );
     }
     serialNumbers = serialNumbers.map(BigInt);
@@ -412,7 +412,7 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
   });
 
   it('should fail to cancel a pending airdrop for NFT when sender has no pending airdrops', async function () {
-    const mintedTokenSerialNumber = await utils.mintNFTToAddress(
+    const mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );
@@ -425,7 +425,7 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
   });
 
   it('should fail to cancel a pending airdrop for NFT when receiver has no valid account', async function () {
-    const mintedTokenSerialNumber = await utils.mintNFTToAddress(
+    const mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );
@@ -451,7 +451,7 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
   });
 
   it('should fail to claim NFT airdrop with no pending airdrops', async function () {
-    const mintedTokenSerialNumber = await utils.mintNFTToAddress(
+    const mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );
@@ -464,7 +464,7 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
   });
 
   it('should fail to claim NFT airdrop with an invalid account', async function () {
-    const mintedTokenSerialNumber = await utils.mintNFTToAddress(
+    const mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );
@@ -496,7 +496,7 @@ describe('HIP904Batch2 IHRC904Facade Contract Test Suite', function () {
       contractAddresses,
       hapi,
     );
-    const mintedTokenSerialNumber = await utils.mintNFTToAddress(
+    const mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );

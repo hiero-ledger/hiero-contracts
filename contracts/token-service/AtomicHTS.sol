@@ -50,11 +50,11 @@ contract AtomicHTS is HederaTokenService {
      *
      * @notice because .approve() can only grant allowances to spender on behalf of the caller, and in this case
      *         `this contract` is the caller who makes transactions to the `precompile contract`. With the same reason,
-     *         .transferFrom() will transfer the tokens from token owner to the receipient by the spender (this contract)
+     *         .transferFrom() will transfer the tokens from token owner to the recipient by the spender (this contract)
      *         on behalf of the token owner. Therefore, the spender in this particular case will also be the sender whose balance
      *         will be deducted by the .transferFrom() method.
      */
-    function batchApproveAssociateGrantKYCTransferFrom(address token, address owner, address receipient, int64 transferAmount, uint256 allowance) external {
+    function batchApproveAssociateGrantKYCTransferFrom(address token, address owner, address recipient, int64 transferAmount, uint256 allowance) external {
         
         /// top up the spender with initial fund
         /// @notice it is necessary for the spender to be associated and granted token KYC to receive fund. 
@@ -77,17 +77,17 @@ contract AtomicHTS is HederaTokenService {
         (int approveResponseCode) = HederaTokenService.approve(token, spender, allowance);
         require(approveResponseCode == HederaResponseCodes.SUCCESS, "Failed to grant token allowance.");
 
-        (int associateResponseCode) = HederaTokenService.associateToken(receipient, token);
+        (int associateResponseCode) = HederaTokenService.associateToken(recipient, token);
         require(
             associateResponseCode == HederaResponseCodes.SUCCESS || 
             associateResponseCode == HederaResponseCodes.TOKEN_ALREADY_ASSOCIATED_TO_ACCOUNT, 
             "Failed to associate token."
         );
 
-        (int grantKYCResponseCode) = HederaTokenService.grantTokenKyc(token, receipient); 
+        (int grantKYCResponseCode) = HederaTokenService.grantTokenKyc(token, recipient); 
         require(grantKYCResponseCode == HederaResponseCodes.SUCCESS, "Failed to grant token KYC.");
 
-        (int transferFromResponseCode) = this.transferFrom(token, spender, receipient, allowance);
+        (int transferFromResponseCode) = this.transferFrom(token, spender, recipient, allowance);
         require(transferFromResponseCode == HederaResponseCodes.SUCCESS, "Failed to transfer token.");
 
         emit BatchApproveAssociateGrantKYCTransferFrom(transferTokenResponseCode, approveResponseCode, associateResponseCode, grantKYCResponseCode, transferFromResponseCode);

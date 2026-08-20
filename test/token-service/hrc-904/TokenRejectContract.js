@@ -107,10 +107,7 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     );
     const receiver = signers[1];
 
-    const serial = await utils.mintNFTToAddress(
-      tokenCreateContract,
-      nftTokenAddress,
-    );
+    const serial = await utils.mintNFT(tokenCreateContract, nftTokenAddress);
 
     const airdropTx = await airdropContract.nftAirdrop(
       nftTokenAddress,
@@ -150,8 +147,8 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
 
     // Mint two NFTs and reject the SECOND serial. A regression to a hardcoded
     // serial (e.g. the previous `nftId.serial = 1`) would fail this case.
-    await utils.mintNFTToAddress(tokenCreateContract, nftTokenAddress);
-    const secondSerial = await utils.mintNFTToAddress(
+    await utils.mintNFT(tokenCreateContract, nftTokenAddress);
+    const secondSerial = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );
@@ -306,10 +303,7 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     );
     const receiver = signers[1];
 
-    const serial = await utils.mintNFTToAddress(
-      tokenCreateContract,
-      nftTokenAddress,
-    );
+    const serial = await utils.mintNFT(tokenCreateContract, nftTokenAddress);
 
     const airdropTx = await airdropContract.nftAirdrop(
       nftTokenAddress,

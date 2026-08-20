@@ -43,7 +43,7 @@ describe('TokenQueryContract Test Suite', function () {
       tokenCreateContract,
       await tokenCreateContract.getAddress(),
     );
-    mintedTokenSerialNumber = await utils.mintNFTToAddress(
+    mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );

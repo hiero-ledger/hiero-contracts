@@ -24,7 +24,7 @@ abstract contract KeyHelper {
         CONTRACT_ID,
         ED25519,
         SECP256K1,
-        DELEGETABLE_CONTRACT_ID
+        DELEGATABLE_CONTRACT_ID
     }
 
     constructor() {
@@ -137,7 +137,7 @@ abstract contract KeyHelper {
             keyValue.ed25519 = key;
         } else if (keyValueType == KeyValueType.SECP256K1) {
             keyValue.ECDSA_secp256k1 = key;
-        } else if (keyValueType == KeyValueType.DELEGETABLE_CONTRACT_ID) {
+        } else if (keyValueType == KeyValueType.DELEGATABLE_CONTRACT_ID) {
             keyValue.delegatableContractId = supplyContract;
         }
     }
@@ -149,7 +149,7 @@ abstract contract KeyHelper {
     {
         if (keyValueType == KeyValueType.CONTRACT_ID) {
             keyValue.contractId = keyAddress;
-        } else if (keyValueType == KeyValueType.DELEGETABLE_CONTRACT_ID) {
+        } else if (keyValueType == KeyValueType.DELEGATABLE_CONTRACT_ID) {
             keyValue.delegatableContractId = keyAddress;
         }
     }

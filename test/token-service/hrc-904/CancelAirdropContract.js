@@ -129,7 +129,7 @@ describe('HIP904Batch2 CancelAirdropContract Test Suite', function () {
       hapi,
     );
 
-    const serialNumber = await utils.mintNFTToAddress(
+    const serialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );
