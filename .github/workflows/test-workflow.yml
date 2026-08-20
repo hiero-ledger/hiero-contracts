@@ -29,7 +29,7 @@ permissions:
 jobs:
   acceptance-workflow:
     runs-on: hl-contr-lin-lg
-    timeout-minutes: 35
+    timeout-minutes: 45
     strategy:
       fail-fast: false
 
@@ -62,21 +62,19 @@ jobs:
         run: |
           cat > .github/falcon.yml <<EOF
           network:
-            --release-tag: "${{ inputs.networkTag || 'v0.70.0' }}"
+            --release-tag: "${{ inputs.networkTag || 'v0.75.1' }}"
             --node-aliases: "node1"
           
           setup:
-            --release-tag: "${{ inputs.networkTag || 'v0.70.0' }}"
+            --release-tag: "${{ inputs.networkTag || 'v0.75.1' }}"
             --node-aliases: "node1"
           
           consensusNode:
             --node-aliases: "node1"
-            --force-port-forward: true
           mirrorNode:
             --enable-ingress: true
             --pinger: true
-            --mirror-node-version: "${{ inputs.mirrorTag || 'v0.148.0' }}"
-            --force-port-forward: true
+            --mirror-node-version: "${{ inputs.mirrorTag || 'v0.159.2' }}"
           explorerNode:
             --enable-ingress: true
           relayNode:
@@ -95,11 +93,18 @@ jobs:
           wait: 120s
 
       - name: Start the solo node
-        run: npx @hashgraph/solo@${{ inputs.soloVersion || '0.58.0' }} one-shot falcon deploy --values-file .github/falcon.yml --dev
+        # solo 0.85 forwards the endpoints itself (--external-address); the env
+        # vars remap its local ports to the ones the tests expect (see test/config.js).
+        env:
+          MIRROR_NODE_PORT: 5551
+          GRPC_LOCAL_PORT: 50211
+          JSON_RPC_RELAY_LOCAL_PORT: 7546
+        run: |
+          npx @hashgraph/solo@${{ inputs.soloVersion || '0.85.0' }} one-shot falcon deploy \
+            --values-file .github/falcon.yml \
+            --external-address 0.0.0.0 \
+            --dev
         timeout-minutes: 15
-
-      - name: Forward solo ports
-        run: .github/scripts/forward-ports.sh
 
       - name: Run the test in ${{ inputs.testfilter }}
         run: npx hardhat test --grep ${{ inputs.testfilter }}
@@ -124,4 +129,4 @@ jobs:
 
       - name: Stop solo
         if: ${{ !cancelled() }}
-        run: npx @hashgraph/solo@${{ inputs.soloVersion || '0.58.0' }} one-shot single destroy
+        run: npx @hashgraph/solo@${{ inputs.soloVersion || '0.85.0' }} one-shot single destroy

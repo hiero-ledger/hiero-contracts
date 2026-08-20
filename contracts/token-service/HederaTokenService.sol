@@ -27,7 +27,7 @@ abstract contract HederaTokenService {
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
     /// @custom:version 0.3.0 the signature of the previous version was cryptoTransfer(TokenTransferList[] memory tokenTransfers)
     function cryptoTransfer(IHederaTokenService.TransferList memory transferList, IHederaTokenService.TokenTransferList[] memory tokenTransfers) internal
-    returns (int responseCode)
+    returns (int64 responseCode)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.cryptoTransfer.selector, transferList, tokenTransfers));
@@ -46,7 +46,7 @@ abstract contract HederaTokenService {
     /// @return newTotalSupply The new supply of tokens. For NFTs it is the total count of NFTs
     /// @return serialNumbers If the token is an NFT the newly generate serial numbers, otherwise empty.
     function mintToken(address token, int64 amount, bytes[] memory metadata) internal
-    returns (int responseCode, int64 newTotalSupply, int64[] memory serialNumbers)
+    returns (int64 responseCode, int64 newTotalSupply, int64[] memory serialNumbers)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.mintToken.selector,
@@ -67,7 +67,7 @@ abstract contract HederaTokenService {
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
     /// @return newTotalSupply The new supply of tokens. For NFTs it is the total count of NFTs
     function burnToken(address token, int64 amount, int64[] memory serialNumbers) internal
-    returns (int responseCode, int64 newTotalSupply)
+    returns (int64 responseCode, int64 newTotalSupply)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.burnToken.selector,
@@ -95,14 +95,14 @@ abstract contract HederaTokenService {
     ///               Type, once an account is associated, it can hold any number of NFTs (serial numbers) of that
     ///               token type
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
-    function associateTokens(address account, address[] memory tokens) internal returns (int responseCode) {
+    function associateTokens(address account, address[] memory tokens) internal returns (int64 responseCode) {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.associateTokens.selector,
             account, tokens));
         responseCode = success ? abi.decode(result, (int32)) : HederaResponseCodes.UNKNOWN;
     }
 
-    function associateToken(address account, address token) internal returns (int responseCode) {
+    function associateToken(address account, address token) internal returns (int64 responseCode) {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.associateToken.selector,
             account, token));
@@ -127,14 +127,14 @@ abstract contract HederaTokenService {
     /// @param account The account to be dissociated from the provided tokens
     /// @param tokens The tokens to be dissociated from the provided account.
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
-    function dissociateTokens(address account, address[] memory tokens) internal returns (int responseCode) {
+    function dissociateTokens(address account, address[] memory tokens) internal returns (int64 responseCode) {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.dissociateTokens.selector,
             account, tokens));
         responseCode = success ? abi.decode(result, (int32)) : HederaResponseCodes.UNKNOWN;
     }
 
-    function dissociateToken(address account, address token) internal returns (int responseCode) {
+    function dissociateToken(address account, address token) internal returns (int64 responseCode) {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.dissociateToken.selector,
             account, token));
@@ -152,7 +152,7 @@ abstract contract HederaTokenService {
         IHederaTokenService.HederaToken memory token,
         int64 initialTotalSupply,
         int32 decimals) nonEmptyExpiry(token)
-    internal returns (int responseCode, address tokenAddress) {
+    internal returns (int64 responseCode, address tokenAddress) {
         (bool success, bytes memory result) = precompileAddress.call{value : msg.value}(
             abi.encodeWithSelector(IHederaTokenService.createFungibleToken.selector,
             token, initialTotalSupply, decimals));
@@ -176,7 +176,7 @@ abstract contract HederaTokenService {
         int32 decimals,
         IHederaTokenService.FixedFee[] memory fixedFees,
         IHederaTokenService.FractionalFee[] memory fractionalFees) nonEmptyExpiry(token)
-    internal returns (int responseCode, address tokenAddress) {
+    internal returns (int64 responseCode, address tokenAddress) {
         (bool success, bytes memory result) = precompileAddress.call{value : msg.value}(
             abi.encodeWithSelector(IHederaTokenService.createFungibleTokenWithCustomFees.selector,
             token, initialTotalSupply, decimals, fixedFees, fractionalFees));
@@ -188,7 +188,7 @@ abstract contract HederaTokenService {
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
     /// @return tokenAddress the created token's address
     function createNonFungibleToken(IHederaTokenService.HederaToken memory token) nonEmptyExpiry(token)
-    internal returns (int responseCode, address tokenAddress) {
+    internal returns (int64 responseCode, address tokenAddress) {
         (bool success, bytes memory result) = precompileAddress.call{value : msg.value}(
             abi.encodeWithSelector(IHederaTokenService.createNonFungibleToken.selector, token));
         (responseCode, tokenAddress) = success ? abi.decode(result, (int32, address)) : (HederaResponseCodes.UNKNOWN, address(0));
@@ -204,7 +204,7 @@ abstract contract HederaTokenService {
         IHederaTokenService.HederaToken memory token,
         IHederaTokenService.FixedFee[] memory fixedFees,
         IHederaTokenService.RoyaltyFee[] memory royaltyFees) nonEmptyExpiry(token)
-    internal returns (int responseCode, address tokenAddress) {
+    internal returns (int64 responseCode, address tokenAddress) {
         (bool success, bytes memory result) = precompileAddress.call{value : msg.value}(
             abi.encodeWithSelector(IHederaTokenService.createNonFungibleTokenWithCustomFees.selector,
             token, fixedFees, royaltyFees));
@@ -214,7 +214,7 @@ abstract contract HederaTokenService {
     /// Retrieves fungible specific token info for a fungible token
     /// @param token The ID of the token as a solidity address
     /// @dev This function reverts if the call is not successful
-    function getFungibleTokenInfo(address token) internal returns (int responseCode, IHederaTokenService.FungibleTokenInfo memory tokenInfo) {
+    function getFungibleTokenInfo(address token) internal returns (int64 responseCode, IHederaTokenService.FungibleTokenInfo memory tokenInfo) {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.getFungibleTokenInfo.selector, token));
         IHederaTokenService.FungibleTokenInfo memory defaultTokenInfo;
@@ -224,7 +224,7 @@ abstract contract HederaTokenService {
     /// Retrieves general token info for a given token
     /// @param token The ID of the token as a solidity address
     /// @dev This function reverts if the call is not successful
-    function getTokenInfo(address token) internal returns (int responseCode, IHederaTokenService.TokenInfo memory tokenInfo) {
+    function getTokenInfo(address token) internal returns (int64 responseCode, IHederaTokenService.TokenInfo memory tokenInfo) {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.getTokenInfo.selector, token));
         IHederaTokenService.TokenInfo memory defaultTokenInfo;
@@ -234,7 +234,7 @@ abstract contract HederaTokenService {
     /// Retrieves non-fungible specific token info for a given NFT
     /// @param token The ID of the token as a solidity address
     /// @dev This function reverts if the call is not successful
-    function getNonFungibleTokenInfo(address token, int64 serialNumber) internal returns (int responseCode, IHederaTokenService.NonFungibleTokenInfo memory tokenInfo) {
+    function getNonFungibleTokenInfo(address token, int64 serialNumber) internal returns (int64 responseCode, IHederaTokenService.NonFungibleTokenInfo memory tokenInfo) {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.getNonFungibleTokenInfo.selector, token, serialNumber));
         IHederaTokenService.NonFungibleTokenInfo memory defaultTokenInfo;
@@ -270,7 +270,7 @@ abstract contract HederaTokenService {
     /// @param spender the account authorized to spend
     /// @param amount the amount of tokens authorized to spend.
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
-    function approve(address token, address spender, uint256 amount) internal returns (int responseCode)
+    function approve(address token, address spender, uint256 amount) internal returns (int64 responseCode)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.approve.selector,
@@ -315,7 +315,7 @@ abstract contract HederaTokenService {
     /// @param owner the owner of the tokens to be spent
     /// @param spender the spender of the tokens
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
-    function allowance(address token, address owner, address spender) internal returns (int responseCode, uint256 amount)
+    function allowance(address token, address owner, address spender) internal returns (int64 responseCode, uint256 amount)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.allowance.selector,
@@ -329,7 +329,7 @@ abstract contract HederaTokenService {
     /// @param approved The new approved NFT controller.  To revoke approvals pass in the zero address.
     /// @param serialNumber The NFT serial number  to approve
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
-    function approveNFT(address token, address approved, uint256 serialNumber) internal returns (int responseCode)
+    function approveNFT(address token, address approved, uint256 serialNumber) internal returns (int64 responseCode)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.approveNFT.selector,
@@ -343,7 +343,7 @@ abstract contract HederaTokenService {
     /// @param serialNumber The NFT to find the approved address for
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
     /// @return approved The approved address for this NFT, or the zero address if there is none
-    function getApproved(address token, uint256 serialNumber) internal returns (int responseCode, address approved)
+    function getApproved(address token, uint256 serialNumber) internal returns (int64 responseCode, address approved)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.getApproved.selector,
@@ -424,7 +424,7 @@ abstract contract HederaTokenService {
     /// @param operator Address to add to the set of authorized operators
     /// @param approved True if the operator is approved, false to revoke approval
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
-    function setApprovalForAll(address token, address operator, bool approved) internal returns (int responseCode)
+    function setApprovalForAll(address token, address operator, bool approved) internal returns (int64 responseCode)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.setApprovalForAll.selector,
@@ -439,7 +439,7 @@ abstract contract HederaTokenService {
     /// @param operator The address that acts on behalf of the owner
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
     /// @return approved True if `operator` is an approved operator for `owner`, false otherwise
-    function isApprovedForAll(address token, address owner, address operator) internal returns (int responseCode, bool approved)
+    function isApprovedForAll(address token, address owner, address operator) internal returns (int64 responseCode, bool approved)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.isApprovedForAll.selector,
@@ -455,7 +455,7 @@ abstract contract HederaTokenService {
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
     /// @return defaultFreezeStatus True if `token` default freeze status is frozen.
     /// @dev This function reverts if the call is not successful
-    function getTokenDefaultFreezeStatus(address token) internal returns (int responseCode, bool defaultFreezeStatus) {
+    function getTokenDefaultFreezeStatus(address token) internal returns (int64 responseCode, bool defaultFreezeStatus) {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.getTokenDefaultFreezeStatus.selector, token));
         (responseCode, defaultFreezeStatus) = success ? abi.decode(result, (int32, bool)) : (HederaResponseCodes.UNKNOWN, false);
@@ -466,7 +466,7 @@ abstract contract HederaTokenService {
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
     /// @return defaultKycStatus True if `token` default kyc status is KycNotApplicable and false if Revoked.
     /// @dev This function reverts if the call is not successful
-    function getTokenDefaultKycStatus(address token) internal returns (int responseCode, bool defaultKycStatus) {
+    function getTokenDefaultKycStatus(address token) internal returns (int64 responseCode, bool defaultKycStatus) {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.getTokenDefaultKycStatus.selector, token));
         (responseCode, defaultKycStatus) = success ? abi.decode(result, (int32, bool)) : (HederaResponseCodes.UNKNOWN, false);
@@ -481,7 +481,7 @@ abstract contract HederaTokenService {
     /// @param accountIds account to do a transfer to/from
     /// @param amounts The amount from the accountId at the same index
     function transferTokens(address token, address[] memory accountIds, int64[] memory amounts) internal
-    returns (int responseCode)
+    returns (int64 responseCode)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.transferTokens.selector,
@@ -495,7 +495,7 @@ abstract contract HederaTokenService {
     /// @param receiver the receiver of the nft sent by the same index at sender
     /// @param serialNumber the serial number of the nft sent by the same index at sender
     function transferNFTs(address token, address[] memory sender, address[] memory receiver, int64[] memory serialNumber)
-    internal returns (int responseCode)
+    internal returns (int64 responseCode)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.transferNFTs.selector,
@@ -511,7 +511,7 @@ abstract contract HederaTokenService {
     /// @param receiver The receiver of the transaction
     /// @param amount Non-negative value to send. a negative value will result in a failure.
     function transferToken(address token, address sender, address receiver, int64 amount) internal
-    returns (int responseCode)
+    returns (int64 responseCode)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.transferToken.selector,
@@ -527,7 +527,7 @@ abstract contract HederaTokenService {
     /// @param receiver The receiver of the transaction
     /// @param serialNumber The serial number of the NFT to transfer.
     function transferNFT(address token, address sender, address receiver, int64 serialNumber) internal
-    returns (int responseCode)
+    returns (int64 responseCode)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.transferNFT.selector,
@@ -538,7 +538,7 @@ abstract contract HederaTokenService {
     /// Operation to pause token
     /// @param token The token address to be paused
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
-    function pauseToken(address token) internal returns (int responseCode)
+    function pauseToken(address token) internal returns (int64 responseCode)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.pauseToken.selector, token));
@@ -548,7 +548,7 @@ abstract contract HederaTokenService {
     /// Operation to unpause token
     /// @param token The token address to be unpaused
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
-    function unpauseToken(address token) internal returns (int responseCode)
+    function unpauseToken(address token) internal returns (int64 responseCode)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.unpauseToken.selector, token));
@@ -560,7 +560,7 @@ abstract contract HederaTokenService {
     /// @param account The account address to revoke kyc
     /// @param amount The number of tokens to wipe
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
-    function wipeTokenAccount(address token, address account, int64 amount) internal returns (int responseCode)
+    function wipeTokenAccount(address token, address account, int64 amount) internal returns (int64 responseCode)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.wipeTokenAccount.selector, token, account, amount));
@@ -573,7 +573,7 @@ abstract contract HederaTokenService {
     /// @param  serialNumbers The serial numbers of token to wipe
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
     function wipeTokenAccountNFT(address token, address account, int64[] memory serialNumbers) internal
-    returns (int responseCode)
+    returns (int64 responseCode)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.wipeTokenAccountNFT.selector, token, account, serialNumbers));
@@ -583,7 +583,7 @@ abstract contract HederaTokenService {
     /// Operation to delete token
     /// @param token The token address
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
-    function deleteToken(address token) internal returns (int responseCode)
+    function deleteToken(address token) internal returns (int64 responseCode)
     {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.deleteToken.selector, token));
@@ -643,7 +643,7 @@ abstract contract HederaTokenService {
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
     /// @return expiryInfo The expiry info of the token
     /// @dev This function reverts if the call is not successful
-    function getTokenExpiryInfo(address token) internal returns (int responseCode, IHederaTokenService.Expiry memory expiryInfo){
+    function getTokenExpiryInfo(address token) internal returns (int64 responseCode, IHederaTokenService.Expiry memory expiryInfo){
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.getTokenExpiryInfo.selector, token));
         IHederaTokenService.Expiry memory defaultExpiryInfo;
@@ -653,7 +653,7 @@ abstract contract HederaTokenService {
     /// Operation to update token expiry info
     /// @param token The token address
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
-    function updateTokenExpiryInfo(address token, IHederaTokenService.Expiry memory expiryInfo) internal returns (int responseCode){
+    function updateTokenExpiryInfo(address token, IHederaTokenService.Expiry memory expiryInfo) internal returns (int64 responseCode){
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.updateTokenExpiryInfo.selector, token, expiryInfo));
         (responseCode) = success ? abi.decode(result, (int32)) : HederaResponseCodes.UNKNOWN;
@@ -663,7 +663,7 @@ abstract contract HederaTokenService {
     /// @param token The token address
     /// @param tokenInfo The hedera token info to update token with
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
-    function updateTokenInfo(address token, IHederaTokenService.HederaToken memory tokenInfo) internal returns (int responseCode) {
+    function updateTokenInfo(address token, IHederaTokenService.HederaToken memory tokenInfo) internal returns (int64 responseCode) {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.updateTokenInfo.selector, token, tokenInfo));
         (responseCode) = success ? abi.decode(result, (int32)) : HederaResponseCodes.UNKNOWN;
@@ -674,7 +674,7 @@ abstract contract HederaTokenService {
     /// @param encodedFunctionSelector The function selector from the ERC20 interface + the bytes input for the function called
     /// @return responseCode The response code for the status of the request. SUCCESS is 22.
     /// @return response The result of the call that had been encoded and sent for execution.
-    function redirectForToken(address token, bytes memory encodedFunctionSelector) internal returns (int responseCode, bytes memory response) {
+    function redirectForToken(address token, bytes memory encodedFunctionSelector) internal returns (int64 responseCode, bytes memory response) {
         (bool success, bytes memory result) = precompileAddress.call(
             abi.encodeWithSelector(IHederaTokenService.redirectForToken.selector, token, encodedFunctionSelector)
         );

@@ -36,20 +36,18 @@ describe('TokenTransferContract Test Suite', function () {
       await tokenQueryContract.getAddress(),
       await tokenTransferContract.getAddress(),
     ]);
-    tokenAddress = await utils.createFungibleTokenWithSECP256K1AdminKey(
+    tokenAddress = await utils.createFungibleToken(
       tokenCreateContract,
       signers[0].address,
-      utils.getSignerCompressedPublicKey(),
     );
     await hapi.updateTokenKeys(tokenAddress, [
       await tokenCreateContract.getAddress(),
       await tokenQueryContract.getAddress(),
       await tokenTransferContract.getAddress(),
     ]);
-    nftTokenAddress = await utils.createNonFungibleTokenWithSECP256K1AdminKey(
+    nftTokenAddress = await utils.createNonFungibleToken(
       tokenCreateContract,
       signers[0].address,
-      utils.getSignerCompressedPublicKey(),
     );
     await hapi.updateTokenKeys(nftTokenAddress, [
       await tokenCreateContract.getAddress(),
@@ -287,7 +285,7 @@ describe('TokenTransferContract Test Suite', function () {
     );
     const cryptoTransferReceipt = await cryptoTransferTx.wait();
     const responseCode = cryptoTransferReceipt.logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode,
+      (e) => e.fragment && e.fragment.name === Constants.Events.ResponseCode,
     )[0].args[0];
 
     const signers0After = await pollForNewSignerBalanceUsingProvider(
@@ -332,11 +330,16 @@ describe('TokenTransferContract Test Suite', function () {
             senderAccountID: signers[0].address,
             receiverAccountID: signers[1].address,
             serialNumber: mintedTokenSerialNumber,
-            isApproval: false,
+            isApproval: true,
           },
         ],
       },
     ];
+
+    // allowance for the NFT debit above
+    await hapi.approveAllowances(0, await tokenTransferContract.getAddress(), {
+      nfts: [{ token: nftTokenAddress, serials: [mintedTokenSerialNumber] }],
+    });
 
     const ownerBefore = await erc721Contract.ownerOf(
       nftTokenAddress,
@@ -349,7 +352,7 @@ describe('TokenTransferContract Test Suite', function () {
     );
     const cryptoTransferReceipt = await cryptoTransferTx.wait();
     const responseCode = cryptoTransferReceipt.logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode,
+      (e) => e.fragment && e.fragment.name === Constants.Events.ResponseCode,
     )[0].args[0];
 
     const ownerAfter = await erc721Contract.ownerOf(
@@ -428,7 +431,7 @@ describe('TokenTransferContract Test Suite', function () {
           {
             accountID: signers[0].address,
             amount: -amount,
-            isApproval: false,
+            isApproval: true,
           },
         ],
         nftTransfers: [],
@@ -441,11 +444,17 @@ describe('TokenTransferContract Test Suite', function () {
             senderAccountID: signers[0].address,
             receiverAccountID: signers[1].address,
             serialNumber: mintedTokenSerialNumber,
-            isApproval: false,
+            isApproval: true,
           },
         ],
       },
     ];
+
+    // allowances for the token + NFT debits (hbar needs none)
+    await hapi.approveAllowances(0, await tokenTransferContract.getAddress(), {
+      tokens: [{ token: tokenAddress, amount }],
+      nfts: [{ token: nftTokenAddress, serials: [mintedTokenSerialNumber] }],
+    });
     //execute, verify balances, check the owner of the nft,
     const cryptoTransferTx = await tokenTransferContract.cryptoTransferPublic(
       cryptoTransfers,
@@ -454,7 +463,7 @@ describe('TokenTransferContract Test Suite', function () {
     );
     const cryptoTransferReceipt = await cryptoTransferTx.wait();
     const responseCode = cryptoTransferReceipt.logs.filter(
-      (e) => e.fragment.name === Constants.Events.ResponseCode,
+      (e) => e.fragment && e.fragment.name === Constants.Events.ResponseCode,
     )[0].args[0];
     await new Promise((r) => setTimeout(r, 2000));
 

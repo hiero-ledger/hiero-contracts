@@ -310,6 +310,15 @@ class Utils {
     return await this.getTokenAddress(tokenAddressTx);
   }
 
+  static async createNonFungibleTokenWithoutKYC(contract, treasury) {
+    const tokenAddressTx =
+      await contract.createNonFungibleTokenWithoutKYCPublic(treasury, {
+        value: BigInt(this.createTokenCost),
+        gasLimit: 1_000_000,
+      });
+    return await this.getTokenAddress(tokenAddressTx);
+  }
+
   static async createNonFungibleTokenWithSECP256K1AdminKey(
     contract,
     treasury,
@@ -651,12 +660,10 @@ class Utils {
   }
 
   static async setupNft(tokenCreateContract, owner, contractAddresses, hapi) {
-    const nftTokenAddress =
-      await this.createNonFungibleTokenWithSECP256K1AdminKeyWithoutKYC(
-        tokenCreateContract,
-        owner,
-        this.getSignerCompressedPublicKey(),
-      );
+    const nftTokenAddress = await this.createNonFungibleTokenWithoutKYC(
+      tokenCreateContract,
+      owner,
+    );
 
     await hapi.updateTokenKeys(
       nftTokenAddress,

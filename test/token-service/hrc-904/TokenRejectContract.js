@@ -91,6 +91,7 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
       receiver.address,
       [tokenAddress],
       [],
+      [],
       Constants.GAS_LIMIT_2_000_000,
     );
     const responseCode = await utils.getHTSResponseCode(tx.hash);
@@ -106,7 +107,10 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     );
     const receiver = signers[1];
 
-    const serial = utils.mintNFTToAddress(tokenCreateContract, nftTokenAddress);
+    const serial = await utils.mintNFTToAddress(
+      tokenCreateContract,
+      nftTokenAddress,
+    );
 
     const airdropTx = await airdropContract.nftAirdrop(
       nftTokenAddress,
@@ -128,6 +132,52 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
       receiver.address,
       [],
       [nftTokenAddress],
+      [serial],
+      Constants.GAS_LIMIT_2_000_000,
+    );
+    const responseCode = await utils.getHTSResponseCode(tx.hash);
+    expect(responseCode).to.eq('22'); // SUCCESS code
+  });
+
+  it('should reject a specific NFT serial when more than one has been minted', async function () {
+    const nftTokenAddress = await utils.setupNft(
+      tokenCreateContract,
+      owner,
+      contractAddresses,
+      hapi,
+    );
+    const receiver = signers[1];
+
+    // Mint two NFTs and reject the SECOND serial. A regression to a hardcoded
+    // serial (e.g. the previous `nftId.serial = 1`) would fail this case.
+    await utils.mintNFTToAddress(tokenCreateContract, nftTokenAddress);
+    const secondSerial = await utils.mintNFTToAddress(
+      tokenCreateContract,
+      nftTokenAddress,
+    );
+    expect(secondSerial).to.eq(2);
+
+    const airdropTx = await airdropContract.nftAirdrop(
+      nftTokenAddress,
+      owner,
+      receiver.address,
+      secondSerial,
+      {
+        value: Constants.ONE_HBAR,
+        gasLimit: 2_000_000,
+      },
+    );
+    await airdropTx.wait();
+
+    await walletIHRC904AccountFacade.setUnlimitedAutomaticAssociations(true, {
+      gasLimit: 2_000_000,
+    });
+
+    const tx = await tokenRejectContract.rejectTokens(
+      receiver.address,
+      [],
+      [nftTokenAddress],
+      [secondSerial],
       Constants.GAS_LIMIT_2_000_000,
     );
     const responseCode = await utils.getHTSResponseCode(tx.hash);
@@ -159,6 +209,7 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
       const tx = await tokenRejectContract.rejectTokens(
         receiver.address,
         [tokenAddress],
+        [],
         [],
         Constants.GAS_LIMIT_2_000_000,
       );
@@ -195,6 +246,7 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
       receiver.address,
       [tokenAddress],
       [],
+      [],
       Constants.GAS_LIMIT_2_000_000,
     );
     const responseCode = await utils.getHTSResponseCode(tx.hash);
@@ -214,6 +266,7 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
       receiver.address,
       [tokenAddress],
       [],
+      [],
       Constants.GAS_LIMIT_2_000_000,
     );
     const responseCode = await utils.getHTSResponseCode(tx.hash);
@@ -229,10 +282,13 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
       hapi,
     );
 
+    // Fails on the invalid fungible token before the NFT serial is evaluated,
+    // so the serial value here is irrelevant (placeholder to match array length).
     const tx = await tokenRejectContract.rejectTokens(
       receiver.address,
       [invalidToken],
       [nftTokenAddress],
+      [1],
       Constants.GAS_LIMIT_2_000_000,
     );
     const responseCode = await utils.getHTSResponseCode(tx.hash);
@@ -250,7 +306,10 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     );
     const receiver = signers[1];
 
-    const serial = utils.mintNFTToAddress(tokenCreateContract, nftTokenAddress);
+    const serial = await utils.mintNFTToAddress(
+      tokenCreateContract,
+      nftTokenAddress,
+    );
 
     const airdropTx = await airdropContract.nftAirdrop(
       nftTokenAddress,
@@ -272,6 +331,7 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
       receiver.address,
       [],
       [invalidNft],
+      [serial],
       Constants.GAS_LIMIT_2_000_000,
     );
     const responseCode = await utils.getHTSResponseCode(tx.hash);

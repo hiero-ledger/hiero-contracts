@@ -177,6 +177,36 @@ contract TokenCreateContract is HederaTokenService, ExpiryHelper, KeyHelper {
         emit CreatedToken(tokenAddress);
     }
 
+    // Same as createNonFungibleTokenPublic but without a KYC key, so the token can be
+    // freely transferred/airdropped without granting KYC. Uses INHERIT_ACCOUNT_KEY (not
+    // SECP256K1) so the treasury contract keeps native authorization over supply/wipe ops.
+    function createNonFungibleTokenWithoutKYCPublic(
+        address treasury
+    ) public payable {
+        IHederaTokenService.TokenKey[] memory keys = new IHederaTokenService.TokenKey[](4);
+        keys[0] = getSingleKey(KeyType.ADMIN, KeyType.PAUSE, KeyValueType.INHERIT_ACCOUNT_KEY, bytes(""));
+        keys[1] = getSingleKey(KeyType.FREEZE, KeyValueType.INHERIT_ACCOUNT_KEY, bytes(""));
+        keys[2] = getSingleKey(KeyType.SUPPLY, KeyValueType.INHERIT_ACCOUNT_KEY, bytes(""));
+        keys[3] = getSingleKey(KeyType.WIPE, KeyValueType.INHERIT_ACCOUNT_KEY, bytes(""));
+
+        IHederaTokenService.Expiry memory expiry = IHederaTokenService.Expiry(
+            0, treasury, 8000000
+        );
+
+        IHederaTokenService.HederaToken memory token = IHederaTokenService.HederaToken(
+            name, symbol, treasury, memo, finiteTotalSupplyType, maxSupply, freezeDefaultStatus, keys, expiry
+        );
+
+        (int responseCode, address tokenAddress) =
+        HederaTokenService.createNonFungibleToken(token);
+
+        if (responseCode != HederaResponseCodes.SUCCESS) {
+            revert ();
+        }
+
+        emit CreatedToken(tokenAddress);
+    }
+
     function createNonFungibleTokenWithSECP256K1AdminKeyPublic(
         address treasury, bytes memory adminKey
     ) public payable {

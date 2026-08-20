@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import {
+  AccountAllowanceApproveTransaction,
   AccountBalanceQuery,
   AccountId,
   AccountInfoQuery,
   AccountUpdateTransaction,
   Client,
   ContractId,
+  Hbar,
   KeyList,
+  NftId,
   PrivateKey,
   TokenAssociateTransaction,
   TokenId,
@@ -82,9 +85,27 @@ class Hapi {
 
     this.client.setOperator(accountIdSigner0, pkSigners[0]);
 
+    // Under the v2 smart-contract security model, a contract may only use a token
+    // key if that key IS a contract id (a `KeyList` of contract ids works — any
+    // member is authorized). Hand the operational keys to the contracts directly.
     const keyList = new KeyList(
+      contractAddresses.map((address) =>
+        ContractId.fromEvmAddress(0, 0, address),
+      ),
+      1,
+    );
+
+    // The admin key additionally includes signer0's public key. Per HIP-540 a
+    // change to the admin key must be signed by the NEW admin key; a contract
+    // cannot sign a HAPI transaction, so a contracts-only admin could never be
+    // accepted. Because this KeyList is threshold-1 and signer0 is a member,
+    // signer0's signature satisfies both the old admin (signer0) and the new one,
+    // so the rotation is accepted — and any listed contract is then an authorized
+    // admin for ops made through it (delete / updateTokenInfo / updateExpiry /
+    // updateTokenKeys).
+    const adminKeyList = new KeyList(
       [
-        ...pkSigners.map((pk) => pk.publicKey),
+        pkSigners[0].publicKey,
         ...contractAddresses.map((address) =>
           ContractId.fromEvmAddress(0, 0, address),
         ),
@@ -95,7 +116,7 @@ class Hapi {
     const tx = new TokenUpdateTransaction().setTokenId(
       TokenId.fromSolidityAddress(tokenAddress),
     );
-    if (setAdmin) tx.setAdminKey(keyList);
+    if (setAdmin) tx.setAdminKey(adminKeyList);
     if (setPause) tx.setPauseKey(keyList);
     if (setKyc) tx.setKycKey(keyList);
     if (setFreeze) tx.setFreezeKey(keyList);
@@ -105,6 +126,47 @@ class Hapi {
 
     await (
       await tx.freezeWith(this.client).sign(pkSigners[0])
+    ).execute(this.client);
+    this.client.setOperator(config.operatorId, config.operatorKey);
+  }
+
+  async approveAllowances(
+    ownerIndex,
+    spenderAddress,
+    { hbar = 0, tokens = [], nfts = [] },
+  ) {
+    const signers = await connection.ethers.getSigners();
+    const pkSigners = (await utils.getHardhatSignersPrivateKeys()).map((pk) =>
+      PrivateKey.fromStringECDSA(pk),
+    );
+    const ownerId = await this.getAccountId(signers[ownerIndex].address);
+    const spenderId = await this.getAccountId(spenderAddress);
+    this.client.setOperator(ownerId, pkSigners[ownerIndex]);
+
+    const tx = new AccountAllowanceApproveTransaction();
+    if (hbar) {
+      tx.approveHbarAllowance(ownerId, spenderId, Hbar.fromTinybars(hbar));
+    }
+    for (const { token, amount } of tokens) {
+      tx.approveTokenAllowance(
+        TokenId.fromSolidityAddress(token),
+        ownerId,
+        spenderId,
+        amount,
+      );
+    }
+    for (const { token, serials } of nfts) {
+      for (const serial of serials) {
+        tx.approveTokenNftAllowance(
+          new NftId(TokenId.fromSolidityAddress(token), serial),
+          ownerId,
+          spenderId,
+        );
+      }
+    }
+
+    await (
+      await tx.freezeWith(this.client).sign(pkSigners[ownerIndex])
     ).execute(this.client);
     this.client.setOperator(config.operatorId, config.operatorKey);
   }

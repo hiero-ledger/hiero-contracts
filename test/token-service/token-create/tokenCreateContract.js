@@ -50,10 +50,9 @@ describe('TokenCreateContract Test Suite', function () {
       await tokenTransferContract.getAddress(),
       await tokenManagmentContract.getAddress(),
     ]);
-    nftTokenAddress = await utils.createNonFungibleTokenWithSECP256K1AdminKey(
+    nftTokenAddress = await utils.createNonFungibleToken(
       tokenCreateContract,
       signers[0].address,
-      utils.getSignerCompressedPublicKey(),
     );
     await hapi.updateTokenKeys(nftTokenAddress, [
       await tokenCreateContract.getAddress(),

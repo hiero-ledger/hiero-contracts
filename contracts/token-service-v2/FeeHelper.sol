@@ -89,7 +89,7 @@ abstract contract FeeHelper {
     }
 
     function createFixedFeesForToken(int64 amount, address tokenId, address firstFeeCollector, address secondFeeCollector) internal pure returns (IHederaTokenService.FixedFee[] memory fixedFees) {
-        fixedFees = new IHederaTokenService.FixedFee[](1);
+        fixedFees = new IHederaTokenService.FixedFee[](2);
         IHederaTokenService.FixedFee memory fixedFee1 = createFixedFeeForToken(
             amount,
             tokenId,
@@ -101,7 +101,7 @@ abstract contract FeeHelper {
             secondFeeCollector
         );
         fixedFees[0] = fixedFee1;
-        fixedFees[0] = fixedFee2;
+        fixedFees[1] = fixedFee2;
     }
 
     function createSingleFixedFeeForHbars(int64 amount, address feeCollector) internal pure returns (IHederaTokenService.FixedFee[] memory fixedFees) {
