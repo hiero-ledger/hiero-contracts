@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
-contract Sample {
-    function selfDestructSample() external {
-        selfdestruct(payable(msg.sender));
-    }
-}
+import "./Sample.sol";
 
 contract InternalCallee {
     uint public calledTimes = 0;

@@ -132,7 +132,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
       hapi,
     );
 
-    const serialNumber = await utils.mintNFTToAddress(
+    const serialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );
@@ -330,7 +330,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
     );
     const nonExistentSerialNumber = 999;
 
-    const serialNumber = await utils.mintNFTToAddress(
+    const serialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );
@@ -369,7 +369,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
       hapi,
     );
 
-    const serialNumber = await utils.mintNFTToAddress(
+    const serialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );
@@ -414,7 +414,7 @@ describe('HIP904Batch3 ClaimAirdropContract Test Suite', function () {
       hapi,
     );
 
-    const serialNumber = await utils.mintNFTToAddress(
+    const serialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );

@@ -3,10 +3,8 @@ pragma solidity >=0.5.0 <0.9.0;
 pragma experimental ABIEncoderV2;
 
 import "../../token-service/HederaTokenService.sol";
-import "../../token-service/ExpiryHelper.sol";
-import "../../token-service/KeyHelper.sol";
 
-contract TokenQueryContract is HederaTokenService, ExpiryHelper, KeyHelper {
+contract TokenQueryContract is HederaTokenService {
 
     event ResponseCode(int responseCode);
     event AllowanceValue(uint256 amount);

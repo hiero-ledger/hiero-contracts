@@ -20,9 +20,10 @@ contract EcrecoverCaller {
         return success;
     }
 
-    function send0x1() external payable {
+    function send0x1() external payable returns (bool) {
         address payable target = payable(accountZeroZeroOne);
-        target.transfer(msg.value);
+        bool success = target.send(msg.value);
+        return success;
     }
 
     function transfer0x1() external payable {

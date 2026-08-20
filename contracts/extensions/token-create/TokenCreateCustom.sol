@@ -3,12 +3,13 @@ pragma solidity >=0.5.0 <0.9.0;
 pragma experimental ABIEncoderV2;
 
 import "../../token-service/HederaTokenService.sol";
-import "../../token-service/ExpiryHelper.sol";
 import "../../token-service/KeyHelper.sol";
 import "../../token-service/FeeHelper.sol";
 
-contract TokenCreateCustomContract is HederaTokenService, ExpiryHelper, KeyHelper, FeeHelper {
+contract TokenCreateCustomContract is HederaTokenService, KeyHelper, FeeHelper {
     bool finiteTotalSupplyType = true;
+
+    error TokenTransferFailed(int responseCode);
 
     event ResponseCode(int responseCode);
     event CreatedToken(address tokenAddress);
@@ -179,7 +180,10 @@ contract TokenCreateCustomContract is HederaTokenService, ExpiryHelper, KeyHelpe
     returns (int responseCode, int64 newTotalSupply, int64[] memory serialNumbers)  {
         (responseCode, newTotalSupply, serialNumbers) = mintTokenPublic(token, amount, metadata);
 
-        HederaTokenService.transferToken(token, address(this), receiver, amount);
+        responseCode = HederaTokenService.transferToken(token, address(this), receiver, amount);
+        if (responseCode != HederaResponseCodes.SUCCESS) {
+            revert TokenTransferFailed(responseCode);
+        }
         emit TransferToken(token, receiver, amount);
     }
 
@@ -187,7 +191,10 @@ contract TokenCreateCustomContract is HederaTokenService, ExpiryHelper, KeyHelpe
     returns (int responseCode, int64 newTotalSupply, int64[] memory serialNumbers)  {
         (responseCode, newTotalSupply, serialNumbers) = mintTokenPublic(token, amount, metadata);
 
-        HederaTokenService.transferNFT(token, address(this), receiver, serialNumbers[0]);
+        responseCode = HederaTokenService.transferNFT(token, address(this), receiver, serialNumbers[0]);
+        if (responseCode != HederaResponseCodes.SUCCESS) {
+            revert TokenTransferFailed(responseCode);
+        }
         emit TransferToken(token, receiver, amount);
     }
 

@@ -22,7 +22,7 @@ interface IHRC632 {
     function isValidAlias(address addr) external returns (bool response);
 
     /// Determines if the signature is valid for the given message hash and account.
-    /// It is assumed that the signature is composed of a single EDCSA or ED25519 key.
+    /// It is assumed that the signature is composed of a single ECDSA or ED25519 key.
     /// @param account The account to check the signature against.
     /// @param messageHash The hash of the message to check the signature against.
     /// @param signature The signature to check.

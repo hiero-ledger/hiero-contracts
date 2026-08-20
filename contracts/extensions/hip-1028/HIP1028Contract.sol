@@ -8,6 +8,8 @@ import "../../token-service-v2/KeyHelper.sol";
 import "../../token-service-v2/FeeHelper.sol";
 
 contract HIP1028Contract is HederaTokenService, KeyHelper, FeeHelper {
+    error TokenMintFailed(int responseCode);
+
     event TokenAddress(address);
     event TokenInfo(IHederaTokenService.TokenInfo);
     event FungibleTokenInfo(IHederaTokenService.FungibleTokenInfo);
@@ -180,7 +182,10 @@ contract HIP1028Contract is HederaTokenService, KeyHelper, FeeHelper {
 
         createdAddress = tokenAddress;
 
-        HederaTokenService.mintToken(createdAddress, 0, new bytes[](1));
+        (responseCode, , ) = HederaTokenService.mintToken(createdAddress, 0, new bytes[](1));
+        if (responseCode != HederaResponseCodes.SUCCESS) {
+            revert TokenMintFailed(responseCode);
+        }
 
         emit TokenAddress(createdAddress);
     }
