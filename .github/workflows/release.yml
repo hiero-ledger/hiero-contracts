@@ -45,12 +45,12 @@ jobs:
     runs-on: hl-contr-lin-lg
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2.19.3
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
           egress-policy: audit
 
       - name: Prepare Job
-        uses: pandaswhocode/initialize-github-job@d93cd457947758129c6d93e09f89ad528119960f # 1.0.8
+        uses: pandaswhocode/initialize-github-job@05fe2fa999e509c966283d5c5cf60df69f2049e9 # 1.2.1
         with:
           checkout: 'true'
           checkout-ref: '${{ github.ref }}'
@@ -101,12 +101,12 @@ jobs:
       npm_dist_tag: ${{ steps.release_mode.outputs.npm_dist_tag }}
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2.19.3
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
           egress-policy: audit
 
       - name: Prepare Job
-        uses: pandaswhocode/initialize-github-job@d93cd457947758129c6d93e09f89ad528119960f # 1.0.8
+        uses: pandaswhocode/initialize-github-job@05fe2fa999e509c966283d5c5cf60df69f2049e9 # 1.2.1
         with:
           checkout: 'true'
           checkout-ref: '${{ github.ref }}'
@@ -196,7 +196,7 @@ jobs:
       - name: Parse Version
         if: ${{ steps.set-outputs.outputs.need-release == 'true' }}
         id: version_parser
-        uses: step-security/semver-utils@4ae9c1fd6d1c5f8f152fe7e2efe8069a952c2ace # v4.3.2
+        uses: step-security/semver-utils@5bb182a08240146b23b61cc002cb74004377da4b # v5.0.0
         with:
           lenient: false
           version: ${{ steps.set-outputs.outputs.version }}
@@ -234,12 +234,12 @@ jobs:
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2.19.3
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
           egress-policy: audit
 
       - name: Prepare Job
-        uses: pandaswhocode/initialize-github-job@d93cd457947758129c6d93e09f89ad528119960f # 1.0.8
+        uses: pandaswhocode/initialize-github-job@05fe2fa999e509c966283d5c5cf60df69f2049e9 # 1.2.1
         with:
           checkout: 'true'
           checkout-ref: '${{ github.ref }}'
@@ -261,7 +261,7 @@ jobs:
 
       - name: Import GPG key
         id: gpg_importer
-        uses: step-security/ghaction-import-gpg@69c854a83c7f79463f8bdf46772ab09826c560cd # v6.3.1
+        uses: step-security/ghaction-import-gpg@c0b4a334b9b72bfaaebec86ef022a78a5b17f828 # v7.0.0
         with:
           gpg_private_key: ${{ secrets.GPG_KEY_CONTENTS }}
           passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
@@ -343,7 +343,7 @@ jobs:
       - name: Close the Milestone
         if: ${{ needs.prepare-release.outputs.is_prerelease != 'true' && !inputs.dry-run-enabled }}
         id: milestone
-        uses: step-security/close-milestone@b097272a7aaa0f5c40dc6bc671d45d35c5e85b51 # v2.2.1
+        uses: step-security/close-milestone@d6e3b63e31f1f869bd3d0403f8cdc1a68f59ab4a # v2.2.2
         with:
           milestone_name: ${{ needs.prepare-release.outputs.version }}
         env:
@@ -365,12 +365,12 @@ jobs:
       MILESTONE: ${{ needs.prepare-release.outputs.milestone }}
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2.19.3
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
           egress-policy: audit
 
       - name: Prepare Job
-        uses: pandaswhocode/initialize-github-job@d93cd457947758129c6d93e09f89ad528119960f # 1.0.8
+        uses: pandaswhocode/initialize-github-job@05fe2fa999e509c966283d5c5cf60df69f2049e9 # 1.2.1
         with:
           checkout: 'true'
           checkout-ref: '${{ github.event.repository.default_branch }}'
@@ -392,7 +392,7 @@ jobs:
 
       - name: Import GPG key
         id: gpg_importer
-        uses: step-security/ghaction-import-gpg@69c854a83c7f79463f8bdf46772ab09826c560cd # v6.3.1
+        uses: step-security/ghaction-import-gpg@c0b4a334b9b72bfaaebec86ef022a78a5b17f828 # v7.0.0
         with:
           gpg_private_key: ${{ secrets.GPG_KEY_CONTENTS }}
           passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
@@ -413,7 +413,7 @@ jobs:
         run: node scripts/bump-contracts-version.js
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           body: |
             **Description**:
@@ -444,12 +444,12 @@ jobs:
       - create-github-release
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2.19.3
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
           egress-policy: audit
 
       - name: Prepare Release
-        uses: pandaswhocode/initialize-github-job@d93cd457947758129c6d93e09f89ad528119960f # 1.0.8
+        uses: pandaswhocode/initialize-github-job@05fe2fa999e509c966283d5c5cf60df69f2049e9 # 1.2.1
         with:
           checkout: 'true'
           checkout-ref: '${{ github.ref }}'
@@ -459,7 +459,7 @@ jobs:
           node-registry: 'https://registry.npmjs.org/'
 
       - name: Download Hiero Contracts NPM package artifact
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: contracts-npm-package
           path: contracts
