@@ -26,13 +26,7 @@ env:
   RELEASE_TYPE: ${{ inputs.release-type }}
 
 permissions:
-  actions: write
-  checks: write
-  contents: write
-  id-token: write
-  issues: write
-  pull-requests: write
-  packages: write
+  contents: read
 
 jobs:
   # ─────────────────────────────────────────────────────────────────────────────
@@ -43,6 +37,9 @@ jobs:
     name: Release / Dispatch RC
     if: ${{ inputs.release-type == 'rc' && github.ref_name == github.event.repository.default_branch }}
     runs-on: hl-contr-lin-lg
+    permissions:
+      actions: write
+      contents: write
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
@@ -91,6 +88,8 @@ jobs:
     name: Release / Prepare
     if: ${{ (inputs.release-type == 'standard' && github.ref_name == github.event.repository.default_branch) || (inputs.release-type == 'rc' && startsWith(github.ref_name, 'rc/')) }}
     runs-on: hl-contr-lin-lg
+    permissions:
+      contents: read
     outputs:
       version: ${{ steps.set-outputs.outputs.version }}
       need-release: ${{ steps.set-outputs.outputs.need-release }}
@@ -227,6 +226,10 @@ jobs:
     name: Release / Github
     if: ${{ needs.prepare-release.outputs.need-release == 'true' }}
     runs-on: hl-contr-lin-lg
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
     needs:
       - prepare-release
     outputs:
@@ -355,6 +358,9 @@ jobs:
   create-snapshot-pr:
     name: Release / Snapshot
     runs-on: hl-contr-lin-lg
+    permissions:
+      contents: write
+      pull-requests: write
     needs:
       - prepare-release
       - create-github-release
@@ -439,6 +445,10 @@ jobs:
     name: Release / Publish Hiero Contracts NPM package
     if: ${{ needs.prepare-release.outputs.need-release == 'true' && !inputs.dry-run-enabled }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      packages: write
     needs:
       - prepare-release
       - create-github-release
