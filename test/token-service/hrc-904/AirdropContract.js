@@ -16,6 +16,7 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
   let nftTokenAddress;
   let signers;
   let owner;
+  let emptySender;
   let accounts;
   let contractAddresses;
   let walletIHRC904AccountFacade;
@@ -32,14 +33,18 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
     erc721Contract = await utils.deployContract(
       Constants.Contract.ERC721Contract,
     );
-    owner = signers[0].address;
     accounts = signers.slice(1, 3).map((s) => s.address);
 
     contractAddresses = [
       await airdropContract.getAddress(),
       await tokenCreateContract.getAddress(),
     ];
-    await hapi.updateAccountKeys(contractAddresses);
+
+    owner = (await hapi.createAccountWithContractIdKey(contractAddresses))
+      .address;
+
+    emptySender = (await hapi.createAccountWithContractIdKey(contractAddresses))
+      .address;
 
     tokenAddress = await utils.setupToken(
       tokenCreateContract,
@@ -53,6 +58,30 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
       contractAddresses,
       hapi,
     );
+    await (
+      await tokenCreateContract.associateTokenPublic(
+        emptySender,
+        tokenAddress,
+        Constants.GAS_LIMIT_1_000_000,
+      )
+    ).wait();
+
+    const IHRC904AccountFacade = new ethers.Interface(
+      (await hre.artifacts.readArtifact('IHRC904AccountFacade')).abi,
+    );
+    for (const signer of signers.slice(1, 3)) {
+      const accountFacade = new ethers.Contract(
+        signer.address,
+        IHRC904AccountFacade,
+        signer,
+      );
+      await (
+        await accountFacade.setUnlimitedAutomaticAssociations(
+          true,
+          Constants.GAS_LIMIT_2_000_000,
+        )
+      ).wait();
+    }
   });
 
   after(function () {
@@ -76,10 +105,10 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
 
     const tx = await airdropContract.tokenAirdrop(
       tokenAddress,
-      signers[0].address,
+      owner,
       receiver,
       ftAmount,
-      Constants.GAS_LIMIT_2_000_000,
+      { ...Constants.GAS_LIMIT_2_000_000, value: Constants.ONE_HBAR },
     );
     await tx.wait();
 
@@ -100,7 +129,7 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
       owner,
       receiver,
       serial,
-      Constants.GAS_LIMIT_5_000_000,
+      { ...Constants.GAS_LIMIT_5_000_000, value: Constants.ONE_HBAR },
     );
     await txNFT.wait();
 
@@ -128,7 +157,7 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
       owner,
       [receiver],
       ftAmount,
-      Constants.GAS_LIMIT_5_000_000,
+      { ...Constants.GAS_LIMIT_5_000_000, value: Constants.ONE_HBAR },
     );
     await tx.wait();
 
@@ -162,7 +191,10 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
       owner,
       accounts,
       ftAmount,
-      Constants.GAS_LIMIT_5_000_000,
+      {
+        ...Constants.GAS_LIMIT_5_000_000,
+        value: Constants.ONE_HBAR * BigInt(accounts.length),
+      },
     );
     await tx.wait();
 
@@ -182,7 +214,7 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
       owner,
       [receiver],
       [serial],
-      Constants.GAS_LIMIT_5_000_000,
+      { ...Constants.GAS_LIMIT_5_000_000, value: Constants.ONE_HBAR },
     );
     await txNFT.wait();
 
@@ -206,7 +238,10 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
       owner,
       accounts,
       serials,
-      Constants.GAS_LIMIT_5_000_000,
+      {
+        ...Constants.GAS_LIMIT_5_000_000,
+        value: Constants.ONE_HBAR * BigInt(accounts.length),
+      },
     );
 
     await txNFT.wait();
@@ -241,7 +276,10 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
         owner,
         accounts[i],
         ftAmount,
-        Constants.GAS_LIMIT_2_000_000,
+        {
+          ...Constants.GAS_LIMIT_2_000_000,
+          value: Constants.ONE_HBAR * BigInt(tokens.length),
+        },
       );
       await tx.wait();
       for (let j = 0; j < tokens.length; j++) {
@@ -275,7 +313,10 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
         owner,
         receiver,
         nftSerials,
-        Constants.GAS_LIMIT_2_000_000,
+        {
+          ...Constants.GAS_LIMIT_2_000_000,
+          value: Constants.ONE_HBAR * BigInt(nftTokens.length),
+        },
       );
       await tx.wait();
 
@@ -303,7 +344,7 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
 
     const tx = await airdropContract.tokenAirdrop(
       tokenAddress,
-      signers[2].address,
+      emptySender,
       receiver,
       ftAmount,
       Constants.GAS_LIMIT_2_000_000,
@@ -350,7 +391,7 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
 
     const tx = await airdropContract.tokenAirdrop(
       tokenAddress,
-      signers[0].address,
+      owner,
       receiver,
       invalidAmount,
       Constants.GAS_LIMIT_2_000_000,
@@ -439,7 +480,7 @@ describe('HIP904Batch1 AirdropContract Test Suite', function () {
 
     const tx = await airdropContract.tokenAirdrop(
       tokenAddress,
-      signers[0].address,
+      owner,
       receiver.address,
       ftAmount,
       {

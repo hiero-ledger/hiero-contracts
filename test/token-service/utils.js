@@ -392,7 +392,7 @@ class Utils {
   static async getSerialNumbers(mintNftTx) {
     const tokenAddressReceipt = await mintNftTx.wait();
     const { serialNumbers } = tokenAddressReceipt.logs.filter(
-      (e) => e.fragment.name === Constants.Events.MintedToken,
+      (e) => e.fragment?.name === Constants.Events.MintedToken,
     )[0].args;
 
     return parseInt(serialNumbers);
@@ -423,55 +423,25 @@ class Utils {
   // Add Token association via hedera.js sdk
   // Client with signer - my private key example
 
-  static async associateToken(contract, tokenAddress, contractName) {
-    const signers = await ethers.getSigners();
-    const associateTx1 = await ethers.getContractAt(
-      contractName,
-      await contract.getAddress(),
-      signers[0],
-    );
-    const associateTx2 = await ethers.getContractAt(
-      contractName,
-      await contract.getAddress(),
-      signers[1],
-    );
-
-    const associateTx3 = await ethers.getContractAt(
-      contractName,
-      await contract.getAddress(),
-      signers[2],
-    );
-
+  static async associateToken(contract, tokenAddress) {
     await contract.associateTokenPublic(
       await contract.getAddress(),
       tokenAddress,
       Constants.GAS_LIMIT_1_000_000,
     );
-    await associateTx1.associateTokenPublic(
-      signers[0].address,
-      tokenAddress,
-      Constants.GAS_LIMIT_1_000_000,
-    );
-    await associateTx2.associateTokenPublic(
-      signers[1].address,
-      tokenAddress,
-      Constants.GAS_LIMIT_1_000_000,
-    );
-    await associateTx3.associateTokenPublic(
-      signers[2].address,
-      tokenAddress,
-      Constants.GAS_LIMIT_1_000_000,
-    );
   }
 
+  // Grants KYC to the calling contract only. KYC can only be granted to an
+  // account already associated with the token, and the signers are no longer
+  // associated through the contract — that needed their keys to include it.
+  // These calls carry no explicit gas limit, so ethers estimates gas first and
+  // any revert surfaces immediately instead of being swallowed. Callers that
+  // need KYC for other accounts associate and grant those explicitly.
   static async grantTokenKyc(contract, tokenAddress) {
-    const signers = await ethers.getSigners();
     await contract.grantTokenKycPublic(
       tokenAddress,
       await contract.getAddress(),
     );
-    await contract.grantTokenKycPublic(tokenAddress, signers[0].address);
-    await contract.grantTokenKycPublic(tokenAddress, signers[1].address);
   }
 
   static async expectToFail(transaction, code = null) {
@@ -593,15 +563,62 @@ class Utils {
    * @param {string} txHash - The transaction hash to query.
    * @returns {Promise<string>} - The response code as a string.
    */
-  static async getHTSResponseCode(txHash) {
+  /**
+   * Reads a system contract's response code out of a transaction's mirror node
+   * action tree.
+   *
+   * Two shapes are both normal, depending on how the precompile was reached:
+   *   - through a contract: the tree has a child action addressed to the system
+   *     contract, matched here by entity id (`recipient`) or EVM address (`to`).
+   *   - directly through a token/account facade (IHRC719, IHRC904, IHRC906): on
+   *     consensus v0.77 there is no child action for the system contract at all.
+   *     The single depth-0 action — whose recipient is the token itself, or null
+   *     for an account facade — carries the response code.
+   * So fall through to the innermost action carrying result_data. For the
+   * contract case that is the same system-contract action the match found, and
+   * the exact codes callers assert on (22 / 178 / 196 / 354 / 367) mean a wrong
+   * pick fails the assertion rather than passing silently.
+   *
+   * @param {string} txHash - The transaction hash to query.
+   * @param {string} entityId - System contract entity id, e.g. '0.0.359'.
+   * @param {string} evmAddress - The same contract's long-zero EVM address.
+   * @returns {Promise<string>} - The response code as a string.
+   */
+  static async getSystemContractResponseCode(txHash, entityId, evmAddress) {
     const mirrorNodeUrl = Utils.getMirrorNodeUrl(networkName);
-    const res = await Utils.retriedGetRequest(
-      `${mirrorNodeUrl}/contracts/results/${txHash}/actions`,
+    const target = evmAddress.toLowerCase();
+    const url = `${mirrorNodeUrl}/contracts/results/${txHash}/actions`;
+    let actions = [];
+    for (let attempt = 0; attempt < 5 && !actions.length; attempt++) {
+      if (attempt) await Utils.sleep(1000);
+      const res = await Utils.retriedGetRequest(url);
+      actions = res.data?.actions ?? [];
+    }
+
+    const precompileAction = actions.find(
+      (x) => x.recipient === entityId || (x.to ?? '').toLowerCase() === target,
     );
-    const precompileAction = res.data.actions.find(
-      (x) => x.recipient === Constants.HTS_SYSTEM_CONTRACT_ID,
+    if (precompileAction?.result_data != null) {
+      return BigInt(precompileAction.result_data).toString();
+    }
+
+    const innermost = actions
+      .filter((x) => x.result_data != null)
+      .sort((a, b) => (b.call_depth ?? 0) - (a.call_depth ?? 0))[0];
+    if (!innermost) {
+      throw new Error(
+        `No action carrying result_data for ${txHash}; actions=${JSON.stringify(actions)}`,
+      );
+    }
+    return BigInt(innermost.result_data).toString();
+  }
+
+  static async getHTSResponseCode(txHash) {
+    return Utils.getSystemContractResponseCode(
+      txHash,
+      Constants.HTS_SYSTEM_CONTRACT_ID,
+      Constants.HTS_SYSTEM_CONTRACT_ADDRESS,
     );
-    return BigInt(precompileAction.result_data).toString();
   }
 
   /**
@@ -649,21 +666,20 @@ class Utils {
    * @returns {string} - The response code as a string.
    */
   static async getHASResponseCode(txHash) {
-    const mirrorNodeUrl = Utils.getMirrorNodeUrl(networkName);
-    const res = await Utils.retriedGetRequest(
-      `${mirrorNodeUrl}/contracts/results/${txHash}/actions`,
+    return Utils.getSystemContractResponseCode(
+      txHash,
+      Constants.HAS_SYSTEM_CONTRACT_ID,
+      Constants.HAS_SYSTEM_CONTRACT_ADDRESS,
     );
-    const precompileAction = res.data.actions.find(
-      (x) => x.recipient === Constants.HAS_SYSTEM_CONTRACT_ID,
-    );
-    return BigInt(precompileAction.result_data).toString();
   }
 
   static async setupNft(tokenCreateContract, owner, contractAddresses, hapi) {
-    const nftTokenAddress = await this.createNonFungibleTokenWithoutKYC(
-      tokenCreateContract,
-      owner,
-    );
+    const nftTokenAddress =
+      await this.createNonFungibleTokenWithSECP256K1AdminKeyWithoutKYC(
+        tokenCreateContract,
+        owner,
+        this.getSignerCompressedPublicKey(),
+      );
 
     await hapi.updateTokenKeys(
       nftTokenAddress,
@@ -677,10 +693,10 @@ class Utils {
       false,
     );
 
-    await this.associateToken(
-      tokenCreateContract,
+    await tokenCreateContract.associateTokenPublic(
+      await tokenCreateContract.getAddress(),
       nftTokenAddress,
-      Constants.Contract.TokenCreateContract,
+      Constants.GAS_LIMIT_1_000_000,
     );
 
     return nftTokenAddress;
@@ -706,10 +722,10 @@ class Utils {
       false,
     );
 
-    await this.associateToken(
-      tokenCreateContract,
+    await tokenCreateContract.associateTokenPublic(
+      await tokenCreateContract.getAddress(),
       tokenAddress,
-      Constants.Contract.TokenCreateContract,
+      Constants.GAS_LIMIT_1_000_000,
     );
 
     return tokenAddress;

@@ -26,6 +26,7 @@ describe('TokenCreateContract Test Suite', function () {
   let erc20Contract;
   let tokenAddress;
   let nftTokenAddress;
+  let keyListAccountAddress;
   let signers;
 
   before(async function () {
@@ -33,48 +34,57 @@ describe('TokenCreateContract Test Suite', function () {
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenTransferContract = await utils.deployTokenTransferContract();
     tokenManagmentContract = await utils.deployTokenManagementContract();
-    await hapi.updateAccountKeys([
+    erc20Contract = await utils.deployERC20Contract();
+    await utils.deployERC721Contract();
+    const contractKeys = [
       await tokenCreateContract.getAddress(),
       await tokenTransferContract.getAddress(),
       await tokenManagmentContract.getAddress(),
-    ]);
-    erc20Contract = await utils.deployERC20Contract();
-    await utils.deployERC721Contract();
+    ];
+    const signer1Pk = utils.getHardhatSignerPrivateKeyByIndex(1);
     tokenAddress = await utils.createFungibleTokenWithSECP256K1AdminKey(
       tokenCreateContract,
       signers[0].address,
       utils.getSignerCompressedPublicKey(),
     );
-    await hapi.updateTokenKeys(tokenAddress, [
-      await tokenCreateContract.getAddress(),
-      await tokenTransferContract.getAddress(),
-      await tokenManagmentContract.getAddress(),
-    ]);
-    nftTokenAddress = await utils.createNonFungibleToken(
+    await hapi.updateTokenKeys(tokenAddress, contractKeys);
+    await tokenCreateContract.associateTokenPublic(
+      contractKeys[0],
+      tokenAddress,
+      Constants.GAS_LIMIT_1_000_000,
+    );
+    await tokenCreateContract.grantTokenKycPublic(
+      tokenAddress,
+      contractKeys[0],
+      Constants.GAS_LIMIT_1_000_000,
+    );
+    nftTokenAddress = await utils.createNonFungibleTokenWithSECP256K1AdminKey(
       tokenCreateContract,
       signers[0].address,
+      utils.getSignerCompressedPublicKey(),
     );
-    await hapi.updateTokenKeys(nftTokenAddress, [
-      await tokenCreateContract.getAddress(),
-      await tokenTransferContract.getAddress(),
-      await tokenManagmentContract.getAddress(),
-    ]);
-
-    await utils.associateToken(
-      tokenCreateContract,
+    await hapi.updateTokenKeys(nftTokenAddress, contractKeys);
+    await hapi.associateWithSigner(signer1Pk, tokenAddress);
+    await hapi.associateWithSigner(signer1Pk, nftTokenAddress);
+    await tokenCreateContract.grantTokenKycPublic(
       tokenAddress,
-      Constants.Contract.TokenCreateContract,
+      signers[1].address,
+      Constants.GAS_LIMIT_1_000_000,
     );
-    await utils.grantTokenKyc(tokenCreateContract, tokenAddress); ///!
-
-    await utils.associateToken(
-      tokenCreateContract,
+    await tokenCreateContract.grantTokenKycPublic(
       nftTokenAddress,
-      Constants.Contract.TokenCreateContract,
+      signers[1].address,
+      Constants.GAS_LIMIT_1_000_000,
     );
-
-    await utils.grantTokenKyc(tokenCreateContract, nftTokenAddress);
     await utils.mintNFT(tokenCreateContract, nftTokenAddress);
+    const keyListAccount =
+      await hapi.createAccountWithContractIdKey(contractKeys);
+    keyListAccountAddress = keyListAccount.address;
+    await tokenCreateContract.associateTokensPublic(
+      keyListAccountAddress,
+      [tokenAddress],
+      Constants.GAS_LIMIT_1_000_000,
+    );
   });
 
   after(function () {
@@ -111,7 +121,7 @@ describe('TokenCreateContract Test Suite', function () {
 
     const txDisassociate =
       await tokenManagmentContractWallet2.dissociateTokensPublic(
-        signers[1].address,
+        keyListAccountAddress,
         [tokenAddress],
         Constants.GAS_LIMIT_1_000_000,
       );
@@ -123,7 +133,7 @@ describe('TokenCreateContract Test Suite', function () {
     ).to.equal(22);
 
     const txAssociate = await tokenCreateContractWallet2.associateTokensPublic(
-      signers[1].address,
+      keyListAccountAddress,
       [tokenAddress],
       Constants.GAS_LIMIT_1_000_000,
     );
@@ -143,7 +153,7 @@ describe('TokenCreateContract Test Suite', function () {
 
     const txDisassociate =
       await tokenManagmentContractWallet2.dissociateTokenPublic(
-        signers[1].address,
+        keyListAccountAddress,
         tokenAddress,
         Constants.GAS_LIMIT_1_000_000,
       );
@@ -155,7 +165,7 @@ describe('TokenCreateContract Test Suite', function () {
     ).to.equal(22);
 
     const txAssociate = await tokenCreateContractWallet2.associateTokenPublic(
-      signers[1].address,
+      keyListAccountAddress,
       tokenAddress,
       Constants.GAS_LIMIT_1_000_000,
     );
@@ -204,7 +214,7 @@ describe('TokenCreateContract Test Suite', function () {
   it('should be able to execute createFungibleTokenWithCustomFees', async function () {
     const tx =
       await tokenCreateContract.createFungibleTokenWithCustomFeesPublic(
-        signers[0].address,
+        await tokenCreateContract.getAddress(),
         tokenAddress,
         {
           value: BigInt('20000000000000000000'),
@@ -223,7 +233,7 @@ describe('TokenCreateContract Test Suite', function () {
   it('should be able to execute createNonFungibleTokenWithCustomFees', async function () {
     const tx =
       await tokenCreateContract.createNonFungibleTokenWithCustomFeesPublic(
-        signers[0].address,
+        await tokenCreateContract.getAddress(),
         tokenAddress,
         {
           value: BigInt('20000000000000000000'),
@@ -242,7 +252,7 @@ describe('TokenCreateContract Test Suite', function () {
   it('should be able to execute mintToken', async function () {
     const nftAddress = await utils.createNonFungibleToken(
       tokenCreateContract,
-      signers[0].address,
+      await tokenCreateContract.getAddress(),
     );
     expect(nftAddress).to.exist;
     expectValidHash(nftAddress, 40);
@@ -295,10 +305,6 @@ describe('TokenCreateContract Test Suite', function () {
       signers = await ethers.getSigners();
       tokenCreateContract = await utils.deployTokenCreateContract();
       tokenQueryContract = await utils.deployTokenQueryContract();
-      await hapi.updateAccountKeys([
-        await tokenCreateContract.getAddress(),
-        await tokenQueryContract.getAddress(),
-      ]);
     });
 
     async function createTokenviaHapi() {

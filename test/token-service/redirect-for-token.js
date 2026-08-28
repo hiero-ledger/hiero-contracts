@@ -70,11 +70,7 @@ describe('RedirectForToken Test Suite', function () {
       await tokenCreateContract.getAddress(),
     ]);
 
-    await utils.associateToken(
-      tokenCreateContract,
-      tokenAddress,
-      Constants.Contract.TokenCreateContract,
-    );
+    await utils.associateToken(tokenCreateContract, tokenAddress);
     await utils.grantTokenKyc(tokenCreateContract, tokenAddress);
 
     IERC20 = new ethers.Interface(

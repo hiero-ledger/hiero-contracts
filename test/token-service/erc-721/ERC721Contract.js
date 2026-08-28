@@ -9,7 +9,6 @@ import utils from '../utils';
 
 describe('ERC721Contract Test Suite', function () {
   let tokenCreateContract;
-  let tokenTransferContract;
   let tokenAddress;
   let erc721Contract;
   let mintedTokenSerialNumber;
@@ -18,54 +17,51 @@ describe('ERC721Contract Test Suite', function () {
 
   before(async function () {
     signers = await ethers.getSigners();
-    tokenCreateContract = await utils.deployTokenCreateContract();
-    tokenTransferContract = await utils.deployTokenTransferContract();
-    await hapi.updateAccountKeys([
-      await tokenCreateContract.getAddress(),
-      await tokenTransferContract.getAddress(),
-    ]);
-    erc721Contract = await utils.deployERC721Contract();
-    tokenAddress = await utils.createNonFungibleToken(
-      tokenCreateContract,
-      signers[0].address,
-    );
-    await hapi.updateTokenKeys(tokenAddress, [
-      await tokenCreateContract.getAddress(),
-      await tokenTransferContract.getAddress(),
-    ]);
-    mintedTokenSerialNumber = await utils.mintNFT(
-      tokenCreateContract,
-      tokenAddress,
-    );
-    await utils.associateToken(
-      tokenCreateContract,
-      tokenAddress,
-      Constants.Contract.TokenCreateContract,
-    );
-    await utils.grantTokenKyc(tokenCreateContract, tokenAddress);
     firstWallet = signers[0];
     secondWallet = signers[1];
-
-    await tokenCreateContract.associateTokenPublic(
-      await erc721Contract.getAddress(),
-      tokenAddress,
-      Constants.GAS_LIMIT_1_000_000,
+    tokenCreateContract = await utils.deployTokenCreateContract();
+    erc721Contract = await utils.deployERC721Contract();
+    const tokenCreateAddr = await tokenCreateContract.getAddress();
+    const erc721Addr = await erc721Contract.getAddress();
+    tokenAddress = await utils.createNonFungibleToken(
+      tokenCreateContract,
+      tokenCreateAddr,
     );
 
+    await hapi.associateWithSigner(
+      utils.getHardhatSignerPrivateKeyByIndex(0),
+      tokenAddress,
+    );
+    await hapi.associateWithSigner(
+      utils.getHardhatSignerPrivateKeyByIndex(1),
+      tokenAddress,
+    );
     await tokenCreateContract.grantTokenKycPublic(
       tokenAddress,
-      await erc721Contract.getAddress(),
+      firstWallet.address,
+      Constants.GAS_LIMIT_1_000_000,
+    );
+    await tokenCreateContract.grantTokenKycPublic(
+      tokenAddress,
+      secondWallet.address,
+      Constants.GAS_LIMIT_1_000_000,
+    );
+    await tokenCreateContract.associateTokenPublic(
+      erc721Addr,
+      tokenAddress,
+      Constants.GAS_LIMIT_1_000_000,
+    );
+    await tokenCreateContract.grantTokenKycPublic(
+      tokenAddress,
+      erc721Addr,
       Constants.GAS_LIMIT_1_000_000,
     );
 
-    await tokenTransferContract.transferNFTPublic(
+    mintedTokenSerialNumber = await utils.mintNFTToAddress(
+      tokenCreateContract,
       tokenAddress,
-      await tokenCreateContract.getAddress(),
-      signers[0].address,
-      mintedTokenSerialNumber,
-      Constants.GAS_LIMIT_1_000_000,
     );
-    nftInitialOwnerAddress = signers[0].address;
+    nftInitialOwnerAddress = firstWallet.address;
   });
 
   after(function () {
@@ -225,15 +221,10 @@ describe('ERC721Contract Test Suite', function () {
     let serialNumber;
 
     before(async function () {
-      serialNumber = await utils.mintNFT(tokenCreateContract, tokenAddress, [
-        '0x02',
-      ]);
-      await tokenTransferContract.transferNFTPublic(
+      serialNumber = await utils.mintNFTToAddress(
+        tokenCreateContract,
         tokenAddress,
-        await tokenCreateContract.getAddress(),
-        signers[0].address,
-        serialNumber,
-        Constants.GAS_LIMIT_1_000_000,
+        ['0x02'],
       );
     });
 

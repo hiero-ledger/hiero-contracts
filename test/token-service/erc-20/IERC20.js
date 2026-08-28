@@ -12,7 +12,6 @@ const sleep = () => new Promise((resolve) => setTimeout(resolve, 1000));
 
 describe('IERC20 Test Suite', function () {
   let tokenCreateContract;
-  let tokenTransferContract;
   let tokenAddress;
   let IERC20;
   let signers;
@@ -22,26 +21,17 @@ describe('IERC20 Test Suite', function () {
   before(async function () {
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
-    tokenTransferContract = await utils.deployTokenTransferContract();
-    await hapi.updateAccountKeys([
-      await tokenCreateContract.getAddress(),
-      await tokenTransferContract.getAddress(),
-    ]);
+    tokenAddress = await hapi.createFungibleTokenViaSdk(0);
     await sleep();
-    tokenAddress = await utils.createFungibleToken(
-      tokenCreateContract,
-      signers[0].address,
-    );
-    await hapi.updateTokenKeys(tokenAddress, [
-      await tokenCreateContract.getAddress(),
-      await tokenTransferContract.getAddress(),
-    ]);
-    await utils.associateToken(
-      tokenCreateContract,
+    await hapi.associateWithSigner(
+      utils.getHardhatSignerPrivateKeyByIndex(1),
       tokenAddress,
-      Constants.Contract.TokenCreateContract,
     );
-    await utils.grantTokenKyc(tokenCreateContract, tokenAddress);
+    await tokenCreateContract.associateTokenPublic(
+      await tokenCreateContract.getAddress(),
+      tokenAddress,
+      Constants.GAS_LIMIT_1_000_000,
+    );
     IERC20 = await ethers.getContractAt(
       Constants.Contract.ERC20Mock,
       tokenAddress,

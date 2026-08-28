@@ -22,6 +22,8 @@ describe('TokenTransferContract Test Suite', function () {
   let tokenAddress;
   let nftTokenAddress;
   let mintedTokenSerialNumber;
+  let holderSerialNumbers;
+  let holderAddress;
   let signers;
 
   before(async function () {
@@ -31,46 +33,79 @@ describe('TokenTransferContract Test Suite', function () {
     tokenTransferContract = await utils.deployTokenTransferContract();
     erc20Contract = await utils.deployERC20Contract();
     erc721Contract = await utils.deployERC721Contract();
-    await hapi.updateAccountKeys([
+    const contractKeys = [
       await tokenCreateContract.getAddress(),
       await tokenQueryContract.getAddress(),
       await tokenTransferContract.getAddress(),
-    ]);
-    tokenAddress = await utils.createFungibleToken(
+    ];
+    const signer1Pk = utils.getHardhatSignerPrivateKeyByIndex(1);
+    tokenAddress = await utils.createFungibleTokenWithSECP256K1AdminKey(
       tokenCreateContract,
       signers[0].address,
+      utils.getSignerCompressedPublicKey(),
     );
-    await hapi.updateTokenKeys(tokenAddress, [
-      await tokenCreateContract.getAddress(),
-      await tokenQueryContract.getAddress(),
-      await tokenTransferContract.getAddress(),
-    ]);
-    nftTokenAddress = await utils.createNonFungibleToken(
+    await hapi.updateTokenKeys(tokenAddress, contractKeys);
+    nftTokenAddress = await utils.createNonFungibleTokenWithSECP256K1AdminKey(
       tokenCreateContract,
       signers[0].address,
+      utils.getSignerCompressedPublicKey(),
     );
-    await hapi.updateTokenKeys(nftTokenAddress, [
-      await tokenCreateContract.getAddress(),
-      await tokenQueryContract.getAddress(),
-      await tokenTransferContract.getAddress(),
-    ]);
+    await hapi.updateTokenKeys(nftTokenAddress, contractKeys);
     mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );
-
-    await utils.associateToken(
-      tokenCreateContract,
+    await hapi.associateWithSigner(signer1Pk, tokenAddress);
+    await hapi.associateWithSigner(signer1Pk, nftTokenAddress);
+    await tokenCreateContract.grantTokenKycPublic(
       tokenAddress,
-      Constants.Contract.TokenCreateContract,
+      signers[1].address,
+      Constants.GAS_LIMIT_1_000_000,
     );
-    await utils.grantTokenKyc(tokenCreateContract, tokenAddress);
-    await utils.associateToken(
-      tokenCreateContract,
+    await tokenCreateContract.grantTokenKycPublic(
       nftTokenAddress,
-      Constants.Contract.TokenCreateContract,
+      signers[1].address,
+      Constants.GAS_LIMIT_1_000_000,
     );
-    await utils.grantTokenKyc(tokenCreateContract, nftTokenAddress);
+
+    const holder = await hapi.createAccountWithContractIdKey(contractKeys);
+    holderAddress = ethers.getAddress(holder.address);
+    await (
+      await tokenCreateContract.associateTokenPublic(
+        holderAddress,
+        tokenAddress,
+        Constants.GAS_LIMIT_1_000_000,
+      )
+    ).wait();
+    await (
+      await tokenCreateContract.associateTokenPublic(
+        holderAddress,
+        nftTokenAddress,
+        Constants.GAS_LIMIT_1_000_000,
+      )
+    ).wait();
+    await (
+      await tokenCreateContract.grantTokenKycPublic(
+        tokenAddress,
+        holderAddress,
+        Constants.GAS_LIMIT_1_000_000,
+      )
+    ).wait();
+    await (
+      await tokenCreateContract.grantTokenKycPublic(
+        nftTokenAddress,
+        holderAddress,
+        Constants.GAS_LIMIT_1_000_000,
+      )
+    ).wait();
+    holderSerialNumbers = [
+      await utils.mintNFT(tokenCreateContract, nftTokenAddress),
+      await utils.mintNFT(tokenCreateContract, nftTokenAddress),
+    ];
+    await hapi.transferFromSigner(0, holder.accountId, {
+      tokens: [{ token: tokenAddress, amount: 1000 }],
+      nfts: [{ token: nftTokenAddress, serials: holderSerialNumbers }],
+    });
   });
 
   after(function () {
@@ -118,7 +153,7 @@ describe('TokenTransferContract Test Suite', function () {
 
     const wallet1BalanceBefore = await erc20Contract.balanceOf(
       tokenAddress,
-      signers[0].address,
+      holderAddress,
     );
     const wallet2BalanceBefore = await erc20Contract.balanceOf(
       tokenAddress,
@@ -126,7 +161,7 @@ describe('TokenTransferContract Test Suite', function () {
     );
     const tx = await tokenTransferContract.transferTokensPublic(
       tokenAddress,
-      [signers[0].address, signers[1].address],
+      [holderAddress, signers[1].address],
       [-amount, amount],
       Constants.GAS_LIMIT_1_000_000,
     );
@@ -135,14 +170,14 @@ describe('TokenTransferContract Test Suite', function () {
     const wallet1BalanceAfter = await pollForNewERC20Balance(
       erc20Contract,
       tokenAddress,
-      signers[0].address,
+      holderAddress,
       wallet1BalanceBefore,
     );
     const wallet2BalanceAfter = await pollForNewERC20Balance(
       erc20Contract,
       tokenAddress,
       signers[1].address,
-      wallet1BalanceBefore,
+      wallet2BalanceBefore,
     );
 
     expect(wallet1BalanceAfter).to.equal(wallet1BalanceBefore - amount);
@@ -151,41 +186,46 @@ describe('TokenTransferContract Test Suite', function () {
 
   it('should be able to execute transferNFTs', async function () {
     const signers = await ethers.getSigners();
+    const serialNumber = holderSerialNumbers[0];
     const ownerBefore = await erc721Contract.ownerOf(
       nftTokenAddress,
-      mintedTokenSerialNumber,
+      serialNumber,
     );
     const tx = await tokenTransferContract.transferNFTsPublic(
       nftTokenAddress,
-      [signers[0].address],
+      [holderAddress],
       [signers[1].address],
-      [mintedTokenSerialNumber],
+      [serialNumber],
       Constants.GAS_LIMIT_1_000_000,
     );
     await tx.wait();
 
     const ownerAfter = await erc721Contract.ownerOf(
       nftTokenAddress,
-      mintedTokenSerialNumber,
+      serialNumber,
     );
 
-    expect(ownerBefore).to.equal(signers[0].address);
+    expect(ownerBefore).to.equal(holderAddress);
     expect(ownerAfter).to.equal(signers[1].address);
   });
 
   it('should be able to execute transferToken', async function () {
-    const amount = 33;
+    const amount = BigInt(33);
     const signers = await ethers.getSigners();
 
-    const wallet1BalanceBefore = parseInt(
-      await erc20Contract.balanceOf(tokenAddress, signers[0].address),
+    // balanceOf returns a bigint; keep the before values bigint too so the poll
+    // helper's `!==` actually compares values and the assertions below match.
+    const wallet1BalanceBefore = await erc20Contract.balanceOf(
+      tokenAddress,
+      holderAddress,
     );
-    const wallet2BalanceBefore = parseInt(
-      await erc20Contract.balanceOf(tokenAddress, signers[1].address),
+    const wallet2BalanceBefore = await erc20Contract.balanceOf(
+      tokenAddress,
+      signers[1].address,
     );
     const tx = await tokenTransferContract.transferTokenPublic(
       tokenAddress,
-      signers[0].address,
+      holderAddress,
       signers[1].address,
       amount,
       Constants.GAS_LIMIT_10_000_000,
@@ -196,14 +236,14 @@ describe('TokenTransferContract Test Suite', function () {
     const wallet1BalanceAfter = await pollForNewERC20Balance(
       erc20Contract,
       tokenAddress,
-      signers[0].address,
+      holderAddress,
       wallet1BalanceBefore,
     );
     const wallet2BalanceAfter = await pollForNewERC20Balance(
       erc20Contract,
       tokenAddress,
       signers[1].address,
-      wallet1BalanceBefore,
+      wallet2BalanceBefore,
     );
 
     expect(wallet1BalanceAfter).to.equal(wallet1BalanceBefore - amount);
@@ -212,29 +252,32 @@ describe('TokenTransferContract Test Suite', function () {
 
   it('should be able to execute transferNFT', async function () {
     const signers = await ethers.getSigners();
+    const serialNumber = holderSerialNumbers[1];
     const ownerBefore = await erc721Contract.ownerOf(
       nftTokenAddress,
-      mintedTokenSerialNumber,
+      serialNumber,
     );
-    const tokenTransferContractNewOwner = tokenTransferContract.connect(
+    // Sent by signer1 to keep a non-treasury sender in the picture; the debited
+    // account is the contract-keyed holder, which is what authorizes the move.
+    const tokenTransferContractOtherSigner = tokenTransferContract.connect(
       signers[1],
     );
-    const tx = await tokenTransferContractNewOwner.transferNFTPublic(
+    const tx = await tokenTransferContractOtherSigner.transferNFTPublic(
       nftTokenAddress,
+      holderAddress,
       signers[1].address,
-      signers[0].address,
-      mintedTokenSerialNumber,
+      serialNumber,
       Constants.GAS_LIMIT_1_000_000,
     );
     await tx.wait();
 
     const ownerAfter = await erc721Contract.ownerOf(
       nftTokenAddress,
-      mintedTokenSerialNumber,
+      serialNumber,
     );
 
-    expect(ownerBefore).to.equal(signers[1].address);
-    expect(ownerAfter).to.equal(signers[0].address);
+    expect(ownerBefore).to.equal(holderAddress);
+    expect(ownerAfter).to.equal(signers[1].address);
   });
 
   it('should be able to execute getApproved', async function () {
@@ -256,21 +299,27 @@ describe('TokenTransferContract Test Suite', function () {
   });
 
   it('should be able to execute cryptoTransfer for hbar transfer only', async function () {
+    const amount = 10_000;
     const cryptoTransfers = {
       transfers: [
         {
           accountID: signers[0].address,
-          amount: -10_000,
-          isApproval: false,
+          amount: -amount,
+          isApproval: true,
         },
         {
           accountID: signers[1].address,
-          amount: 10_000,
+          amount: amount,
           isApproval: false,
         },
       ],
     };
     const tokenTransferList = [];
+
+    // allowance for the hbar debit above
+    await hapi.approveAllowances(0, await tokenTransferContract.getAddress(), {
+      hbar: amount,
+    });
 
     const signers0Before = await signers[0].provider.getBalance(
       signers[0].address,
@@ -297,7 +346,7 @@ describe('TokenTransferContract Test Suite', function () {
     const signers1After = await pollForNewSignerBalanceUsingProvider(
       signers[0].provider,
       signers[1].address,
-      signers0Before,
+      signers1Before,
     );
     expect(responseCode).to.equal(TX_SUCCESS_CODE);
     expect(signers0Before > signers0After).to.equal(true);
@@ -305,16 +354,10 @@ describe('TokenTransferContract Test Suite', function () {
   });
 
   it('should be able to execute cryptoTransfer for nft only', async function () {
+    // signer0 is the treasury, so a fresh mint lands on it directly
     const mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
-    );
-    await tokenTransferContract.transferNFTsPublic(
-      nftTokenAddress,
-      [await tokenCreateContract.getAddress()],
-      [signers[0].address],
-      [mintedTokenSerialNumber],
-      Constants.GAS_LIMIT_1_000_000,
     );
 
     const cryptoTransfers = {
@@ -367,24 +410,12 @@ describe('TokenTransferContract Test Suite', function () {
 
   it('should be able to execute cryptoTransfer with both 3 txs', async function () {
     const amount = 1;
-    await tokenTransferContract.transferTokenPublic(
-      tokenAddress,
-      await tokenCreateContract.getAddress(),
-      signers[0].address,
-      amount,
-      Constants.GAS_LIMIT_1_000_000,
-    );
-
+    const hbarAmount = 10_000;
+    // signer0 is the treasury, so it already holds the fungible supply and a
+    // fresh mint lands on it directly — no seeding transfer needed here.
     const mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
-    );
-    await tokenTransferContract.transferNFTsPublic(
-      nftTokenAddress,
-      [await tokenCreateContract.getAddress()],
-      [signers[0].address],
-      [mintedTokenSerialNumber],
-      Constants.GAS_LIMIT_1_000_000,
     );
 
     const signers0BeforeHbarBalance = await signers[0].provider.getBalance(
@@ -393,11 +424,13 @@ describe('TokenTransferContract Test Suite', function () {
     const signers1BeforeHbarBalance = await signers[0].provider.getBalance(
       signers[1].address,
     );
-    const signers0BeforeTokenBalance = parseInt(
-      await erc20Contract.balanceOf(tokenAddress, signers[0].address),
+    const signers0BeforeTokenBalance = await erc20Contract.balanceOf(
+      tokenAddress,
+      signers[0].address,
     );
-    const signers1BeforeTokenBalance = parseInt(
-      await erc20Contract.balanceOf(tokenAddress, signers[1].address),
+    const signers1BeforeTokenBalance = await erc20Contract.balanceOf(
+      tokenAddress,
+      signers[1].address,
     );
     const nftOwnerBefore = await erc721Contract.ownerOf(
       nftTokenAddress,
@@ -408,12 +441,12 @@ describe('TokenTransferContract Test Suite', function () {
       transfers: [
         {
           accountID: signers[0].address,
-          amount: -10_000,
-          isApproval: false,
+          amount: -hbarAmount,
+          isApproval: true,
         },
         {
           accountID: signers[1].address,
-          amount: 10_000,
+          amount: hbarAmount,
           isApproval: false,
         },
       ],
@@ -450,8 +483,9 @@ describe('TokenTransferContract Test Suite', function () {
       },
     ];
 
-    // allowances for the token + NFT debits (hbar needs none)
+    // allowances for the hbar + token + NFT debits
     await hapi.approveAllowances(0, await tokenTransferContract.getAddress(), {
+      hbar: hbarAmount,
       tokens: [{ token: tokenAddress, amount }],
       nfts: [{ token: nftTokenAddress, serials: [mintedTokenSerialNumber] }],
     });
@@ -489,10 +523,10 @@ describe('TokenTransferContract Test Suite', function () {
     expect(responseCode).to.equal(TX_SUCCESS_CODE);
     expect(signers0BeforeHbarBalance > signers0AfterHbarBalance).to.equal(true);
     expect(signers1AfterHbarBalance > signers1BeforeHbarBalance).to.equal(true);
-    expect(signers0BeforeTokenBalance - amount).to.equal(
+    expect(signers0BeforeTokenBalance - BigInt(amount)).to.equal(
       signers0AfterTokenBalance,
     );
-    expect(signers1BeforeTokenBalance + amount).to.equal(
+    expect(signers1BeforeTokenBalance + BigInt(amount)).to.equal(
       signers1AfterTokenBalance,
     );
     expect(nftOwnerBefore).to.equal(signers[0].address);

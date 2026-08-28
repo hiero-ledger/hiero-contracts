@@ -9,7 +9,6 @@ import utils from '../utils';
 
 describe('ERC20Contract Test Suite', function () {
   let tokenCreateContract;
-  let tokenTransferContract;
   let tokenAddress;
   let erc20Contract;
   let signers;
@@ -18,27 +17,11 @@ describe('ERC20Contract Test Suite', function () {
   before(async function () {
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
-    tokenTransferContract = await utils.deployTokenTransferContract();
-    await hapi.updateAccountKeys([
-      await tokenCreateContract.getAddress(),
-      await tokenTransferContract.getAddress(),
-    ]);
     erc20Contract = await utils.deployERC20Contract();
     tokenAddress = await utils.createFungibleToken(
       tokenCreateContract,
-      signers[0].address,
-    );
-
-    await hapi.updateTokenKeys(tokenAddress, [
       await tokenCreateContract.getAddress(),
-      await tokenTransferContract.getAddress(),
-    ]);
-    await utils.associateToken(
-      tokenCreateContract,
-      tokenAddress,
-      Constants.Contract.TokenCreateContract,
     );
-    await utils.grantTokenKyc(tokenCreateContract, tokenAddress);
   });
 
   after(function () {
@@ -66,7 +49,7 @@ describe('ERC20Contract Test Suite', function () {
   });
 
   it('should be able to get token balance of any account', async function () {
-    const contractOwnerBalance = await erc20Contract.balanceOf(
+    const treasuryBalance = await erc20Contract.balanceOf(
       tokenAddress,
       await tokenCreateContract.getAddress(),
     );
@@ -79,21 +62,20 @@ describe('ERC20Contract Test Suite', function () {
       signers[1].address,
     );
 
-    expect(contractOwnerBalance).to.exist;
-    expect(contractOwnerBalance).to.eq(0);
+    expect(treasuryBalance).to.exist;
+    expect(treasuryBalance).to.eq(TOTAL_SUPPLY);
     expect(wallet1Balance).to.exist;
-    expect(wallet1Balance).to.eq(TOTAL_SUPPLY);
+    expect(wallet1Balance).to.eq(0);
     expect(wallet2Balance).to.exist;
     expect(wallet2Balance).to.eq(0);
   });
 
   it('should NOT be able to use transfer', async function () {
-    const signers = await ethers.getSigners();
     const amount = 200;
 
     const contractOwnerBalanceBefore = await erc20Contract.balanceOf(
       tokenAddress,
-      await tokenCreateContract.getAddress(),
+      await erc20Contract.getAddress(),
     );
     const wallet1BalanceBefore = await erc20Contract.balanceOf(
       tokenAddress,
@@ -105,14 +87,12 @@ describe('ERC20Contract Test Suite', function () {
     );
 
     try {
-      const tx = await erc20Contract
-        .connect(signers[0])
-        .transfer(
-          tokenAddress,
-          signers[1].address,
-          amount,
-          Constants.GAS_LIMIT_1_000_000,
-        );
+      const tx = await erc20Contract.transfer(
+        tokenAddress,
+        signers[1].address,
+        amount,
+        Constants.GAS_LIMIT_1_000_000,
+      );
       await tx.wait();
     } catch (e) {
       expect(e).to.exist;
@@ -121,7 +101,7 @@ describe('ERC20Contract Test Suite', function () {
 
     const contractOwnerBalanceAfter = await erc20Contract.balanceOf(
       tokenAddress,
-      await tokenCreateContract.getAddress(),
+      await erc20Contract.getAddress(),
     );
     const wallet1BalanceAfter = await erc20Contract.balanceOf(
       tokenAddress,
@@ -138,7 +118,6 @@ describe('ERC20Contract Test Suite', function () {
   });
 
   it('should NOT be able to use delegateTransfer', async function () {
-    const signers = await ethers.getSigners();
     const amount = 200;
 
     const wallet1BalanceBefore = await erc20Contract.balanceOf(
@@ -151,14 +130,12 @@ describe('ERC20Contract Test Suite', function () {
     );
 
     try {
-      const tx = await erc20Contract
-        .connect(signers[0])
-        .delegateTransfer(
-          tokenAddress,
-          signers[1].address,
-          amount,
-          Constants.GAS_LIMIT_1_000_000,
-        );
+      const tx = await erc20Contract.delegateTransfer(
+        tokenAddress,
+        signers[1].address,
+        amount,
+        Constants.GAS_LIMIT_1_000_000,
+      );
       await tx.wait();
     } catch (e) {
       expect(e).to.exist;
@@ -179,7 +156,6 @@ describe('ERC20Contract Test Suite', function () {
   });
 
   it('should NOT be able to use approve', async function () {
-    const signers = await ethers.getSigners();
     const approvedAmount = 200;
 
     const allowanceBefore = await erc20Contract.allowance(
@@ -190,14 +166,12 @@ describe('ERC20Contract Test Suite', function () {
     expect(allowanceBefore).to.eq(0);
 
     try {
-      const tx = await erc20Contract
-        .connect(signers[0])
-        .approve(
-          tokenAddress,
-          signers[1].address,
-          approvedAmount,
-          Constants.GAS_LIMIT_1_000_000,
-        );
+      const tx = await erc20Contract.approve(
+        tokenAddress,
+        signers[1].address,
+        approvedAmount,
+        Constants.GAS_LIMIT_1_000_000,
+      );
       await tx.wait();
     } catch (e) {
       expect(e).to.exist;
@@ -213,7 +187,6 @@ describe('ERC20Contract Test Suite', function () {
   });
 
   it('should NOT be able to use delegateApprove and allowance', async function () {
-    const signers = await ethers.getSigners();
     const approvedAmount = 200;
 
     const allowanceBefore = await erc20Contract.allowance(
@@ -224,14 +197,12 @@ describe('ERC20Contract Test Suite', function () {
     expect(allowanceBefore).to.eq(0);
 
     try {
-      const tx = await erc20Contract
-        .connect(signers[0])
-        .delegateApprove(
-          tokenAddress,
-          signers[1].address,
-          approvedAmount,
-          Constants.GAS_LIMIT_1_000_000,
-        );
+      const tx = await erc20Contract.delegateApprove(
+        tokenAddress,
+        signers[1].address,
+        approvedAmount,
+        Constants.GAS_LIMIT_1_000_000,
+      );
       await tx.wait();
     } catch (e) {
       expect(e).to.exist;
@@ -247,7 +218,6 @@ describe('ERC20Contract Test Suite', function () {
   });
 
   it('should NOT be able to use delegateTransferFrom', async function () {
-    const signers = await ethers.getSigners();
     const amount = 50;
 
     const wallet1BalanceBefore = await erc20Contract.balanceOf(
@@ -265,15 +235,13 @@ describe('ERC20Contract Test Suite', function () {
     );
 
     try {
-      const tx = await erc20Contract
-        .connect(signers[1])
-        .delegateTransferFrom(
-          tokenAddress,
-          signers[0].address,
-          signers[1].address,
-          amount,
-          Constants.GAS_LIMIT_1_000_000,
-        );
+      const tx = await erc20Contract.delegateTransferFrom(
+        tokenAddress,
+        signers[0].address,
+        signers[1].address,
+        amount,
+        Constants.GAS_LIMIT_1_000_000,
+      );
       await tx.wait();
     } catch (e) {
       expect(e).to.exist;

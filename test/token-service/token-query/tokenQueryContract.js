@@ -22,47 +22,31 @@ describe('TokenQueryContract Test Suite', function () {
     signers = await ethers.getSigners();
     tokenCreateContract = await utils.deployTokenCreateContract();
     tokenQueryContract = await utils.deployTokenQueryContract();
-    await hapi.updateAccountKeys([
-      await tokenCreateContract.getAddress(),
-      await tokenQueryContract.getAddress(),
-    ]);
-
+    const tokenCreateAddr = await tokenCreateContract.getAddress();
+    const tokenQueryAddr = await tokenQueryContract.getAddress();
     tokenAddress = await utils.createFungibleToken(
       tokenCreateContract,
-      await tokenCreateContract.getAddress(),
+      tokenCreateAddr,
     );
-    await hapi.updateTokenKeys(tokenAddress, [
-      await tokenCreateContract.getAddress(),
-      await tokenQueryContract.getAddress(),
-    ]);
+    await hapi.updateTokenKeys(tokenAddress, [tokenCreateAddr, tokenQueryAddr]);
     tokenWithCustomFeesAddress = await utils.createFungibleTokenWithCustomFees(
       tokenCreateContract,
       tokenAddress,
     );
     nftTokenAddress = await utils.createNonFungibleToken(
       tokenCreateContract,
-      await tokenCreateContract.getAddress(),
+      tokenCreateAddr,
     );
     mintedTokenSerialNumber = await utils.mintNFT(
       tokenCreateContract,
       nftTokenAddress,
     );
-
-    await utils.associateToken(
-      tokenCreateContract,
+    // Grant the treasury contract KYC so the isKyc query returns true.
+    await tokenCreateContract.grantTokenKycPublic(
       tokenAddress,
-      Constants.Contract.TokenCreateContract,
+      tokenCreateAddr,
+      Constants.GAS_LIMIT_1_000_000,
     );
-
-    await utils.grantTokenKyc(tokenCreateContract, tokenAddress);
-
-    await utils.associateToken(
-      tokenCreateContract,
-      nftTokenAddress,
-      Constants.Contract.TokenCreateContract,
-    );
-
-    await utils.grantTokenKyc(tokenCreateContract, nftTokenAddress);
   });
 
   after(function () {

@@ -11,14 +11,13 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
   let tokenRejectContract;
   let tokenCreateContract;
   let airdropContract;
-  let signers;
   let owner;
-  let receiver;
-  let walletIHRC904AccountFacade;
+  let rejecter;
+  let secondRejecter;
+  let pendingRejecter;
   let contractAddresses;
 
   before(async function () {
-    signers = await ethers.getSigners();
     tokenRejectContract = await utils.deployContract(
       Constants.Contract.TokenReject,
     );
@@ -26,35 +25,29 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
       Constants.Contract.TokenCreateContract,
     );
     airdropContract = await utils.deployContract(Constants.Contract.Airdrop);
-    owner = signers[0].address;
-
-    const randomWallet = ethers.Wallet.createRandom();
-    const receiverPrivateKey = randomWallet.privateKey;
-    receiver = randomWallet.connect(ethers.provider);
-
-    await signers[0].sendTransaction({
-      to: receiver.address,
-      value: ethers.parseEther('100'),
-    });
 
     contractAddresses = [
       await tokenRejectContract.getAddress(),
       await tokenCreateContract.getAddress(),
       await airdropContract.getAddress(),
     ];
-    await hapi.updateAccountKeys(contractAddresses);
 
-    await hapi.updateAccountKeys(contractAddresses, [receiverPrivateKey]);
+    const contractKeyedAccount = async (maxAutoAssociations) =>
+      ethers.getAddress(
+        (
+          await hapi.createAccountWithContractIdKey(
+            contractAddresses,
+            20,
+            maxAutoAssociations,
+          )
+        ).address,
+      );
 
-    const IHRC904AccountFacade = new ethers.Interface(
-      (await hre.artifacts.readArtifact('IHRC904AccountFacade')).abi,
-    );
-
-    walletIHRC904AccountFacade = new ethers.Contract(
-      receiver.address,
-      IHRC904AccountFacade,
-      receiver,
-    );
+    // Airdrop sender, and treasury of every token created here.
+    owner = await contractKeyedAccount(0);
+    rejecter = await contractKeyedAccount(-1);
+    secondRejecter = await contractKeyedAccount(-1);
+    pendingRejecter = await contractKeyedAccount(0);
   });
 
   after(function () {
@@ -68,13 +61,12 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
       contractAddresses,
       hapi,
     );
-    const receiver = signers[1];
 
     const ftAmount = BigInt(1);
     const airdropTx = await airdropContract.tokenAirdrop(
       tokenAddress,
       owner,
-      receiver.address,
+      rejecter,
       ftAmount,
       {
         value: Constants.ONE_HBAR,
@@ -83,12 +75,8 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     );
     await airdropTx.wait();
 
-    await walletIHRC904AccountFacade.setUnlimitedAutomaticAssociations(true, {
-      gasLimit: 2_000_000,
-    });
-
     const tx = await tokenRejectContract.rejectTokens(
-      receiver.address,
+      rejecter,
       [tokenAddress],
       [],
       [],
@@ -105,14 +93,13 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
       contractAddresses,
       hapi,
     );
-    const receiver = signers[1];
 
     const serial = await utils.mintNFT(tokenCreateContract, nftTokenAddress);
 
     const airdropTx = await airdropContract.nftAirdrop(
       nftTokenAddress,
       owner,
-      receiver.address,
+      rejecter,
       serial,
       {
         value: Constants.ONE_HBAR,
@@ -121,12 +108,8 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     );
     await airdropTx.wait();
 
-    await walletIHRC904AccountFacade.setUnlimitedAutomaticAssociations(true, {
-      gasLimit: 2_000_000,
-    });
-
     const tx = await tokenRejectContract.rejectTokens(
-      receiver.address,
+      rejecter,
       [],
       [nftTokenAddress],
       [serial],
@@ -143,7 +126,6 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
       contractAddresses,
       hapi,
     );
-    const receiver = signers[1];
 
     // Mint two NFTs and reject the SECOND serial. A regression to a hardcoded
     // serial (e.g. the previous `nftId.serial = 1`) would fail this case.
@@ -157,7 +139,7 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     const airdropTx = await airdropContract.nftAirdrop(
       nftTokenAddress,
       owner,
-      receiver.address,
+      rejecter,
       secondSerial,
       {
         value: Constants.ONE_HBAR,
@@ -166,12 +148,8 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     );
     await airdropTx.wait();
 
-    await walletIHRC904AccountFacade.setUnlimitedAutomaticAssociations(true, {
-      gasLimit: 2_000_000,
-    });
-
     const tx = await tokenRejectContract.rejectTokens(
-      receiver.address,
+      rejecter,
       [],
       [nftTokenAddress],
       [secondSerial],
@@ -188,13 +166,11 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
       contractAddresses,
       hapi,
     );
-    const receivers = signers.slice(1, 3);
-
-    for (const receiver of receivers) {
+    for (const rejectingAccount of [rejecter, secondRejecter]) {
       const airdropTx = await airdropContract.tokenAirdrop(
         tokenAddress,
         owner,
-        receiver.address,
+        rejectingAccount,
         BigInt(1),
         {
           value: Constants.ONE_HBAR,
@@ -204,7 +180,7 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
       await airdropTx.wait();
 
       const tx = await tokenRejectContract.rejectTokens(
-        receiver.address,
+        rejectingAccount,
         [tokenAddress],
         [],
         [],
@@ -223,14 +199,10 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
       hapi,
     );
 
-    await walletIHRC904AccountFacade.setUnlimitedAutomaticAssociations(false, {
-      gasLimit: 2_000_000,
-    });
-
     const airdropTx = await airdropContract.tokenAirdrop(
       tokenAddress,
       owner,
-      receiver.address,
+      pendingRejecter,
       BigInt(1),
       {
         value: Constants.ONE_HBAR,
@@ -240,7 +212,7 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     await airdropTx.wait();
 
     const tx = await tokenRejectContract.rejectTokens(
-      receiver.address,
+      pendingRejecter,
       [tokenAddress],
       [],
       [],
@@ -257,10 +229,17 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
       contractAddresses,
       hapi,
     );
-    const receiver = signers[1];
+
+    await (
+      await tokenCreateContract.associateTokenPublic(
+        rejecter,
+        tokenAddress,
+        Constants.GAS_LIMIT_1_000_000,
+      )
+    ).wait();
 
     const tx = await tokenRejectContract.rejectTokens(
-      receiver.address,
+      rejecter,
       [tokenAddress],
       [],
       [],
@@ -282,7 +261,7 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     // Fails on the invalid fungible token before the NFT serial is evaluated,
     // so the serial value here is irrelevant (placeholder to match array length).
     const tx = await tokenRejectContract.rejectTokens(
-      receiver.address,
+      rejecter,
       [invalidToken],
       [nftTokenAddress],
       [1],
@@ -301,14 +280,13 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
       contractAddresses,
       hapi,
     );
-    const receiver = signers[1];
 
     const serial = await utils.mintNFT(tokenCreateContract, nftTokenAddress);
 
     const airdropTx = await airdropContract.nftAirdrop(
       nftTokenAddress,
       owner,
-      receiver.address,
+      rejecter,
       serial,
       {
         value: Constants.ONE_HBAR,
@@ -317,12 +295,8 @@ describe('HIP904Batch3 TokenRejectContract Test Suite', function () {
     );
     await airdropTx.wait();
 
-    await walletIHRC904AccountFacade.setUnlimitedAutomaticAssociations(true, {
-      gasLimit: 2_000_000,
-    });
-
     const tx = await tokenRejectContract.rejectTokens(
-      receiver.address,
+      rejecter,
       [],
       [invalidNft],
       [serial],
