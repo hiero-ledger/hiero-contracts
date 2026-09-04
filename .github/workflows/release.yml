@@ -50,7 +50,7 @@ jobs:
           egress-policy: audit
 
       - name: Prepare Job
-        uses: pandaswhocode/initialize-github-job@05fe2fa999e509c966283d5c5cf60df69f2049e9 # 1.2.1
+        uses: pandaswhocode/initialize-github-job@0ed960ecaed898893e404ad55c7aa12fdc3b2a53 # 1.4.0
         with:
           checkout: 'true'
           checkout-ref: '${{ github.ref }}'
@@ -106,7 +106,7 @@ jobs:
           egress-policy: audit
 
       - name: Prepare Job
-        uses: pandaswhocode/initialize-github-job@05fe2fa999e509c966283d5c5cf60df69f2049e9 # 1.2.1
+        uses: pandaswhocode/initialize-github-job@0ed960ecaed898893e404ad55c7aa12fdc3b2a53 # 1.4.0
         with:
           checkout: 'true'
           checkout-ref: '${{ github.ref }}'
@@ -239,7 +239,7 @@ jobs:
           egress-policy: audit
 
       - name: Prepare Job
-        uses: pandaswhocode/initialize-github-job@05fe2fa999e509c966283d5c5cf60df69f2049e9 # 1.2.1
+        uses: pandaswhocode/initialize-github-job@0ed960ecaed898893e404ad55c7aa12fdc3b2a53 # 1.4.0
         with:
           checkout: 'true'
           checkout-ref: '${{ github.ref }}'
@@ -370,7 +370,7 @@ jobs:
           egress-policy: audit
 
       - name: Prepare Job
-        uses: pandaswhocode/initialize-github-job@05fe2fa999e509c966283d5c5cf60df69f2049e9 # 1.2.1
+        uses: pandaswhocode/initialize-github-job@0ed960ecaed898893e404ad55c7aa12fdc3b2a53 # 1.4.0
         with:
           checkout: 'true'
           checkout-ref: '${{ github.event.repository.default_branch }}'
@@ -449,7 +449,7 @@ jobs:
           egress-policy: audit
 
       - name: Prepare Release
-        uses: pandaswhocode/initialize-github-job@05fe2fa999e509c966283d5c5cf60df69f2049e9 # 1.2.1
+        uses: pandaswhocode/initialize-github-job@0ed960ecaed898893e404ad55c7aa12fdc3b2a53 # 1.4.0
         with:
           checkout: 'true'
           checkout-ref: '${{ github.ref }}'
