@@ -39,7 +39,7 @@
     "@nomicfoundation/hardhat-toolbox-mocha-ethers": "^3.0.2",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-simple-import-sort": "^14.0.0",
     "globals": "^17.2.0",
     "hardhat": "^3.1.8",
     "husky": "^9.1.7",
