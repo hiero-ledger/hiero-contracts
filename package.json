@@ -33,7 +33,7 @@
     "bump-contracts-version": "node scripts/bump-contracts-version.js"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
+    "@eslint/js": "^10.0.1",
     "@hashgraph/hedera-local": "^2.35.0",
     "@hashgraph/sdk": "^2.70.0",
     "@nomicfoundation/hardhat-toolbox-mocha-ethers": "^3.0.2",
