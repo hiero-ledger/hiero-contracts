@@ -37,7 +37,7 @@
     "@hashgraph/hedera-local": "^2.35.0",
     "@hashgraph/sdk": "^2.70.0",
     "@nomicfoundation/hardhat-toolbox-mocha-ethers": "^3.0.2",
-    "eslint": "^9.39.2",
+    "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-simple-import-sort": "^14.0.0",
     "globals": "^17.2.0",
