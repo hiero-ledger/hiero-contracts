@@ -4,9 +4,16 @@ on:
   pull_request:
     types: [opened, edited, labeled, unlabeled, synchronize]
 
+permissions:
+  contents: read
+
 jobs:
   check_pr:
     runs-on: hl-contr-lin-md
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
 
     steps:
       - name: Harden Runner
@@ -23,7 +30,7 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install axios
+        run: npm ci --omit=dev
 
       - name: Check PR labels and milestones
         env:
