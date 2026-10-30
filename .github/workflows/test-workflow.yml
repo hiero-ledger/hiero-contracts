@@ -50,7 +50,7 @@ jobs:
       - name: Use Node.js [24]
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 24.12.0
+          node-version: 24
 
       - name: Initialize test environment variables
         run: cp local.env .env
@@ -62,11 +62,11 @@ jobs:
         run: |
           cat > .github/falcon.yml <<EOF
           network:
-            --consensus-node-version: "${{ inputs.networkTag || 'v0.77.0-rc.6' }}"
+            --consensus-node-version: "${{ inputs.networkTag || 'v0.77.2' }}"
             --node-aliases: "node1"
           
           setup:
-            --consensus-node-version: "${{ inputs.networkTag || 'v0.77.0-rc.6' }}"
+            --consensus-node-version: "${{ inputs.networkTag || 'v0.77.2' }}"
             --node-aliases: "node1"
           
           consensusNode:
@@ -74,7 +74,7 @@ jobs:
           mirrorNode:
             --enable-ingress: true
             --pinger: true
-            --mirror-node-version: "${{ inputs.mirrorTag || 'v0.161.1' }}"
+            --mirror-node-version: "${{ inputs.mirrorTag || 'v0.165.0' }}"
           explorerNode:
             --enable-ingress: true
           relayNode:
@@ -93,15 +93,16 @@ jobs:
           wait: 120s
 
       - name: Start the solo node
-        # solo 0.85 forwards the endpoints itself (--external-address); the env
+        # solo 0.92 forwards the endpoints itself (--external-address); the env
         # vars remap its local ports to the ones the tests expect (see test/config.js).
         env:
           MIRROR_NODE_PORT: 5551
           GRPC_LOCAL_PORT: 50211
           JSON_RPC_RELAY_LOCAL_PORT: 7546
         run: |
-          npx @hashgraph/solo@${{ inputs.soloVersion || '0.85.0' }} one-shot falcon deploy \
+          npx @hashgraph/solo@${{ inputs.soloVersion || '0.92.0' }} one-shot falcon deploy \
             --values-file .github/falcon.yml \
+            --relay-version ${{ inputs.relayTag || '0.80.1' }} \
             --external-address 0.0.0.0 \
             --dev
         timeout-minutes: 15
@@ -129,4 +130,4 @@ jobs:
 
       - name: Stop solo
         if: ${{ !cancelled() }}
-        run: npx @hashgraph/solo@${{ inputs.soloVersion || '0.85.0' }} one-shot single destroy
+        run: npx @hashgraph/solo@${{ inputs.soloVersion || '0.92.0' }} one-shot falcon destroy --quiet-mode || true
