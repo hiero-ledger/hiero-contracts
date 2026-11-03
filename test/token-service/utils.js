@@ -652,7 +652,7 @@ class Utils {
     } catch (e) {
       if (attempt >= maxAttempts) throw e;
       await Utils.sleep(intervalMs);
-      return Utils.retriedGetRequest(url, maxAttempts, intervalMs, ++attempt);
+      return Utils.retriedGetRequest(url, maxAttempts, intervalMs, attempt + 1);
     }
   }
 
