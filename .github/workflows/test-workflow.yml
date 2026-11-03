@@ -40,7 +40,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
         with:
           egress-policy: audit
 
@@ -48,7 +48,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Use Node.js [24]
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24.12.0
 
@@ -83,7 +83,7 @@ jobs:
           EOF
 
       - name: Setup Kind
-        uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+        uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
         with:
           install_only: true
           node_image: kindest/node:v1.32.5@sha256:e3b2327e3a5ab8c76f5ece68936e4cafaa82edf58486b769727ab0b3b97a5b0d
@@ -100,7 +100,7 @@ jobs:
           GRPC_LOCAL_PORT: 50211
           JSON_RPC_RELAY_LOCAL_PORT: 7546
         run: |
-          npx @hashgraph/solo@${{ inputs.soloVersion || '0.85.0' }} one-shot falcon deploy \
+          npx @hashgraph/solo@${{ inputs.soloVersion || '0.91.0' }} one-shot falcon deploy \
             --values-file .github/falcon.yml \
             --external-address 0.0.0.0 \
             --dev
@@ -113,13 +113,13 @@ jobs:
 
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Test Results (${{ inputs.testfilter }})
           path: test-*.xml
 
       - name: Publish Test Report
-        uses: step-security/publish-unit-test-result-action@681100d67b09305624c089873f12c545ee7cbc24 # v2.23.0
+        uses: step-security/publish-unit-test-result-action@8cf946dca1a299ebf36dff640273fda13717050a # v2.24.0
         if: ${{ !cancelled() }}
         with:
           check_name: 'Unit Tests results' # Set to empty to disable check run
@@ -129,4 +129,4 @@ jobs:
 
       - name: Stop solo
         if: ${{ !cancelled() }}
-        run: npx @hashgraph/solo@${{ inputs.soloVersion || '0.85.0' }} one-shot single destroy
+        run: npx @hashgraph/solo@${{ inputs.soloVersion || '0.91.0' }} one-shot single destroy
