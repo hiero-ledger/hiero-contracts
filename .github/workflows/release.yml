@@ -56,7 +56,7 @@ jobs:
           checkout-ref: '${{ github.ref }}'
           checkout-token: '${{ secrets.GH_ACCESS_TOKEN }}'
           setup-node: 'true'
-          node-version: '24.12.0'
+          node-version: '24'
           node-registry: 'https://registry.npmjs.org/'
 
       - name: Create RC branch and dispatch workflow
@@ -112,7 +112,7 @@ jobs:
           checkout-ref: '${{ github.ref }}'
           checkout-token: '${{ secrets.GH_ACCESS_TOKEN }}'
           setup-node: 'true'
-          node-version: '24.12.0'
+          node-version: '24'
           node-registry: 'https://registry.npmjs.org/'
 
       - name: Select release mode
@@ -245,7 +245,7 @@ jobs:
           checkout-ref: '${{ github.ref }}'
           checkout-token: '${{ secrets.GH_ACCESS_TOKEN }}'
           setup-node: 'true'
-          node-version: '24.12.0'
+          node-version: '24'
           node-registry: 'https://registry.npmjs.org/'
 
       - name: Install GnuPG Tools
@@ -376,7 +376,7 @@ jobs:
           checkout-ref: '${{ github.event.repository.default_branch }}'
           checkout-token: '${{ secrets.GH_ACCESS_TOKEN }}'
           setup-node: 'true'
-          node-version: '24.12.0'
+          node-version: '24'
           node-registry: 'https://registry.npmjs.org/'
 
       - name: Install GnuPG Tools
@@ -455,7 +455,7 @@ jobs:
           checkout-ref: '${{ github.ref }}'
           checkout-token: '${{ secrets.GH_ACCESS_TOKEN }}'
           setup-node: 'true'
-          node-version: '24.12.0'
+          node-version: '24'
           node-registry: 'https://registry.npmjs.org/'
 
       - name: Download Hiero Contracts NPM package artifact
